@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# playwright-cli inside the "browser" container (headed via WSLg).
+exec docker compose -f "$(dirname "$0")/compose.yml" exec -T browser playwright-cli "$@"

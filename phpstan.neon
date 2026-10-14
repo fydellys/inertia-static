@@ -1,0 +1,15 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+    treatPhpDocTypesAsCertain: false
+    ignoreErrors:
+        # Overrides of untyped Illuminate\Session\Store signatures.
+        -
+            identifier: missingType.iterableValue
+            path: src/Security/SessionTrap.php
+        -
+            identifier: trait.unused

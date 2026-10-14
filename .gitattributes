@@ -1,0 +1,20 @@
+# Keep the Composer dist small.
+/.github export-ignore
+/docker export-ignore
+# js/dist (the built client) ships with the Composer package: import it from vendor/.
+/js/src export-ignore
+/js/tests export-ignore
+/tests export-ignore
+/bin-node export-ignore
+/bin-php export-ignore
+/eslint.config.js export-ignore
+/package.json export-ignore
+/package-lock.json export-ignore
+/phpstan.neon export-ignore
+/phpunit.xml export-ignore
+/pint.json export-ignore
+/tsconfig.json export-ignore
+/tsup.config.ts export-ignore
+/vitest.config.ts export-ignore
+/examples export-ignore
+/docs export-ignore

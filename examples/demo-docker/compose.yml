@@ -1,0 +1,44 @@
+name: inertia-static-demo
+
+services:
+  app:
+    image: inertia-static-app
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /repo/examples/demo
+    volumes:
+      - ../..:/repo
+    environment:
+      PHP_CLI_SERVER_WORKERS: "4"
+      HOME: /tmp
+    command: sh -c "php artisan config:clear >/dev/null && (php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1 &) && (php artisan queue:work --sleep=1 > storage/logs/queue.log 2>&1 &) && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"
+
+  cdn:
+    image: inertia-static-cdn
+    build:
+      context: .
+      dockerfile: cdn.Dockerfile
+    depends_on: [app]
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./nginx.conf:/etc/nginx/http.d/default.conf:ro
+
+  # playwright-cli with the WSLg display: the browser window opens on the Windows desktop.
+  browser:
+    image: inertia-static-playwright
+    network_mode: "service:cdn"
+    depends_on: [cdn]
+    ipc: host
+    user: "${UID:-1000}:${GID:-1000}"
+    environment:
+      HOME: /tmp/pwhome
+      DISPLAY: ":0"
+      WAYLAND_DISPLAY: wayland-0
+      XDG_RUNTIME_DIR: /mnt/wslg/runtime-dir
+      PULSE_SERVER: /mnt/wslg/PulseServer
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - /mnt/wslg:/mnt/wslg
+      - ./artifacts:/work
+    working_dir: /work
+    command: sh -c "mkdir -p /tmp/pwhome && sleep infinity"

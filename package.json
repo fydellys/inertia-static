@@ -1,0 +1,66 @@
+{
+  "name": "@fydellys/inertia-static",
+  "version": "0.1.0",
+  "description": "Client plugin for fydellys/inertia-static: serves Inertia visits of static / ISR pages from cacheable JSON URLs.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fydellys/inertia-static.git"
+  },
+  "keywords": [
+    "inertia",
+    "inertiajs",
+    "laravel",
+    "ssg",
+    "isr",
+    "cdn",
+    "vue"
+  ],
+  "files": [
+    "js/dist"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./js/dist/index.d.ts",
+      "import": "./js/dist/index.js"
+    },
+    "./vue": {
+      "types": "./js/dist/vue.d.ts",
+      "import": "./js/dist/vue.js"
+    },
+    "./vite": {
+      "types": "./js/vite.d.ts",
+      "import": "./js/vite.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint js"
+  },
+  "peerDependencies": {
+    "@inertiajs/core": "^3.0.0",
+    "vue": "^3.5.0"
+  },
+  "peerDependenciesMeta": {
+    "vue": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@inertiajs/core": "^3.9.1",
+    "@inertiajs/vue3": "^3.9.1",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^10.12.0",
+    "happy-dom": "^20.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^3.2.0",
+    "vue": "^3.5.0"
+  }
+}

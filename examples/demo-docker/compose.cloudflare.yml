@@ -1,0 +1,26 @@
+# Origin for a real Cloudflare zone (through a Cloudflare Tunnel to localhost:80).
+# Credentials are NOT stored here: pass an env file that lives outside the repository:
+#
+#   CF_ENV_FILE=/path/outside/repo/cloudflare.env CF_HOST=local.example.com \
+#     docker compose -f compose.yml -f compose.cloudflare.yml up -d origin
+services:
+  origin:
+    image: inertia-static-app
+    user: "${UID:-1000}:${GID:-1000}"
+    working_dir: /repo/examples/demo
+    volumes:
+      - ../..:/repo
+    ports:
+      - "80:8000"
+    env_file:
+      - ${CF_ENV_FILE:?set CF_ENV_FILE to an env file outside the repository}
+    environment:
+      HOME: /tmp
+      PHP_CLI_SERVER_WORKERS: "4"
+      APP_URL: https://${CF_HOST:?set CF_HOST}
+      INERTIA_STATIC_BASE_URL: https://${CF_HOST}
+      INERTIA_STATIC_CDN: cloudflare
+      INERTIA_STATIC_PURGE_RATE_LIMIT: "5"
+      INERTIA_STATIC_WARM_URL: ""
+      INERTIA_SSR_URL: http://127.0.0.1:13714
+    command: sh -c "php artisan config:clear >/dev/null && (php artisan inertia:start-ssr > /tmp/ssr.log 2>&1 &) && (php artisan queue:work --sleep=1 > /tmp/queue.log 2>&1 &) && php artisan serve --host=0.0.0.0 --port=8000 --no-reload"

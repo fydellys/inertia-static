@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Runs Node / npm inside Docker (no local Node required).
+set -e
+DIR="$(cd "$(dirname "$0")" && pwd)"
+mkdir -p "$HOME/.cache/npm-docker"
+exec docker run --rm -i -u "$(id -u):$(id -g)" -v "$DIR":/app -v "$HOME/.cache/npm-docker":/tmp/npm \
+    -e npm_config_cache=/tmp/npm -e HOME=/tmp -w /app node:22-alpine "$@"

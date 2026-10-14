@@ -1,0 +1,14 @@
+/vendor
+/node_modules
+/dist
+/.phpunit.cache
+/composer.lock
+.phpunit.result.cache
+.DS_Store
+/examples/demo-docker/artifacts
+/examples/demo/*.tgz
+/docs/node_modules
+/docs/.vitepress/dist
+/docs/.vitepress/cache
+/project
+.claude

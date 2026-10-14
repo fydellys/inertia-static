@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Runs PHP / Composer inside Docker (no local PHP required).
+set -e
+DIR="$(cd "$(dirname "$0")" && pwd)"
+if ! docker image inspect inertia-static-php >/dev/null 2>&1; then
+    docker build -q -t inertia-static-php -f "$DIR/docker/php.Dockerfile" "$DIR/docker" >/dev/null
+fi
+mkdir -p "$HOME/.cache/composer-docker"
+exec docker run --rm -i -u "$(id -u):$(id -g)" -v "$DIR":/app -v "$HOME/.cache/composer-docker":/tmp/composer \
+    -e COMPOSER_HOME=/tmp/composer -w /app inertia-static-php "$@"
