@@ -6,6 +6,7 @@ use Fydellys\InertiaStatic\Cdn\CdnManager;
 use Fydellys\InertiaStatic\Enums\Capability;
 use Fydellys\InertiaStatic\Http\Middleware\ApplyStaticCache;
 use Fydellys\InertiaStatic\Routing\StaticRouteConfigurator;
+use Fydellys\InertiaStatic\Ssr\RecordingGateway;
 use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Support\Manifest;
 use Illuminate\Console\Command;
@@ -86,6 +87,7 @@ class DoctorCommand extends Command
         }
 
         $gateway = app(Gateway::class);
+        $gateway = $gateway instanceof RecordingGateway ? $gateway->inner() : $gateway;
 
         if ($gateway instanceof HasHealthCheck) {
             $this->check('SSR server reachable', $gateway->isHealthy(), 'The SSR server is not responding: HTML responses will be sent with no-store.');

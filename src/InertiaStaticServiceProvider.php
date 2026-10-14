@@ -13,6 +13,8 @@ use Fydellys\InertiaStatic\Registry\RegistryManager;
 use Fydellys\InertiaStatic\Routing\AttributeRouteResolver;
 use Fydellys\InertiaStatic\Routing\StaticRouteConfigurator;
 use Fydellys\InertiaStatic\Security\RenderGuard;
+use Fydellys\InertiaStatic\Ssr\RecordingGateway;
+use Fydellys\InertiaStatic\Ssr\SsrRecorder;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
@@ -23,8 +25,7 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Response as InertiaResponse;
-use Inertia\Ssr\SsrState;
-use LogicException;
+use Inertia\Ssr\Gateway;
 
 class InertiaStaticServiceProvider extends ServiceProvider
 {
@@ -32,7 +33,8 @@ class InertiaStaticServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__.'/../config/inertia-static.php', 'inertia-static');
 
-        $this->ensureCompatibleInertia();
+        $this->app->scoped(SsrRecorder::class);
+        $this->supportInertia2();
 
         // Request-lifecycle state: "scoped" is reset per request / job (Octane safe).
         $this->app->scoped(StaticRequestContext::class);
@@ -162,10 +164,15 @@ class InertiaStaticServiceProvider extends ServiceProvider
         ));
     }
 
-    protected function ensureCompatibleInertia(): void
+    /**
+     * Inertia 2 has no SsrState: record the SSR result through the gateway.
+     */
+    protected function supportInertia2(): void
     {
-        if (! class_exists(SsrState::class)) {
-            throw new LogicException('[inertia-static] Requires inertiajs/inertia-laravel ^3.0. Run: composer require inertiajs/inertia-laravel:^3.0');
+        if (SsrRecorder::nativeState()) {
+            return;
         }
+
+        $this->app->extend(Gateway::class, fn (Gateway $gateway, $app) => new RecordingGateway($gateway, $app));
     }
 }

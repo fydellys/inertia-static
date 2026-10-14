@@ -2,11 +2,11 @@
 
 namespace Fydellys\InertiaStatic\Support;
 
+use Fydellys\InertiaStatic\Ssr\SsrRecorder;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Container\Container;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Inertia\Ssr\SsrState;
 use Inertia\Support\Header;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -156,7 +156,7 @@ class PolicyResolver
             return false;
         }
 
-        if ($this->container->make(SsrState::class)->response !== null) {
+        if ($this->container->make(SsrRecorder::class)->response() !== null) {
             return false;
         }
 

@@ -5,6 +5,7 @@ namespace Fydellys\InertiaStatic\Http\Middleware;
 use Closure;
 use Fydellys\InertiaStatic\Exceptions\InvalidStaticRoute;
 use Fydellys\InertiaStatic\Security\RenderGuard;
+use Fydellys\InertiaStatic\Ssr\SsrRecorder;
 use Fydellys\InertiaStatic\Support\RouteOptions;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
@@ -13,7 +14,6 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Inertia\Inertia;
-use Inertia\Ssr\SsrState;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -69,7 +69,7 @@ class RenderStatically
     {
         $page = $response instanceof JsonResponse
             ? (array) $response->getData(true)
-            : $this->container->make(SsrState::class)->page;
+            : $this->container->make(SsrRecorder::class)->page();
 
         if (empty($page['deferredProps'])) {
             return;

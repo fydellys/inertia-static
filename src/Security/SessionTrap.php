@@ -4,7 +4,6 @@ namespace Fydellys\InertiaStatic\Security;
 
 use Illuminate\Session\NullSessionHandler;
 use Illuminate\Session\Store;
-use Inertia\Support\SessionKey;
 
 /**
  * Stands in for the session store while a static page renders. It is a real
@@ -19,8 +18,8 @@ use Inertia\Support\SessionKey;
 class SessionTrap extends Store
 {
     public const INERTIA_KEYS = [
-        SessionKey::CLEAR_HISTORY,
-        SessionKey::PRESERVE_FRAGMENT,
+        'inertia.clear_history',
+        'inertia.preserve_fragment', // Inertia 3
     ];
 
     public function __construct(protected RenderGuard $guard)

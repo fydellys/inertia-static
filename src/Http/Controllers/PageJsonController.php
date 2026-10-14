@@ -15,7 +15,6 @@ use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
 use Inertia\Support\Header;
-use Inertia\Support\SessionKey;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -94,7 +93,7 @@ class PageJsonController
             $page['props']['errors'] = $errors;
         }
 
-        if ($flash = $request->session()->pull(SessionKey::FLASH_DATA)) {
+        if ($flash = $request->session()->pull('inertia.flash_data')) {
             $page['flash'] = $flash;
         }
 
