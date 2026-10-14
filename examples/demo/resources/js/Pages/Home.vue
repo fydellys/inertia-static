@@ -5,7 +5,7 @@ import Layout from '../Layouts/Layout.vue'
 // Persistent layout: mounted once, kept across visits (the /api/me island loads once).
 defineOptions({ layout: Layout })
 
-defineProps<{ renderedAt: string }>()
+defineProps<{ renderedAt: string; preview?: boolean }>()
 
 // Polling a static page is a partial reload: it must go to the origin, uncached.
 const { start, stop, polling } = usePoll(1500, { only: ['renderedAt'] }, { autoStart: false })
@@ -13,6 +13,9 @@ const { start, stop, polling } = usePoll(1500, { only: ['renderedAt'] }, { autoS
 
 <template>
   <Head title="Home" />
+  <p v-if="preview" class="mb-2 rounded bg-amber-100 p-2 text-sm" data-testid="preview-banner">
+    Preview mode: fresh content, not cached. <a href="/preview/disable" class="underline" data-testid="preview-exit">Exit</a>
+  </p>
   <h1 class="text-2xl font-bold">Static home</h1>
   <p>Rendered at the origin at <span data-testid="rendered-at">{{ renderedAt }}</span></p>
 

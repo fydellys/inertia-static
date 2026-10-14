@@ -5,7 +5,7 @@ namespace Fydellys\InertiaStatic\Contracts;
 interface StaticPathsProvider
 {
     /**
-     * The route parameters to pre-render (equivalent to getStaticPaths).
+     * The route parameters of the pages to pre-render.
      *
      * @return iterable<int, array<string, mixed>>
      */

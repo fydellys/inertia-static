@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Cdn\Drivers;
 
 use Fydellys\InertiaStatic\Cdn\Driver;
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Support\CachePolicy;
 use Illuminate\Support\Str;
 
@@ -92,7 +93,7 @@ class FastlyDriver extends Driver
     {
         return array_filter([
             'Fastly-Key' => (string) $this->config['api_token'],
-            'Fastly-Soft-Purge' => ($this->config['soft_purge'] ?? true) ? '1' : null,
+            'Fastly-Soft-Purge' => $this->mode === PurgeMode::Soft ? '1' : null,
         ]);
     }
 }

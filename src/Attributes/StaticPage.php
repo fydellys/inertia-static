@@ -22,6 +22,7 @@ final readonly class StaticPage
         public array $query = [],
         public ?int $staleWhileRevalidate = null,
         public ?int $staleIfError = null,
+        public ?int $expire = null,
     ) {}
 
     /**
@@ -36,6 +37,7 @@ final readonly class StaticPage
             'query' => $this->query,
             'stale_while_revalidate' => $this->staleWhileRevalidate,
             'stale_if_error' => $this->staleIfError,
+            'expire' => $this->expire,
         ];
     }
 

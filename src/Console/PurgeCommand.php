@@ -2,6 +2,7 @@
 
 namespace Fydellys\InertiaStatic\Console;
 
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
 use Fydellys\InertiaStatic\Jobs\WarmStaticCache;
 use Fydellys\InertiaStatic\StaticCache;
@@ -18,7 +19,8 @@ class PurgeCommand extends Command
         {--all : Purge everything}
         {--driver= : CDN driver (default: config)}
         {--queue : Dispatch to the queue instead of purging now}
-        {--warm : Warm the purged URLs afterwards}';
+        {--warm : Warm the purged URLs afterwards}
+        {--hard : Remove the content now instead of marking it stale (soft purge)}';
 
     protected $description = 'Purge the CDN cache of static pages';
 
@@ -51,11 +53,13 @@ class PurgeCommand extends Command
             $items = $operation === PurgeOperation::All ? [] : $items;
 
             if ($this->option('queue')) {
+                $mode = $this->option('hard') ? PurgeMode::Hard : null;
+
                 match ($operation) {
-                    PurgeOperation::Tags => $cache->purgeTags($items),
-                    PurgeOperation::Urls => $cache->purgeUrls($items),
-                    PurgeOperation::Prefixes => $cache->purgePrefix($items),
-                    PurgeOperation::All => $cache->purgeAll(),
+                    PurgeOperation::Tags => $cache->purgeTags($items, $mode),
+                    PurgeOperation::Urls => $cache->purgeUrls($items, $mode),
+                    PurgeOperation::Prefixes => $cache->purgePrefix($items, $mode),
+                    PurgeOperation::All => $cache->purgeAll($mode),
                 };
 
                 $this->components->info("Queued purge of {$operation->value}.");
@@ -65,7 +69,7 @@ class PurgeCommand extends Command
 
             $this->components->task("Purging {$operation->value} ".implode(', ', $items), function () use ($cache, $operation, $items) {
                 $driver = $this->option('driver');
-                $urls = $cache->purgeNow($operation, $items, is_string($driver) && $driver !== '' ? $driver : null);
+                $urls = $cache->purgeNow($operation, $items, is_string($driver) && $driver !== '' ? $driver : null, $this->option('hard') ? PurgeMode::Hard : null);
 
                 if ($this->option('warm') && $urls !== []) {
                     WarmStaticCache::dispatchSync($urls);

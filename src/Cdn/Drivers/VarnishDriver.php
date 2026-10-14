@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Cdn\Drivers;
 
 use Fydellys\InertiaStatic\Cdn\Driver;
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Support\CachePolicy;
 
 /**
@@ -56,7 +57,10 @@ class VarnishDriver extends Driver
 
     public function purgeTags(array $tags): void
     {
-        $this->each('PURGE', ['xkey-purge' => implode(' ', $tags)]);
+        // docs/varnish.vcl: xkey-softpurge marks stale (grace), xkey-purge removes.
+        $header = $this->mode === PurgeMode::Soft ? 'xkey-softpurge' : 'xkey-purge';
+
+        $this->each('PURGE', [$header => implode(' ', $tags)]);
     }
 
     public function purgePrefixes(array $prefixes): void

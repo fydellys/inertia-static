@@ -70,11 +70,6 @@ TypeScript: point the alias at the bundled types in `tsconfig.json`:
 }
 ```
 
-::: details Prefer npm?
-The same client is published as `@fydellys/inertia-static`. With `npm install @fydellys/inertia-static` you do not
-need the alias, and the plugin is available as `@fydellys/inertia-static/vite`. Run
-`php artisan inertia-static:manifest` before `npm run build`, or keep the plugin, which does it for you.
-:::
 
 ::: tip
 Without an imported manifest, the plugin fetches `/__inertia/manifest.json` once. If that fails, every visit

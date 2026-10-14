@@ -219,7 +219,7 @@ section "6. time-based revalidation (/about: revalidate 10s, stale-while-revalid
 artisan inertia-static:purge --url=/about
 rendered /about; A=$AT
 eq "1st visit: MISS (rendered at the origin)" "$(hdr X-Cache-Status)" "MISS"
-has "  origin declares ttl=10" "$(hdr X-Inertia-Static)" "ttl=10"
+eq "  origin marked it cacheable (X-Inertia-Static: MISS)" "$(hdr X-Inertia-Static)" "MISS"
 rendered /about
 eq "2nd visit before expiry: HIT, same content" "$AT|$(hdr X-Cache-Status)" "$A|HIT"
 echo "    … waiting 13s for the TTL (10s) to expire"; sleep 13
@@ -303,13 +303,13 @@ for u in / /blog /blog/post-7 "$(json_url /blog/post-12)"; do eq "warm: $u is a 
 section "10. edge cases"
 get /blog/does-not-exist
 eq "404: status" "$(echo "$H" | head -1 | cut -d' ' -f2)" "404"
-has "404: short TTL (not_found_ttl)" "$(hdr X-Inertia-Static)" "ttl=60"
+eq "404: cacheable (short not_found_ttl)" "$(hdr X-Inertia-Static)" "MISS"
 eq "404: cached on the 2nd request" "$(cdn /blog/does-not-exist)" "HIT"
 get "/blog?page=2&utm_source=news&fbclid=x"
 eq "query outside the whitelist: 301" "$(echo "$H" | head -1 | cut -d' ' -f2)" "301"
 eq "  to the canonical URL (base_url)" "$(hdr Location)" "$BASE/blog?page=2"
 get /blog -H "Authorization: Bearer abc"
-has "Authorization: never cached (origin)" "$(hdr X-Inertia-Static)" "BYPASS; reason=authorization"
+eq "Authorization: never cached (origin)" "$(hdr X-Inertia-Static-Reason)" "authorization"
 eq "  the CDN bypassed too" "$(hdr X-Cache-Status)" "BYPASS"
 get /; ETAG=$(hdr ETag)
 get / -H "If-None-Match: $ETAG"
@@ -317,12 +317,12 @@ eq "strong ETag + If-None-Match: 304 at the CDN" "$(echo "$H" | head -1 | cut -d
 eq "  304 without body" "${#B}" "0"
 get /leak
 eq "leak detector: auth()->user() on a static page fails (local)" "$(echo "$H" | head -1 | cut -d' ' -f2)" "500"
-has "  and is not cached (reason: leak:auth)" "$(hdr X-Inertia-Static)" "BYPASS; reason=leak:auth"
+eq "  and is not cached (reason: leak:auth)" "$(hdr X-Inertia-Static-Reason)" "leak:auth"
 eq "  the CDN did not store it" "$(cdn /leak)" "MISS"
 docker compose exec -T app php artisan inertia:stop-ssr >/dev/null 2>&1; sleep 1
 artisan inertia-static:purge --url=/about
 get /about
-has "SSR down: degraded HTML is not cached" "$(hdr X-Inertia-Static)" "BYPASS; reason=ssr-unavailable"
+eq "SSR down: degraded HTML is not cached" "$(hdr X-Inertia-Static-Reason)" "ssr-unavailable"
 has "  Cache-Control no-store" "$(hdr Cache-Control)" "no-store"
 eq "  the CDN did not store it (MISS again)" "$(cdn /about)" "MISS"
 docker compose exec -d app sh -c 'php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1'; sleep 3

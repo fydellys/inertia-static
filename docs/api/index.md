@@ -1,40 +1,31 @@
 # API Reference
 
-Every public function, in the format of the Next.js API reference. Each page has the signature, the parameters,
-what it returns, examples and the things that are good to know.
+Every public function: signature, parameters, return value, examples and what is good to know.
 
 ## Route configuration
 
-| API | Next.js equivalent |
-|---|---|
-| [`->isr()` / `->static()` / `->dynamic()`](./route-isr) | `export const revalidate`, `dynamic = 'force-static'` |
-| [`#[StaticPage]`](./static-page-attribute) | route segment config |
-| [`StaticPathsProvider`](./static-paths-provider) | `generateStaticParams` / `getStaticPaths` |
+- [`->isr()` / `->static()` / `->dynamic()`](./route-isr)
+- [`#[StaticPage]`](./static-page-attribute)
+- [`StaticPathsProvider`](./static-paths-provider)
 
 ## Responses
 
-| API | Next.js equivalent |
-|---|---|
-| [`->revalidate()`, `->staleWhileRevalidate()`, `->staleIfError()`](./response-revalidate) | `revalidate` in `fetch` / `cacheLife` |
-| [`->tags()`](./response-tags) | `next: { tags }` / `cacheTag` |
+- [`->revalidate()`, `->staleWhileRevalidate()`, `->staleIfError()`](./response-revalidate)
+- [`->tags()`](./response-tags)
 
 ## On-demand revalidation
 
-| API | Next.js equivalent |
-|---|---|
-| [`StaticCache::purgeTags()`](./purge-tags) | `revalidateTag()` |
-| [`StaticCache::purgeUrls()`](./purge-urls) | `revalidatePath()` |
-| [`StaticCache::purgePrefix()`](./purge-prefix) | `revalidatePath('/blog', 'layout')` |
-| [`StaticCache::purgeAll()`](./purge-all) | `revalidatePath('/', 'layout')` |
-| [`StaticCache::purgeNow()`](./purge-now) | — (synchronous variant) |
-| [`StaticCache::canPurge()`](./can-purge) | — |
-| [`HasStaticTags`](./has-static-tags) | — (automatic purges from Eloquent) |
+- [`StaticCache::purgeTags()`](./purge-tags)
+- [`StaticCache::purgeUrls()`](./purge-urls)
+- [`StaticCache::purgePrefix()`](./purge-prefix)
+- [`StaticCache::purgeAll()`](./purge-all)
+- [`StaticCache::purgeNow()`](./purge-now)
+- [`StaticCache::canPurge()`](./can-purge)
+- [`HasStaticTags`](./has-static-tags)
 
 ## Client
 
-| API | Next.js equivalent |
-|---|---|
-| [`inertiaStatic()`](./inertia-static) | the App Router's RSC/data fetching |
-| [`useStaticIsland()`](./use-static-island) | a client component fetching user data |
-| [`ensureCsrfCookie()`](./ensure-csrf-cookie) | — |
-| [Vite plugin](./vite-plugin) | — |
+- [`inertiaStatic()`](./inertia-static)
+- [`useStaticIsland()`](./use-static-island)
+- [`ensureCsrfCookie()`](./ensure-csrf-cookie)
+- [Vite plugin](./vite-plugin)

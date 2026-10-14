@@ -9,7 +9,4 @@ enum CacheStatus: string
 
     /** Rendered at the origin and explicitly NOT cacheable. */
     case Bypass = 'BYPASS';
-
-    /** Produced by the static exporter. */
-    case Static = 'STATIC';
 }

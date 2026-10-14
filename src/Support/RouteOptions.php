@@ -26,6 +26,8 @@ final readonly class RouteOptions
         public array $tags = [],
         public array $query = [],
         public ?string $paths = null,
+        public ?int $expire = null,
+        public ?string $downgraded = null,
     ) {}
 
     public static function fromRoute(?Route $route): ?self
@@ -52,6 +54,8 @@ final readonly class RouteOptions
             tags: array_values($options['tags'] ?? []),
             query: array_values($options['query'] ?? []),
             paths: $options['paths'] ?? null,
+            expire: $options['expire'] ?? null,
+            downgraded: $options['downgraded'] ?? null,
         );
     }
 
@@ -70,6 +74,8 @@ final readonly class RouteOptions
             'tags' => $this->tags,
             'query' => $this->query,
             'paths' => $this->paths,
+            'expire' => $this->expire,
+            'downgraded' => $this->downgraded,
         ];
     }
 }

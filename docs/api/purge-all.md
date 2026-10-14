@@ -13,7 +13,7 @@ php artisan inertia-static:purge --all --warm      # deploy hook: purge, then re
 ## Reference
 
 ```php
-StaticCache::purgeAll(): void
+StaticCache::purgeAll(?PurgeMode $mode = null): void
 ```
 
 | Driver | What "all" means |

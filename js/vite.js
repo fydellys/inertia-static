@@ -13,7 +13,7 @@ import { URL, fileURLToPath } from 'node:url'
 const dist = fileURLToPath(new URL('./dist', import.meta.url))
 
 /**
- * @param {{ manifest?: boolean, php?: string, artisan?: string }} [options]
+ * @param {{ manifest?: boolean, php?: string, artisan?: string}} [options]
  * @returns {import('vite').Plugin}
  */
 export default function inertiaStatic(options = {}) {

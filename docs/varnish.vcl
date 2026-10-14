@@ -12,9 +12,14 @@ sub vcl_recv {
     if (req.method == "PURGE" || req.method == "BAN") {
         if (!client.ip ~ purge) { return (synth(405, "Not allowed")); }
 
-        # Tag purge: "xkey-purge: posts post:1"
+        # Tag purges: "xkey-softpurge: posts post:1" marks stale (served in grace while
+        # refetched); "xkey-purge" removes now.
+        if (req.http.xkey-softpurge) {
+            set req.http.n-gone = xkey.softpurge(req.http.xkey-softpurge);
+            return (synth(200, "Soft-purged " + req.http.n-gone));
+        }
         if (req.http.xkey-purge) {
-            set req.http.n-gone = xkey.softpurge(req.http.xkey-purge);
+            set req.http.n-gone = xkey.purge(req.http.xkey-purge);
             return (synth(200, "Purged " + req.http.n-gone));
         }
 
@@ -30,6 +35,11 @@ sub vcl_recv {
 
         # URL purge
         return (purge);
+    }
+
+    # Preview mode (StaticCache::enablePreview()): never answer from the cache.
+    if (req.http.Cookie ~ "inertia_static_preview=") {
+        return (pass);
     }
 
     # Inertia visits on HTML URLs must never be answered from the cache

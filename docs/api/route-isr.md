@@ -17,6 +17,7 @@ Route::get('/blog/{post:slug}', [PostController::class, 'show'])
     array $query = [],
     ?int $staleWhileRevalidate = null,
     ?int $staleIfError = null,
+    ?int $expire = null,
 ): Route
 
 ->static(/* same parameters */): Route
@@ -31,16 +32,17 @@ Route::get('/blog/{post:slug}', [PostController::class, 'show'])
 | `paths` | `class-string<StaticPathsProvider>` | `null` | Lists the concrete pages of a parameterized route. See [`StaticPathsProvider`](./static-paths-provider). |
 | `tags` | `string[]` | `[]` | Cache tags of every response of the route, purgeable with [`purgeTags()`](./purge-tags). |
 | `query` | `string[]` | `[]` | Query parameters that are part of the cache key. Others are removed with a `301`. |
-| `staleWhileRevalidate` | `int` seconds | `86400` | How long a stale page may be served while it is being refreshed. |
+| `staleWhileRevalidate` | `int` seconds | `expire - revalidate` | Explicit stale window; overrides `expire`. |
 | `staleIfError` | `int` seconds | `604800` | How long a stale page may be served while the origin errors. |
+| `expire` | `int` seconds | `31536000` | After it, a stale page is no longer served. `stale-while-revalidate = expire - revalidate`. |
 
 ### Modes
 
-| Macro | Rendered | Cached by the CDN | Exported |
+| Macro | Rendered | Cached by the CDN | Paths provider |
 |---|---|---|---|
 | `->dynamic()` (default) | every request | never | no |
-| `->isr()` | on a cache miss | yes, revalidated by time and on demand | no |
-| `->static()` | on a cache miss | yes | yes (exporter, planned); needs `paths` when parameterized |
+| `->isr()` | on a cache miss | yes, revalidated by time and on demand | optional |
+| `->static()` | on a cache miss | yes, revalidated by time and on demand | required when parameterized |
 
 ## Examples
 

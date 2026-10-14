@@ -29,12 +29,13 @@ class Manifest
     }
 
     /**
-     * @return array{prefix: string, routes: array<int, array<string, mixed>>}
+     * @return array{prefix: string, previewCookie: string, routes: array<int, array<string, mixed>>}
      */
     public function toArray(): array
     {
         return [
             'prefix' => '/'.$this->urls->prefix(),
+            'previewCookie' => (string) config('inertia-static.preview.cookie', 'inertia_static_preview'),
             'routes' => $this->routes()
                 ->filter(fn (array $entry) => $entry['options']->mode->isCacheable())
                 ->map(fn (array $entry) => array_filter([

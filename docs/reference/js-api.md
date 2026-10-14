@@ -1,6 +1,6 @@
 # JavaScript API
 
-Imported from the Composer package through the [Vite plugin](../guide/installation.md#client) (or from npm).
+Shipped with the Composer package and imported through the [Vite plugin](../guide/installation.md#client) alias.
 
 ## Vite plugin
 

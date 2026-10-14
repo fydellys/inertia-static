@@ -1,6 +1,6 @@
 # `StaticPathsProvider`
 
-Lists the concrete pages of a parameterized route, like `generateStaticParams` in Next.js. Full guide:
+Lists the concrete pages of a parameterized route. Full guide:
 [Static paths](../guide/static-paths.md).
 
 ```php
@@ -44,7 +44,6 @@ An iterable of arrays, one per page, mapping each **route parameter name** to it
 ## Used by
 
 - `php artisan inertia-static:warm` (pre-fills the CDN with HTML + page JSON);
-- the static exporter (planned);
 - `php artisan inertia-static:routes` (shown in the *Paths* column).
 
 It is **never** called on regular requests.

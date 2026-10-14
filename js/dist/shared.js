@@ -1,9 +1,11 @@
 // js/src/manifest.ts
 var DEFAULT_PREFIX = "/__inertia";
-var emptyManifest = () => ({ prefix: DEFAULT_PREFIX, routes: [] });
+var DEFAULT_PREVIEW_COOKIE = "inertia_static_preview";
+var emptyManifest = () => ({ prefix: DEFAULT_PREFIX, previewCookie: DEFAULT_PREVIEW_COOKIE, routes: [] });
 function compileManifest(manifest) {
   return {
     prefix: "/" + (manifest.prefix || DEFAULT_PREFIX).replace(/^\/+|\/+$/g, ""),
+    previewCookie: manifest.previewCookie || DEFAULT_PREVIEW_COOKIE,
     routes: (manifest.routes ?? []).flatMap((route) => {
       try {
         return [{ ...route, query: route.query ?? [], regex: new RegExp(route.pattern) }];
@@ -145,6 +147,9 @@ var StaticHttpClient = class {
       reason: `live:${reason}`,
       url: url.origin + jsonPath(path, `${manifest.prefix}/live`, version, this.options.index) + search
     });
+    if (hasCookie(manifest.previewCookie)) {
+      return live("preview", url.search);
+    }
     const bypass = BYPASS_HEADERS.find((header) => hasHeader(config.headers, header));
     if (bypass) {
       return live(bypass.toLowerCase(), url.search);
@@ -217,6 +222,12 @@ var StaticHttpClient = class {
     }
   }
 };
+function hasCookie(name) {
+  if (typeof document === "undefined") {
+    return false;
+  }
+  return document.cookie.split("; ").some((cookie) => cookie.startsWith(`${name}=`) && cookie.length > name.length + 1);
+}
 function createStaticHttpClient(options = {}) {
   return new StaticHttpClient(options);
 }

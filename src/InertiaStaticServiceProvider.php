@@ -16,6 +16,7 @@ use Fydellys\InertiaStatic\Security\RenderGuard;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Http\Kernel as HttpKernel;
+use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Kernel;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -51,6 +52,9 @@ class InertiaStaticServiceProvider extends ServiceProvider
         $this->registerResponseMacros();
         $this->registerMiddleware();
         $this->registerRateLimiter();
+
+        // The preview cookie is HMAC-signed and read by the client plugin: keep it plain.
+        EncryptCookies::except((string) config('inertia-static.preview.cookie', 'inertia_static_preview'));
 
         $this->loadRoutesFrom(__DIR__.'/../routes/inertia-static.php');
 
@@ -98,6 +102,7 @@ class InertiaStaticServiceProvider extends ServiceProvider
                 array $query = [],
                 ?int $staleWhileRevalidate = null,
                 ?int $staleIfError = null,
+                ?int $expire = null,
             ) use ($mode) {
                 /** @var Route $this */
                 return app(StaticRouteConfigurator::class)->apply($this, $mode, [
@@ -107,6 +112,7 @@ class InertiaStaticServiceProvider extends ServiceProvider
                     'query' => $query,
                     'stale_while_revalidate' => $staleWhileRevalidate,
                     'stale_if_error' => $staleIfError,
+                    'expire' => $expire,
                 ]);
             });
         }
@@ -126,6 +132,7 @@ class InertiaStaticServiceProvider extends ServiceProvider
         InertiaResponse::macro('revalidate', $override('revalidate'));
         InertiaResponse::macro('staleWhileRevalidate', $override('stale_while_revalidate'));
         InertiaResponse::macro('staleIfError', $override('stale_if_error'));
+        InertiaResponse::macro('expire', $override('expire'));
         InertiaResponse::macro('tags', function (array|string $tags) {
             app(StaticRequestContext::class)->addTags($tags);
 

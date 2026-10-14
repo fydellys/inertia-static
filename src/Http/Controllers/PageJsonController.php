@@ -40,9 +40,17 @@ class PageJsonController
         protected Container $container,
         protected Router $router,
         protected StaticUrls $urls,
-        protected StaticRequestContext $context,
         protected UrlNormalizer $normalizer,
     ) {}
+
+    /**
+     * Resolved per call: the router keeps controller instances between requests
+     * (Octane), so request-scoped state must never live in a property.
+     */
+    protected function context(): StaticRequestContext
+    {
+        return $this->container->make(StaticRequestContext::class);
+    }
 
     /**
      * Inertia request headers forwarded by the live endpoint.
@@ -60,7 +68,7 @@ class PageJsonController
 
     public function live(Request $request, string $version, string $path): Response
     {
-        $this->context->bypass('live');
+        $this->context()->bypass('live');
 
         return $this->withSessionData($request, $this->__invoke($request, $version, $path, live: true));
     }
@@ -137,17 +145,17 @@ class PageJsonController
             throw new NotFoundHttpException;
         }
 
-        $this->context->activate($options);
-        $this->context->jsonEndpoint = true;
+        $this->context()->activate($options);
+        $this->context()->jsonEndpoint = true;
 
-        // One cache entry per page: like the HTML URL (and Next.js' _rsc check), a
+        // One cache entry per page: like the HTML URL, a
         // non-canonical query (tracking params, unknown keys, order) gets a 301.
         if (! $live && ($canonical = $this->canonicalJsonUrl($request, $version, $pagePath, $options))) {
-            $this->context->canonicalRedirect = true;
+            $this->context()->canonicalRedirect = true;
 
             return redirect($this->urls->absolute($canonical), 301);
         }
-        $this->context->pagePath = $pagePath.($page->getQueryString() ? '?'.$page->getQueryString() : '');
+        $this->context()->pagePath = $pagePath.($page->getQueryString() ? '?'.$page->getQueryString() : '');
 
         return $this->dispatch($request, $page);
     }

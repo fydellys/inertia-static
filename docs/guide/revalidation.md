@@ -1,6 +1,6 @@
 # Revalidation
 
-Two complementary mechanisms, like Next.js: **time-based** (the CDN expires and refreshes pages) and
+Two complementary mechanisms: **time-based** (the CDN expires and refreshes pages) and
 **on-demand** (you purge when data changes).
 
 ## Time-based
@@ -15,7 +15,25 @@ t=11    STALE  served instantly, refresh in background (renderedAt 10:00:00)
 t=12    HIT    refreshed version                       (renderedAt 10:00:11)
 ```
 
-This is verified by the [E2E suite](../testing/e2e.md) on both the HTML and the page JSON. The exact header that
+This is verified by the [E2E suite](../testing/e2e.md) on both the HTML and the page JSON.
+
+### `revalidate` and `expire`
+
+Two numbers control the lifetime:
+
+| Option | Meaning | Default |
+|---|---|---|
+| `revalidate` | the edge TTL: after it, the page is refreshed in the background | `3600` |
+| `expire` | after it, a stale page may no longer be served: the next visitor waits for a fresh render | `31536000` (1 year) |
+
+`stale-while-revalidate` is `expire - revalidate`:
+
+```php
+Route::get('/pricing', PricingController::class)->isr(revalidate: 300, expire: 3600);
+// CDN-Cache-Control: public, max-age=300, stale-while-revalidate=3300
+```
+
+An explicit `staleWhileRevalidate:` (route, response or `defaults.stale_while_revalidate`) wins over `expire`. The exact header that
 carries the TTL depends on the driver (`Cloudflare-CDN-Cache-Control`, `Surrogate-Control`, `s-maxage`,
 `X-Accel-Expires`); see [Headers](../reference/headers.md).
 
@@ -31,6 +49,38 @@ StaticCache::purgeAll();
 ```
 
 Each page is always purged on **both** of its URLs: the HTML and `/__inertia/{version}/{path}.json`.
+
+### Soft or hard purge
+
+| Mode | Effect |
+|---|---|
+| `PurgeMode::Soft` (default, `purge.mode`) | content is marked **stale**: the CDN serves it once more while it refetches |
+| `PurgeMode::Hard` | content is removed: the next request waits for the origin |
+
+```php
+use Fydellys\InertiaStatic\Enums\PurgeMode;
+
+StaticCache::purgeTags('posts');                              // soft
+StaticCache::purgeTags("post:{$post->id}", PurgeMode::Hard);  // read-your-own-writes
+```
+
+```bash
+php artisan inertia-static:purge --tags=posts --hard
+```
+
+Soft purges are native on Fastly (`Fastly-Soft-Purge`) and Varnish (`xkey.softpurge`). Cloudflare, Bunny and nginx
+always purge hard.
+
+### Implicit path tags
+
+Every cached page also carries one tag per path prefix:
+
+```
+/blog/hello  →  Cache-Tag: posts, post:1, _IST_/, _IST_/blog/, _IST_/blog/hello/
+```
+
+On CDNs without prefix purges (Fastly), `purgePrefix('/blog')` becomes a purge of the tag `_IST_/blog/`. Turn it
+off with `implicit_tags => false`.
 
 ### Automatic purges from models
 

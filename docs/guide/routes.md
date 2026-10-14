@@ -27,7 +27,7 @@ What the macro does:
 - adds the `inertia-static` route middleware (shared props whitelist and leak detector).
 
 Validation is strict: only `GET` routes can be static, `revalidate` cannot be negative, the paths provider must
-exist, and `static` routes with parameters need a paths provider (the exporter needs a finite list).
+exist, and `static` routes with parameters need a paths provider (every page must be known in advance).
 
 ## Attribute
 
@@ -44,7 +44,7 @@ class PostController
 The attribute can also be put on the controller class. Attributes are applied once the application booted, so
 they work with `route:cache` too.
 
-## Static paths (`getStaticPaths`)
+## Static paths
 
 ```php
 use Fydellys\InertiaStatic\Contracts\StaticPathsProvider;

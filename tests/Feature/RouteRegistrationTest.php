@@ -19,7 +19,7 @@ it('applies the #[StaticPage] attribute', function () {
 
     expect($options->mode)->toBe(RenderMode::Isr)->and($options->revalidate)->toBe(120);
 
-    $this->get('/attribute')->assertOk()->assertHeader('X-Inertia-Static', 'MISS; ttl=120');
+    $this->get('/attribute')->assertOk()->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(120);
 });
 
 it('requires a paths provider for parameterized static routes', function () {

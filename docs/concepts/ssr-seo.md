@@ -48,4 +48,4 @@ Set it to `allow` to keep the page cacheable and fetch the deferred props from t
 
 ## Sitemap
 
-`sitemap.xml` / `robots.txt` generation from the static routes and paths providers is planned.
+`sitemap.xml` and `robots.txt` are yours to provide: the package does not generate them.

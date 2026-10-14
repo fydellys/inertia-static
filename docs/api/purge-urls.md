@@ -1,6 +1,6 @@
 # `StaticCache::purgeUrls()`
 
-Purge specific pages, like `revalidatePath()` in Next.js.
+Purge specific pages.
 
 ```php
 StaticCache::purgeUrls('/about');
@@ -10,7 +10,7 @@ StaticCache::purgeUrls(['/blog/hello', 'https://example.com/pricing']);
 ## Reference
 
 ```php
-StaticCache::purgeUrls(array|string $urls): void   // page paths or absolute URLs
+StaticCache::purgeUrls(array|string $urls, ?PurgeMode $mode = null): void   // page paths or absolute URLs
 ```
 
 Each page is purged on **both** of its URLs:

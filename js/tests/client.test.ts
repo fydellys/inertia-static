@@ -159,6 +159,17 @@ describe('requests', () => {
     expect((await createStaticHttpClient({ manifest, client: other }).request(plain)).headers['x-inertia']).toBeUndefined()
   })
 
+  it('sends every static visit to the live endpoint in preview mode', () => {
+    window.history.replaceState({}, '', '/')
+    document.cookie = 'inertia_static_preview=123.abc'
+    const http = createStaticHttpClient({ manifest })
+
+    expect(http.decide(visit(origin + '/blog'))).toMatchObject({ rewrite: true, cacheable: false, reason: 'live:preview' })
+
+    document.cookie = 'inertia_static_preview=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    expect(http.decide(visit(origin + '/blog'))).toMatchObject({ cacheable: true })
+  })
+
   it('passes other requests through untouched', async () => {
     const { client, calls } = fakeClient(() => json(page('Dashboard', '/dashboard'), { 'x-inertia': 'true' }))
     const http = createStaticHttpClient({ manifest, client })

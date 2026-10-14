@@ -25,7 +25,7 @@ features:
     details: Session pipeline removed, cookies dropped, shared props whitelisted, Set-Cookie stripped, and a leak detector that catches auth()->user() during a static render.
   - title: SPA navigation stays intact
     details: A tiny client plugin sends page visits to a cacheable, versioned JSON URL. This avoids the cache poisoning (and inertia#1923) of HTML and JSON sharing one URL.
-  - title: Revalidate like Next.js
+  - title: Time-based and on-demand revalidation
     details: Time-based stale-while-revalidate, on-demand purges with StaticCache::purgeTags(), and automatic purges when your models change (HasStaticTags).
   - title: No token required to start
     details: Headers-only mode works without any CDN API token. Add the token later to enable purges.

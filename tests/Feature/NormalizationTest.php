@@ -7,7 +7,7 @@ it('removes tracking and non-whitelisted query parameters with a cacheable 301',
     $this->get('/blog?utm_source=x&page=2&foo=bar&fbclid=1')
         ->assertStatus(301)
         ->assertRedirect('https://example.com/blog?page=2')
-        ->assertHeader('X-Inertia-Static', 'MISS; ttl=300');
+        ->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(300);
 });
 
 it('sorts query parameters', function () {

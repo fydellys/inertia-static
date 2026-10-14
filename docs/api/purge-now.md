@@ -12,7 +12,7 @@ StaticCache::purgeNow(PurgeOperation::All, driver: 'varnish');
 ## Reference
 
 ```php
-StaticCache::purgeNow(PurgeOperation $operation, array $items = [], ?string $driver = null): array
+StaticCache::purgeNow(PurgeOperation $operation, array $items = [], ?string $driver = null, ?PurgeMode $mode = null): array
 ```
 
 | `PurgeOperation` | Items |

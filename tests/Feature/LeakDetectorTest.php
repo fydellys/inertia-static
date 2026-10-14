@@ -1,9 +1,16 @@
 <?php
 
+use Fydellys\InertiaStatic\Enums\RenderMode;
 use Fydellys\InertiaStatic\Events\StaticRenderViolated;
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
+use Fydellys\InertiaStatic\Routing\AttributeRouteResolver;
+use Fydellys\InertiaStatic\Security\RenderGuard;
+use Fydellys\InertiaStatic\Support\Downgrades;
+use Fydellys\InertiaStatic\Support\RouteOptions;
 use Illuminate\Auth\AuthManager;
 use Illuminate\Foundation\Auth\User;
+use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Log;
@@ -40,7 +47,7 @@ it('logs and refuses to cache in log mode', function (string $uri, string $type)
 
     $response->assertOk()
         ->assertHeader('Cache-Control', 'no-store, private')
-        ->assertHeader('X-Inertia-Static', "BYPASS; reason=leak:{$type}");
+        ->assertHeader('X-Inertia-Static-Reason', "leak:{$type}");
 
     Event::assertDispatched(StaticRenderViolated::class, fn ($event) => $event->violation->type === $type);
     Log::shouldHaveReceived('warning')->atLeast()->once();
@@ -81,5 +88,40 @@ it('removes request cookies so reading them yields the anonymous value', functio
         ->get('/__inertia/v1/read-cookie.json')
         ->assertOk()
         ->assertJsonPath('props.theme', null)
-        ->assertHeader('X-Inertia-Static', 'MISS; ttl=3600');
+        ->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(3600);
+});
+
+it('turns a leaking route dynamic in "auto" mode', function () {
+    config(['inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+
+    // 1st request: served without the private data, never cached, route recorded.
+    $this->get('/leak/auth')->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertHeader('X-Inertia-Static-Reason', 'leak:auth');
+
+    $downgrades = app(Downgrades::class);
+    $route = $this->router()->getRoutes()->match(Request::create('/leak/auth'));
+    expect($downgrades->has($route))->toBeTrue()
+        ->and($downgrades->reasonFor($route))->toContain('auth');
+
+    // Next boot: the route is a regular dynamic route again (session pipeline restored).
+    app(AttributeRouteResolver::class)->resolve();
+
+    $options = RouteOptions::fromRoute($route);
+    expect($options->mode)->toBe(RenderMode::Dynamic)
+        ->and($options->downgraded)->toContain('auth')
+        ->and($this->router()->gatherRouteMiddleware($route))->toContain(StartSession::class);
+
+    $response = $this->get('/leak/auth')->assertOk();
+    expect($response->headers->has('X-Inertia-Static'))->toBeFalse()
+        ->and($response->headers->has('X-Inertia-Static-Reason'))->toBeFalse();
+
+    $this->artisan('inertia-static:routes')->expectsOutputToContain('downgraded')->assertSuccessful();
+    $this->artisan('inertia-static:routes', ['--reset-downgrades' => true])->assertSuccessful();
+    expect($downgrades->all())->toBe([]);
+});
+
+it('defaults to "auto" outside local / testing', function () {
+    $this->app['env'] = 'production';
+
+    expect(app(RenderGuard::class)->mode())->toBe('auto');
 });

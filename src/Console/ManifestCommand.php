@@ -10,7 +10,8 @@ use Symfony\Component\Console\Attribute\AsCommand;
 #[AsCommand(name: 'inertia-static:manifest')]
 class ManifestCommand extends Command
 {
-    protected $signature = 'inertia-static:manifest {--path= : Where to write the manifest (default: resources/js/inertia-static.json)}';
+    protected $signature = 'inertia-static:manifest
+        {--path= : Where to write the manifest (default: resources/js/inertia-static.json)}';
 
     protected $description = 'Write the static route manifest consumed by the client plugin';
 

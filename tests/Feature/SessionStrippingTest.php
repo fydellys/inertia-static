@@ -61,5 +61,5 @@ it('ignores incoming cookies so no identity can be resolved', function () {
     $this->withUnencryptedCookies(['laravel_session' => 'abc', 'remember_web_x' => 'y'])
         ->get('/')
         ->assertOk()
-        ->assertHeader('X-Inertia-Static', 'MISS; ttl=600');
+        ->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(600);
 });

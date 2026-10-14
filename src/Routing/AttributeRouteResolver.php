@@ -3,6 +3,7 @@
 namespace Fydellys\InertiaStatic\Routing;
 
 use Fydellys\InertiaStatic\Attributes\StaticPage;
+use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Support\RouteOptions;
 use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
@@ -17,17 +18,21 @@ class AttributeRouteResolver
     public function __construct(
         protected Router $router,
         protected StaticRouteConfigurator $configurator,
+        protected Downgrades $downgrades,
     ) {}
 
     public function resolve(): void
     {
+        $downgraded = $this->downgrades->all();
+
         foreach ($this->router->getRoutes()->getRoutes() as $route) {
-            if ($route->getAction(RouteOptions::ACTION_KEY) !== null) {
-                continue;
+            if ($route->getAction(RouteOptions::ACTION_KEY) === null && ($attribute = $this->attributeFor($route))) {
+                $this->configurator->apply($route, $attribute->renderMode(), $attribute->toOptions());
             }
 
-            if ($attribute = $this->attributeFor($route)) {
-                $this->configurator->apply($route, $attribute->renderMode(), $attribute->toOptions());
+            // Routes the leak detector took out of static rendering ("auto" mode).
+            if ($downgraded !== [] && isset($downgraded[Downgrades::keyOf($route)]) && RouteOptions::fromRoute($route)?->mode->isCacheable()) {
+                $this->configurator->downgrade($route, $downgraded[Downgrades::keyOf($route)]['reason']);
             }
         }
     }

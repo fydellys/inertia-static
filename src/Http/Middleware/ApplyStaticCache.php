@@ -6,7 +6,9 @@ use Closure;
 use Fydellys\InertiaStatic\Cdn\CdnManager;
 use Fydellys\InertiaStatic\Contracts\TagRegistry;
 use Fydellys\InertiaStatic\Support\CachePolicy;
+use Fydellys\InertiaStatic\Support\ImplicitTags;
 use Fydellys\InertiaStatic\Support\PolicyResolver;
+use Fydellys\InertiaStatic\Support\Preview;
 use Fydellys\InertiaStatic\Support\ResponseFinalizer;
 use Fydellys\InertiaStatic\Support\RouteOptions;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
@@ -38,6 +40,7 @@ class ApplyStaticCache
         protected CdnManager $cdn,
         protected TagRegistry $registry,
         protected StaticUrls $urls,
+        protected Preview $preview,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -71,6 +74,12 @@ class ApplyStaticCache
             $this->context->bypass('authorization');
         }
 
+        // Preview mode: render fresh, never cache (read before the cookies are dropped).
+        if ($this->preview->isActive($request)) {
+            $this->context->preview = true;
+            $this->context->bypass('preview');
+        }
+
         // No identity on cacheable requests. The live endpoint is never cached and
         // reads the session (validation errors / flash of the visitor's form).
         if ($route?->getName() !== 'inertia-static.live') {
@@ -96,7 +105,7 @@ class ApplyStaticCache
         $response = $this->finalizer->finalize($request, $response, $policy, $this->cdn->driver(), $this->context->jsonEndpoint);
 
         if ($policy->cacheable && $policy->tags !== [] && $response->getStatusCode() === 200) {
-            $this->registry->record($policy->tags, [$this->context->pagePath ?? $this->urls->relative($request->getRequestUri())]);
+            $this->registry->record(array_values(array_filter($policy->tags, fn (string $tag) => ! ImplicitTags::isImplicit($tag))), [$this->context->pagePath ?? $this->urls->relative($request->getRequestUri())]);
         }
 
         return $response;

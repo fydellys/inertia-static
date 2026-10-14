@@ -4,6 +4,7 @@ use App\Http\Controllers\PageController;
 use App\StaticPaths\PostPaths;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Fydellys\InertiaStatic\Facades\StaticCache;
 use Inertia\Inertia;
 
 // Static / ISR pages (shared by every visitor, cached by the CDN).
@@ -37,6 +38,10 @@ Route::post('/api/newsletter', function (Request $request) {
 
     return response()->json(['message' => "Subscribed {$data['email']}"]);
 })->name('api.newsletter');
+
+// Preview mode: only signed-in users can turn it on.
+Route::get('/preview/enable', fn () => redirect('/')->withCookie(StaticCache::enablePreview()))->middleware('auth')->name('preview.enable');
+Route::get('/preview/disable', fn () => redirect('/')->withCookie(StaticCache::disablePreview()))->name('preview.disable');
 
 // Dynamic "island" consumed by static pages in the browser.
 Route::get('/api/me', [PageController::class, 'me'])->name('me');

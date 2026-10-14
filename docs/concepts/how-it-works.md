@@ -35,7 +35,7 @@ GET /__inertia/live/{assetVersion}/{path}.json[?query]          # never cached
 
 The **live** endpoint serves visits that need fresh data: `router.reload()`, polling, partial reloads,
 deferred props and non-canonical queries. It forwards the Inertia partial reload headers and always answers
-`Cache-Control: no-store, private` (`X-Inertia-Static: BYPASS; reason=live`). Together they guarantee that an
+`Cache-Control: no-store, private` (`X-Inertia-Static-Reason: live`). Together they guarantee that an
 Inertia visit never reaches the HTML URL of a static page, where a CDN ignoring `Vary` would answer with the cached
 HTML.
 
@@ -60,7 +60,7 @@ The client plugin rewrites visits to this URL ([Client](../guide/client-vue.md))
 
 When in doubt, `no-store`. A response is cacheable only if **none** of these holds:
 
-| Condition | `X-Inertia-Static` reason |
+| Condition | `X-Inertia-Static-Reason` |
 |---|---|
 | method is not GET/HEAD | `method` |
 | request has `Authorization` | `authorization` |

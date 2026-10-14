@@ -15,7 +15,7 @@
 | `strip_middleware` | — | session, cookies, CSRF | Removed from static routes. Classes that do not exist are ignored. |
 | `public_shared_props` | — | `[]` | Shared props kept on static routes. |
 | `cache_header` | `INERTIA_STATIC_CACHE_HEADER` | `X-Inertia-Static-Cache` | `cacheable` / `bypass` header for CDN rules; empty disables it. |
-| `debug_header` | `INERTIA_STATIC_DEBUG_HEADER` | `X-Inertia-Static` | `MISS; ttl=…` / `BYPASS; reason=…`; empty disables it. |
+| `debug_header` | `INERTIA_STATIC_DEBUG_HEADER` | `X-Inertia-Static` | `MISS` on cacheable responses; `{header}-Reason` explains the others; empty disables both. |
 
 ## Leak detector
 

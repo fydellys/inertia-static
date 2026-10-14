@@ -15,6 +15,7 @@ return Inertia::render('Post/Show', ['post' => $post])
 Inertia\Response::revalidate(?int $seconds): Inertia\Response
 Inertia\Response::staleWhileRevalidate(?int $seconds): Inertia\Response
 Inertia\Response::staleIfError(?int $seconds): Inertia\Response
+Inertia\Response::expire(?int $seconds): Inertia\Response   // stale-while-revalidate = expire - revalidate
 ```
 
 | Method | Header directive (driver dependent) |

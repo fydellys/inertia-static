@@ -7,6 +7,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Fydellys\InertiaStatic\Facades\StaticCache;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,7 +15,10 @@ class PageController
 {
     public function home(): Response
     {
-        return Inertia::render('Home', ['renderedAt' => now()->format('H:i:s.v')]);
+        return Inertia::render('Home', [
+            'renderedAt' => now()->format('H:i:s.v'),
+            'preview' => StaticCache::isPreview(), // drafts would be shown here
+        ]);
     }
 
     public function about(): Response

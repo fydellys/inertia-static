@@ -7,7 +7,7 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 ### Added
 - The built client ships inside the Composer package (`js/dist`), plus a Vite plugin
   (`vendor/fydellys/inertia-static/js/vite.js`): alias, dedupe of `@inertiajs/core` / `vue`, and automatic
-  `inertia-static:manifest`. No npm install needed (the npm package remains available).
+  `inertia-static:manifest`. No npm install needed.
 - Documentation site (VitePress) published to GitHub Pages (`docs/`, `.github/workflows/docs.yml`).
 - Opt-in live tests against the real Cloudflare API (`tests/Live`, `INERTIA_STATIC_LIVE=1`).
 - `INERTIA_STATIC_PURGE_RATE_LIMIT` and `INERTIA_STATIC_PURGE_DEBOUNCE` env variables.
@@ -18,8 +18,10 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 - Purge all falls back to a `/` prefix purge on drivers without purge all (nginx).
 
 ### Changed
+- The JSON endpoint controller resolves its request context per call: the router keeps controller instances
+  between requests (Octane), which could leak the previous request's state.
 - The cacheable page JSON endpoint redirects (`301`, cacheable) non-canonical queries to the canonical JSON URL,
-  like the HTML URL. One cache entry per page, which mirrors how Next.js validates its `_rsc` parameter.
+  like the HTML URL. One cache entry per page.
 - Cloudflare "purge all" purges only the app's hostname (`{"hosts": [...]}`) by default; the whole zone
   (`purge_everything`) requires `CLOUDFLARE_PURGE_EVERYTHING=true`. Zones are often shared by several sites.
 

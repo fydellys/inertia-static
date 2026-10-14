@@ -39,8 +39,18 @@ it('records tags of cached responses in the registry', function () {
         ->and(app(TagRegistry::class)->urlsFor(['post:hello-world']))->toBe(['/blog/hello-world']);
 });
 
-it('escalates a prefix purge to purge all when nothing is known (fail-safe)', function () {
+it('purges a prefix through implicit path tags on CDNs without prefix purges (Fastly)', function () {
     config(['inertia-static.cdn' => 'fastly', 'inertia-static.drivers.fastly' => ['driver' => 'fastly', 'service_id' => 's', 'api_token' => 't']]);
+    Http::fake(['api.fastly.com/*' => Http::response(['status' => 'ok'])]);
+
+    StaticCache::purgeNow(PurgeOperation::Prefixes, ['/blog']);
+
+    Http::assertSent(fn ($r) => $r->hasHeader('Surrogate-Key', '_IST_/blog/'));
+    Http::assertNotSent(fn ($r) => str_ends_with($r->url(), '/purge_all'));
+});
+
+it('escalates a prefix purge to purge all when nothing is known (fail-safe)', function () {
+    config(['inertia-static.cdn' => 'fastly', 'inertia-static.implicit_tags' => false, 'inertia-static.drivers.fastly' => ['driver' => 'fastly', 'service_id' => 's', 'api_token' => 't']]);
     Http::fake(['api.fastly.com/*' => Http::response(['status' => 'ok'])]);
 
     StaticCache::purgeNow(PurgeOperation::Prefixes, ['/blog']);
@@ -81,4 +91,11 @@ it('turns purge all into a "/" prefix purge when the driver has no purge all', f
     StaticCache::purgeNow(PurgeOperation::All);
 
     Http::assertSent(fn ($r) => $r->url() === 'http://nginx/purge/*');
+});
+
+it('never records implicit path tags in the registry', function () {
+    $this->get('/blog/hello-world')->assertOk();
+
+    expect(app(TagRegistry::class)->urlsFor(['_IST_/blog/']))->toBe([])
+        ->and(app(TagRegistry::class)->urlsFor(['posts']))->toBe(['/blog/hello-world']);
 });

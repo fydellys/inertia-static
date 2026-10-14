@@ -6,6 +6,7 @@ use Fydellys\InertiaStatic\Cdn\CdnManager;
 use Fydellys\InertiaStatic\Enums\Capability;
 use Fydellys\InertiaStatic\Http\Middleware\ApplyStaticCache;
 use Fydellys\InertiaStatic\Routing\StaticRouteConfigurator;
+use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Support\Manifest;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Http\Kernel;
@@ -45,6 +46,10 @@ class DoctorCommand extends Command
             }
         } catch (Throwable $e) {
             $this->check('CDN driver ['.$cdn->getDefaultDriver().']', false, $e->getMessage());
+        }
+
+        foreach (app(Downgrades::class)->all() as $key => $downgrade) {
+            $this->check("Route {$key}", false, "Turned dynamic by the leak detector ({$downgrade['reason']}). Fix the page, then run inertia-static:routes --reset-downgrades.", warn: true);
         }
 
         $stripped = $configurator->strippedMiddleware();

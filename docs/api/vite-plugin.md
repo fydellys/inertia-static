@@ -31,4 +31,3 @@ What it does:
 
 - If PHP is not available when the build runs (a Node-only CI step), the manifest step only warns. Commit the
   manifest, or run the command before the build.
-- With npm the same plugin is `import inertiaStatic from '@fydellys/inertia-static/vite'`.

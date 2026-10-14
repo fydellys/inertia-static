@@ -98,7 +98,7 @@ The CDN also needs its own configuration. On Cloudflare, HTML is not cached unti
 ## How it works
 
 - **No session on static routes.** Cookies, the session, CSRF and private shared props are removed. A leak detector throws when code reads the user or the session during a static render.
-- **Page JSON on its own URL** (`/__inertia/{version}/{path}.json`), like Next.js' `/_next/data`. CDNs that ignore `Vary: X-Inertia` never mix HTML and JSON.
+- **Page JSON on its own URL** (`/__inertia/{version}/{path}.json`). CDNs that ignore `Vary: X-Inertia` never mix HTML and JSON.
 - **Fail-safe headers.** Strong ETags and 304s. When in doubt the response is `no-store`, for example when SSR is down, on 5xx, or with `Authorization`.
 - **Purges are queued** with debounce, batching and rate limiting. CDNs without tag purges go through a tag → URL registry.
 

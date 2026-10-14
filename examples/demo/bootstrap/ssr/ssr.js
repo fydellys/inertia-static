@@ -458,12 +458,17 @@ var Home_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 	layout: Layout_default,
 	__name: "Home",
 	__ssrInlineRender: true,
-	props: { renderedAt: {} },
+	props: {
+		renderedAt: {},
+		preview: { type: Boolean }
+	},
 	setup(__props) {
 		const { start, stop, polling } = usePoll(1500, { only: ["renderedAt"] }, { autoStart: false });
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<!--[-->`);
 			_push(ssrRenderComponent(unref(Head), { title: "Home" }, null, _parent));
+			if (__props.preview) _push(`<p class="mb-2 rounded bg-amber-100 p-2 text-sm" data-testid="preview-banner"> Preview mode: fresh content, not cached. <a href="/preview/disable" class="underline" data-testid="preview-exit">Exit</a></p>`);
+			else _push(`<!---->`);
 			_push(`<h1 class="text-2xl font-bold">Static home</h1><p>Rendered at the origin at <span data-testid="rendered-at">${ssrInterpolate(__props.renderedAt)}</span></p><div class="mt-3 flex gap-3 text-sm">`);
 			_push(ssrRenderComponent(unref(Link), {
 				href: "/blog/post-11",

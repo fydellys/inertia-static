@@ -1,7 +1,7 @@
 # Static paths
 
 A route with parameters (`/blog/{post:slug}`) has no concrete pages until someone asks for them. A **static paths
-provider** lists them, like `generateStaticParams` in Next.js (or `getStaticPaths` in the Pages Router).
+provider** lists them.
 
 ## When do I need one?
 
@@ -9,10 +9,10 @@ provider** lists them, like `generateStaticParams` in Next.js (or `getStaticPath
 |---|---|
 | `/about`, `/blog` (no parameters) | not needed: there is exactly one page |
 | `->isr()` with parameters | **optional**. Pages are rendered and cached on their first visit anyway; the provider lets `inertia-static:warm` pre-fill the CDN |
-| `->static()` with parameters | **required**: the exporter (and warmup) need the finite list of pages |
+| `->static()` with parameters | **required**: every page is known in advance, and `inertia-static:warm` pre-renders all of them |
 
-The provider is **not** called on regular requests. Only Artisan uses it: `inertia-static:warm`, and the
-exporter (planned).
+The provider is **not** called on regular requests. Only Artisan uses it: `inertia-static:warm` and
+`inertia-static:routes`.
 
 ## A provider in 3 steps
 
@@ -161,7 +161,7 @@ class ProductPaths implements StaticPathsProvider
   `--limit=N` caps the pages per route.
 - **Values are URL-encoded** for you (`'a b'` becomes `a%20b`). A missing required parameter throws
   `InvalidStaticRoute`.
-- **`static` routes with parameters and no provider** are rejected when the route is registered: the exporter could
-  not know which pages exist.
+- **`static` routes with parameters and no provider** are rejected when the route is registered: their pages
+  could not be listed.
 - **New content** does not need the provider: the first visit renders and caches it, and
   [`HasStaticTags`](./revalidation.md#automatic-purges-from-models) purges it when it changes.

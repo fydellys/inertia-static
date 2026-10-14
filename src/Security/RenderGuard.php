@@ -5,11 +5,13 @@ namespace Fydellys\InertiaStatic\Security;
 use Closure;
 use Fydellys\InertiaStatic\Events\StaticRenderViolated;
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
+use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Log;
 
@@ -140,6 +142,11 @@ class RenderGuard
             throw $violation;
         }
 
+        // "auto": the route stops being static (it becomes a regular dynamic route).
+        if ($this->mode() === 'auto' && ($route = $this->request?->route()) instanceof Route) {
+            $this->app->make(Downgrades::class)->add($route, "{$type}: {$detail}");
+        }
+
         $channel = $this->config->get('inertia-static.leak_detector.log_channel');
 
         ($channel ? Log::channel($channel) : Log::getFacadeRoot())
@@ -150,13 +157,23 @@ class RenderGuard
 
     public function shouldThrow(): bool
     {
+        return $this->mode() === 'throw';
+    }
+
+    /**
+     * "throw" (local / testing by default), "auto" (elsewhere: log + downgrade the route) or "log".
+     */
+    public function mode(): string
+    {
         $mode = $this->config->get('inertia-static.leak_detector.mode');
 
-        if ($mode !== null && $mode !== '') {
-            return $mode === 'throw';
+        if (is_string($mode) && $mode !== '') {
+            return $mode;
         }
 
-        return $this->app->environment((array) $this->config->get('inertia-static.leak_detector.throw_in', ['local', 'testing']));
+        return $this->app->environment((array) $this->config->get('inertia-static.leak_detector.throw_in', ['local', 'testing']))
+            ? 'throw'
+            : 'auto';
     }
 
     protected function clearFacades(): void

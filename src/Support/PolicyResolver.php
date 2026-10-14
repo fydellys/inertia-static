@@ -40,12 +40,14 @@ class PolicyResolver
 
         $defaults = (array) $this->config->get('inertia-static.defaults', []);
 
+        $revalidate = (int) $this->context->overridden('revalidate', $route->revalidate ?? $defaults['revalidate'] ?? 3600);
+
         $policy = new CachePolicy(
             cacheable: true,
-            revalidate: (int) $this->context->overridden('revalidate', $route->revalidate ?? $defaults['revalidate'] ?? 3600),
-            staleWhileRevalidate: $this->context->overridden('stale_while_revalidate', $route->staleWhileRevalidate ?? $defaults['stale_while_revalidate'] ?? null),
+            revalidate: $revalidate,
+            staleWhileRevalidate: $this->staleWhileRevalidate($route, $revalidate, $defaults),
             staleIfError: $this->context->overridden('stale_if_error', $route->staleIfError ?? $defaults['stale_if_error'] ?? null),
-            tags: $this->context->tags(),
+            tags: [...$this->context->tags(), ...$this->implicitTags($request)],
             browserCacheControl: (string) ($defaults['browser_cache_control'] ?? 'public, max-age=0, must-revalidate'),
         );
 
@@ -58,6 +60,36 @@ class PolicyResolver
         }
 
         return $policy;
+    }
+
+    /**
+     * Explicit stale-while-revalidate wins; otherwise: expire - revalidate.
+     *
+     * @param  array<string, mixed>  $defaults
+     */
+    protected function staleWhileRevalidate(RouteOptions $route, int $revalidate, array $defaults): ?int
+    {
+        $explicit = $this->context->overridden('stale_while_revalidate', $route->staleWhileRevalidate ?? $defaults['stale_while_revalidate'] ?? null);
+
+        if ($explicit !== null) {
+            return $explicit;
+        }
+
+        $expire = $this->context->overridden('expire', $route->expire ?? $defaults['expire'] ?? null);
+
+        return $expire === null ? null : (max(0, $expire - $revalidate) ?: null);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function implicitTags(Request $request): array
+    {
+        if (! $this->config->get('inertia-static.implicit_tags', true)) {
+            return [];
+        }
+
+        return ImplicitTags::forPath($this->context->pagePath ?? $request->getPathInfo());
     }
 
     /**

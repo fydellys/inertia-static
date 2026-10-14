@@ -1,6 +1,7 @@
 <?php
 
 use Fydellys\InertiaStatic\Cdn\CdnManager;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
 use Fydellys\InertiaStatic\Facades\StaticCache;
 use Illuminate\Http\Client\Request;
@@ -91,7 +92,7 @@ it('does not retry client errors', function () {
 
 it('sends Fastly surrogate key purges', function () {
     Http::fake(['api.fastly.com/*' => Http::response(['status' => 'ok'])]);
-    $cdn = app(CdnManager::class)->driver('fastly');
+    $cdn = app(CdnManager::class)->driver('fastly')->withMode(PurgeMode::Soft);
 
     $cdn->purgeTags(['posts', 'post:1']);
     $cdn->purgeUrls(['https://example.com/blog']);
@@ -168,4 +169,27 @@ it('keeps non-default ports in the Host of Varnish purges and bans', function ()
 
     Http::assertSent(fn (Request $r) => $r->method() === 'PURGE' && $r->hasHeader('Host', 'example.com:8080'));
     Http::assertSent(fn (Request $r) => $r->method() === 'BAN' && $r->hasHeader('X-Ban-Host', 'example.com:8080'));
+});
+
+it('purges hard or soft depending on the mode', function () {
+    Http::fake(['api.fastly.com/*' => Http::response(['status' => 'ok']), 'varnish:6081/*' => Http::response('', 200)]);
+
+    app(CdnManager::class)->driver('fastly')->withMode(PurgeMode::Hard)->purgeTags(['a']);
+    app(CdnManager::class)->driver('varnish')->withMode(PurgeMode::Soft)->purgeTags(['b']);
+    app(CdnManager::class)->driver('varnish')->withMode(PurgeMode::Hard)->purgeTags(['c']);
+
+    Http::assertSent(fn (Request $r) => str_contains($r->url(), 'fastly') && ! $r->hasHeader('Fastly-Soft-Purge'));
+    Http::assertSent(fn (Request $r) => $r->hasHeader('xkey-softpurge', 'b'));
+    Http::assertSent(fn (Request $r) => $r->hasHeader('xkey-purge', 'c'));
+});
+
+it('uses the configured purge mode by default (soft)', function () {
+    Http::fake(['api.fastly.com/*' => Http::response(['status' => 'ok'])]);
+    config(['inertia-static.cdn' => 'fastly']);
+
+    StaticCache::purgeNow(PurgeOperation::Tags, ['a']);
+    StaticCache::purgeNow(PurgeOperation::Tags, ['b'], mode: PurgeMode::Hard);
+
+    Http::assertSent(fn (Request $r) => $r->hasHeader('Surrogate-Key', 'a') && $r->hasHeader('Fastly-Soft-Purge', '1'));
+    Http::assertSent(fn (Request $r) => $r->hasHeader('Surrogate-Key', 'b') && ! $r->hasHeader('Fastly-Soft-Purge'));
 });

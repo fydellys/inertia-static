@@ -1,15 +1,14 @@
 # Introduction
 
-**Inertia Static** brings to Laravel + Inertia.js what Next.js offers with SSG/ISR, but **without depending on
-a specific provider**. Your pages are rendered at the origin (with the official Inertia SSR), cached at the edge
+**Inertia Static** brings SSG/ISR to Laravel + Inertia.js **without depending on a specific provider**. Your pages are rendered at the origin (with the official Inertia SSR), cached at the edge
 of any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA.
 
-It ships as two packages:
+It is **one Composer package**, `fydellys/inertia-static`:
 
-| Package | What |
+| Part | What |
 |---|---|
-| `fydellys/inertia-static` (Composer) | Route modes, session stripping, cache headers, ETag/304, page JSON endpoint, CDN drivers, purge queue, Artisan commands |
-| `@fydellys/inertia-static` (npm) | Client plugin for Inertia's HTTP client (Vue adapter first) |
+| Laravel (PHP) | Route modes, session stripping, cache headers, ETag/304, page JSON endpoint, CDN drivers, purge queue, Artisan commands |
+| Client (JavaScript, shipped in `vendor/fydellys/inertia-static/js`) | Plugin for Inertia's HTTP client (Vue) and a Vite plugin. No npm package to install |
 
 ## Render modes
 
@@ -17,7 +16,7 @@ It ships as two packages:
 |---|---|
 | `dynamic` | Default. Plain Inertia, never cached. |
 | `isr` | Rendered at the origin with SSR, cached by the CDN, revalidated by time (`revalidate`) and/or on demand (tags, URLs, prefixes). |
-| `static` | Same as `isr` at the origin, plus exported to static files by the exporter (planned). |
+| `static` | Same as `isr`, for pages known in advance: a parameterized `static` route must list its pages, so `inertia-static:warm` can pre-render all of them on deploy. |
 
 ## Why not just set `Cache-Control`?
 
@@ -47,5 +46,5 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
 
 ::: tip Status
 The PHP core, the JSON endpoint, the CDN drivers, the purge queue and the Vue client are done and covered by
-unit tests, an end-to-end suite in real browsers and live tests against the Cloudflare API. Still planned: static export, React/Svelte adapters, CloudFront/Akamai drivers.
+unit tests, an end-to-end suite in real browsers and live tests against the Cloudflare API. Still planned: React/Svelte adapters, CloudFront/Akamai drivers.
 :::

@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Cdn;
 
 use Fydellys\InertiaStatic\Contracts\CdnDriver;
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Exceptions\MissingCredentials;
 use Fydellys\InertiaStatic\Exceptions\UnsupportedOperation;
 use Fydellys\InertiaStatic\Support\CachePolicy;
@@ -28,6 +29,8 @@ abstract class Driver implements CdnDriver
      * @var array<int, string>
      */
     protected array $credentials = [];
+
+    protected PurgeMode $mode = PurgeMode::Hard;
 
     /**
      * @param  array<string, mixed>  $config
@@ -79,6 +82,14 @@ abstract class Driver implements CdnDriver
         }
 
         return $capability === Capability::CacheTags || $this->hasCredentials();
+    }
+
+    public function withMode(PurgeMode $mode): static
+    {
+        $driver = clone $this;
+        $driver->mode = $mode;
+
+        return $driver;
     }
 
     public function canPurge(): bool

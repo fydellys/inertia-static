@@ -6,10 +6,13 @@ use Fydellys\InertiaStatic\Cdn\CdnManager;
 use Fydellys\InertiaStatic\Contracts\CdnDriver;
 use Fydellys\InertiaStatic\Contracts\TagRegistry;
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
 use Fydellys\InertiaStatic\Events\StaticCachePurged;
 use Fydellys\InertiaStatic\Exceptions\UnsupportedOperation;
+use Fydellys\InertiaStatic\Support\ImplicitTags;
 use Fydellys\InertiaStatic\Support\StaticUrls;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Log;
 
@@ -25,15 +28,16 @@ class Purger
         protected TagRegistry $registry,
         protected StaticUrls $urls,
         protected Dispatcher $events,
+        protected Repository $config,
     ) {}
 
     /**
      * @param  array<int, string>  $items
      * @return array<int, string> The absolute URLs that were purged (for warmup).
      */
-    public function purge(PurgeOperation $operation, array $items = [], ?string $driver = null): array
+    public function purge(PurgeOperation $operation, array $items = [], ?string $driver = null, ?PurgeMode $mode = null): array
     {
-        $cdn = $this->cdn->driver($driver);
+        $cdn = $this->cdn->driver($driver)->withMode($mode ?? $this->defaultMode());
         $items = array_values(array_unique(array_filter($items)));
 
         $purged = match ($operation) {
@@ -105,6 +109,14 @@ class Purger
             return $this->urls->variants($this->registry->urlsWithPrefix($relative));
         }
 
+        // Implicit path tags (_IST_/blog/) turn a prefix purge into a tag purge.
+        if ($cdn->supports(Capability::PurgeTags) && $this->config->get('inertia-static.implicit_tags', true)) {
+            $tags = array_values(array_unique(array_map(fn (string $prefix) => ImplicitTags::forPrefix($prefix), $relative)));
+            $this->inBatches($cdn, Capability::PurgeTags, $tags, fn (array $batch) => $cdn->purgeTags($batch));
+
+            return $this->urls->variants($this->registry->urlsWithPrefix($relative));
+        }
+
         $pages = $this->registry->urlsWithPrefix($relative);
 
         if ($pages !== []) {
@@ -139,6 +151,11 @@ class Purger
         $this->registry->flush();
 
         return [];
+    }
+
+    protected function defaultMode(): PurgeMode
+    {
+        return PurgeMode::tryFrom((string) $this->config->get('inertia-static.purge.mode', 'soft')) ?? PurgeMode::Soft;
     }
 
     /**

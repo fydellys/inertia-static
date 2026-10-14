@@ -43,7 +43,10 @@ While a static page renders, private accessors are replaced by traps:
 Mode (`leak_detector.mode` / `INERTIA_STATIC_LEAK_DETECTOR`):
 
 - `throw` (default in `local` and `testing`): throws `StaticRenderViolation` with the exact accessor;
-- `log` (default elsewhere): logs, dispatches `StaticRenderViolated` and serves the response with `no-store`.
+- `auto` (default elsewhere): the route **stops being static**. The response is served with `no-store`, the violation is logged, and from the next request on the route is a
+  regular dynamic route (session restored). `inertia-static:routes` shows it as `dynamic (downgraded: …)` and
+  `doctor` warns. Fix the page, then run `php artisan inertia-static:routes --reset-downgrades`;
+- `log`: logs and serves `no-store`, but keeps the route static.
 
 `$request->session()` throws right away: static requests have no session at all.
 

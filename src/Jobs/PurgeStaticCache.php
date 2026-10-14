@@ -3,6 +3,7 @@
 namespace Fydellys\InertiaStatic\Jobs;
 
 use DateTimeInterface;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
 use Fydellys\InertiaStatic\Purger;
 use Illuminate\Bus\Queueable;
@@ -39,6 +40,7 @@ class PurgeStaticCache implements ShouldBeUnique, ShouldQueue
         public array $items = [],
         public ?string $driver = null,
         public bool $warm = false,
+        public ?PurgeMode $mode = null,
     ) {
         sort($this->items);
 
@@ -51,7 +53,7 @@ class PurgeStaticCache implements ShouldBeUnique, ShouldQueue
 
     public function handle(Purger $purger): void
     {
-        $urls = $purger->purge($this->operation, $this->items, $this->driver);
+        $urls = $purger->purge($this->operation, $this->items, $this->driver, $this->mode);
 
         if ($this->warm && $urls !== []) {
             WarmStaticCache::dispatch($urls);
@@ -60,7 +62,7 @@ class PurgeStaticCache implements ShouldBeUnique, ShouldQueue
 
     public function uniqueId(): string
     {
-        return hash('xxh128', $this->operation->value.'|'.($this->driver ?? '').'|'.implode("\n", $this->items));
+        return hash('xxh128', $this->operation->value.'|'.($this->mode->value ?? '').'|'.($this->driver ?? '').'|'.implode("\n", $this->items));
     }
 
     /**

@@ -1,5 +1,6 @@
 <?php
 
+use Fydellys\InertiaStatic\Facades\StaticCache;
 use Fydellys\InertiaStatic\Tests\Fixtures\Http\AttributeController;
 use Fydellys\InertiaStatic\Tests\Fixtures\PostPaths;
 use Illuminate\Http\Request;
@@ -44,6 +45,7 @@ Route::middleware('web')->group(function () {
     Route::get('/leak/set-cookie', fn () => response()->json(['ok' => true])->cookie('tracking', 'abc'))->isr();
 
     Route::get('/devtools', fn () => response()->json(['ok' => true])->header('X-Inertia-Devtools-Id', 'abc'))->isr();
+    Route::get('/preview-check', fn () => Inertia::render('Home', ['preview' => StaticCache::isPreview()]))->isr();
     Route::get('/broken', fn () => abort(500))->isr();
     Route::get('/missing', fn () => abort(404))->isr();
     Route::get('/moved', fn () => redirect('/'))->isr();

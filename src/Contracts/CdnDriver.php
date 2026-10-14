@@ -3,6 +3,7 @@
 namespace Fydellys\InertiaStatic\Contracts;
 
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Support\CachePolicy;
 
 interface CdnDriver
@@ -45,6 +46,12 @@ interface CdnDriver
      * Whether any purge operation is available (credentials configured).
      */
     public function canPurge(): bool;
+
+    /**
+     * A copy of the driver purging in the given mode (soft = mark stale, hard = remove).
+     * Drivers without soft purges ignore it and always purge hard.
+     */
+    public function withMode(PurgeMode $mode): static;
 
     /**
      * Maximum number of items accepted by a single purge call.

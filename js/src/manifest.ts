@@ -4,6 +4,8 @@
  */
 export interface StaticManifest {
   prefix: string
+  /** Preview mode cookie: while present, static pages skip the cache. */
+  previewCookie?: string
   routes: StaticManifestRoute[]
 }
 
@@ -22,16 +24,20 @@ export interface CompiledRoute extends StaticManifestRoute {
 
 export interface CompiledManifest {
   prefix: string
+  previewCookie: string
   routes: CompiledRoute[]
 }
 
 export const DEFAULT_PREFIX = '/__inertia'
 
-export const emptyManifest = (): CompiledManifest => ({ prefix: DEFAULT_PREFIX, routes: [] })
+export const DEFAULT_PREVIEW_COOKIE = 'inertia_static_preview'
+
+export const emptyManifest = (): CompiledManifest => ({ prefix: DEFAULT_PREFIX, previewCookie: DEFAULT_PREVIEW_COOKIE, routes: [] })
 
 export function compileManifest(manifest: StaticManifest): CompiledManifest {
   return {
     prefix: '/' + (manifest.prefix || DEFAULT_PREFIX).replace(/^\/+|\/+$/g, ''),
+    previewCookie: manifest.previewCookie || DEFAULT_PREVIEW_COOKIE,
     routes: (manifest.routes ?? []).flatMap((route) => {
       try {
         return [{ ...route, query: route.query ?? [], regex: new RegExp(route.pattern) }]

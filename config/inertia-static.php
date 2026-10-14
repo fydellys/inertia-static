@@ -120,7 +120,10 @@ return [
     */
 
     'leak_detector' => [
+        // "throw" | "auto" (log, serve no-store and turn the route dynamic) | "log".
+        // Null: throw in "throw_in", auto elsewhere.
         'mode' => env('INERTIA_STATIC_LEAK_DETECTOR'),
+        'store' => env('INERTIA_STATIC_DOWNGRADES_STORE'), // cache store of the auto-downgraded routes
         'throw_in' => ['local', 'testing'],
         'log_channel' => env('INERTIA_STATIC_LOG_CHANNEL'),
     ],
@@ -159,8 +162,11 @@ return [
     */
 
     'defaults' => [
+        // "revalidate" is the edge TTL; "expire" is how long a page may be served
+        // stale while it is regenerated (stale-while-revalidate = expire - revalidate).
         'revalidate' => 3600,
-        'stale_while_revalidate' => 86400,
+        'expire' => 31536000, // one year
+        'stale_while_revalidate' => null, // explicit value overrides "expire"
         'stale_if_error' => 604800,
         'browser_cache_control' => 'public, max-age=0, must-revalidate',
         'not_found_ttl' => 60,
@@ -200,6 +206,35 @@ return [
     */
 
     'cache_header' => env('INERTIA_STATIC_CACHE_HEADER', 'X-Inertia-Static-Cache'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Implicit Path Tags
+    |--------------------------------------------------------------------------
+    |
+    | Every cached page also gets one tag per
+    | path prefix (_IST_/, _IST_/blog/, ...). Prefix purges then work through tag
+    | purges on CDNs without prefix purging (Fastly).
+    |
+    */
+
+    'implicit_tags' => true,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Preview Mode
+    |--------------------------------------------------------------------------
+    |
+    | Your own (authenticated) route returns
+    | StaticCache::enablePreview() as a cookie; while it is valid, static pages
+    | skip the cache. Configure your CDN to bypass its cache for this cookie.
+    |
+    */
+
+    'preview' => [
+        'cookie' => 'inertia_static_preview',
+        'minutes' => 60,
+    ],
 
     /*
     |--------------------------------------------------------------------------
@@ -244,7 +279,6 @@ return [
             'driver' => 'fastly',
             'service_id' => env('FASTLY_SERVICE_ID'),
             'api_token' => env('FASTLY_API_TOKEN'),
-            'soft_purge' => true,
         ],
 
         'bunny' => [
@@ -303,6 +337,9 @@ return [
         'queue' => env('INERTIA_STATIC_PURGE_QUEUE'),
         'connection' => env('INERTIA_STATIC_PURGE_CONNECTION'),
         'debounce' => (int) env('INERTIA_STATIC_PURGE_DEBOUNCE', 5),
+        // "soft": mark stale and serve it while refetching; "hard": remove now.
+        // CDNs without soft purges always purge hard.
+        'mode' => env('INERTIA_STATIC_PURGE_MODE', 'soft'),
         'tries' => 5,
         'backoff' => [5, 30, 120],
         // Cloudflare Free: 5 tag/prefix purge requests per minute.

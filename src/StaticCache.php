@@ -5,11 +5,15 @@ namespace Fydellys\InertiaStatic;
 use Closure;
 use Fydellys\InertiaStatic\Cdn\CdnManager;
 use Fydellys\InertiaStatic\Contracts\CdnDriver;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
 use Fydellys\InertiaStatic\Jobs\PurgeStaticCache;
+use Fydellys\InertiaStatic\Support\Preview;
+use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Cookie;
 
 /**
  * Root of the StaticCache facade: on-demand revalidation.
@@ -28,30 +32,30 @@ class StaticCache
     /**
      * @param  array<int, string>|string  $tags
      */
-    public function purgeTags(array|string $tags): void
+    public function purgeTags(array|string $tags, ?PurgeMode $mode = null): void
     {
-        $this->queue(PurgeOperation::Tags, (array) $tags);
+        $this->queue(PurgeOperation::Tags, (array) $tags, $mode);
     }
 
     /**
      * @param  array<int, string>|string  $urls  Page paths or absolute URLs.
      */
-    public function purgeUrls(array|string $urls): void
+    public function purgeUrls(array|string $urls, ?PurgeMode $mode = null): void
     {
-        $this->queue(PurgeOperation::Urls, (array) $urls);
+        $this->queue(PurgeOperation::Urls, (array) $urls, $mode);
     }
 
     /**
      * @param  array<int, string>|string  $prefixes
      */
-    public function purgePrefix(array|string $prefixes): void
+    public function purgePrefix(array|string $prefixes, ?PurgeMode $mode = null): void
     {
-        $this->queue(PurgeOperation::Prefixes, (array) $prefixes);
+        $this->queue(PurgeOperation::Prefixes, (array) $prefixes, $mode);
     }
 
-    public function purgeAll(): void
+    public function purgeAll(?PurgeMode $mode = null): void
     {
-        $this->queue(PurgeOperation::All);
+        $this->queue(PurgeOperation::All, [], $mode);
     }
 
     /**
@@ -60,9 +64,9 @@ class StaticCache
      * @param  array<int, string>  $items
      * @return array<int, string>
      */
-    public function purgeNow(PurgeOperation $operation, array $items = [], ?string $driver = null): array
+    public function purgeNow(PurgeOperation $operation, array $items = [], ?string $driver = null, ?PurgeMode $mode = null): array
     {
-        return $this->purger->purge($operation, $items, $driver);
+        return $this->purger->purge($operation, $items, $driver, $mode);
     }
 
     /**
@@ -71,6 +75,28 @@ class StaticCache
     public function canPurge(): bool
     {
         return $this->cdn->driver()->canPurge();
+    }
+
+    /**
+     * Preview mode cookie. Return it from your own,
+     * authenticated route: redirect($url)->withCookie(StaticCache::enablePreview()).
+     */
+    public function enablePreview(?int $minutes = null): Cookie
+    {
+        return app(Preview::class)->enable($minutes);
+    }
+
+    public function disablePreview(): Cookie
+    {
+        return app(Preview::class)->disable();
+    }
+
+    /**
+     * Whether the current request is a preview (use it to show drafts).
+     */
+    public function isPreview(): bool
+    {
+        return app(StaticRequestContext::class)->preview;
     }
 
     public function driver(?string $name = null): CdnDriver
@@ -93,7 +119,7 @@ class StaticCache
     /**
      * @param  array<int, string>  $items
      */
-    protected function queue(PurgeOperation $operation, array $items = []): void
+    protected function queue(PurgeOperation $operation, array $items = [], ?PurgeMode $mode = null): void
     {
         if (! $this->config->get('inertia-static.enabled', true)) {
             return;
@@ -115,7 +141,7 @@ class StaticCache
             return;
         }
 
-        PurgeStaticCache::dispatch($operation, $items, null, (bool) $this->config->get('inertia-static.purge.warm_after_purge', false))
+        PurgeStaticCache::dispatch($operation, $items, null, (bool) $this->config->get('inertia-static.purge.warm_after_purge', false), $mode)
             ->delay(now()->addSeconds((int) $this->config->get('inertia-static.purge.debounce', 5)))
             ->afterCommit();
     }

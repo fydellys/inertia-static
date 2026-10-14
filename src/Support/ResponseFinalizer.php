@@ -127,10 +127,17 @@ class ResponseFinalizer
             return;
         }
 
-        $value = $status->value.($policy->cacheable
-            ? "; ttl={$policy->revalidate}"
-            : '; reason='.preg_replace('/[^A-Za-z0-9:_.-]/', '-', (string) $policy->reason));
+        // A plain status, set by the origin. The TTL lives
+        // in the cache headers; HIT / STALE come from the CDN's own status header.
+        if ($policy->cacheable) {
+            $response->headers->set($header, $status->value);
+            $response->headers->remove("{$header}-Reason");
 
-        $response->headers->set($header, $value);
+            return;
+        }
+
+        // Not cacheable: no status, only the reason (for debugging).
+        $response->headers->remove($header);
+        $response->headers->set("{$header}-Reason", (string) preg_replace('/[^A-Za-z0-9:_.-]/', '-', (string) $policy->reason));
     }
 }

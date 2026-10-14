@@ -3,7 +3,7 @@
 | Command | Purpose |
 |---|---|
 | `inertia-static:routes [--json]` | List static routes with mode, TTLs, tags and paths provider (`--json`: the client manifest). |
-| `inertia-static:manifest [--path=]` | Write the client manifest (default `resources/js/inertia-static.json`). Run it before `npm run build`. |
+| `inertia-static:manifest [--path=]` | Write the client manifest (default `resources/js/inertia-static.json`). The Vite plugin runs it on every build. |
 | `inertia-static:purge` | Purge the CDN now (or `--queue`). |
 | `inertia-static:warm` | Request every static page (HTML + JSON) so the CDN is filled. |
 | `inertia-static:doctor` | Validate the setup. |
@@ -32,7 +32,7 @@ php artisan inertia-static:warm --limit=50 --concurrency=20
 php artisan inertia-static:warm --dry-run                # list URLs only
 ```
 
-Parameterized routes are expanded with their [paths provider](./routes.md#static-paths-getstaticpaths). If your
+Parameterized routes are expanded with their [paths provider](./static-paths.md). If your
 servers reach the CDN through an internal address, set `INERTIA_STATIC_WARM_URL`. The public `Host` header is
 kept, so the warmup lands on the same cache key.
 

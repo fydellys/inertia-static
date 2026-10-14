@@ -6,6 +6,8 @@ import { HttpClient, HttpRequestConfig, HttpResponse } from '@inertiajs/core';
  */
 interface StaticManifest {
     prefix: string;
+    /** Preview mode cookie: while present, static pages skip the cache. */
+    previewCookie?: string;
     routes: StaticManifestRoute[];
 }
 interface StaticManifestRoute {
@@ -21,6 +23,7 @@ interface CompiledRoute extends StaticManifestRoute {
 }
 interface CompiledManifest {
     prefix: string;
+    previewCookie: string;
     routes: CompiledRoute[];
 }
 declare function compileManifest(manifest: StaticManifest): CompiledManifest;

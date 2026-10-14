@@ -1,6 +1,6 @@
 # `StaticCache::purgeTags()`
 
-Purge every page carrying one of the tags, like `revalidateTag()` in Next.js.
+Purge every page carrying one of the tags.
 
 ```php
 use Fydellys\InertiaStatic\Facades\StaticCache;
@@ -12,7 +12,7 @@ StaticCache::purgeTags(['post:42', 'author:7']);
 ## Reference
 
 ```php
-StaticCache::purgeTags(array|string $tags): void
+StaticCache::purgeTags(array|string $tags, ?PurgeMode $mode = null): void   // Soft (default) | Hard
 ```
 
 ### Behaviour
@@ -45,6 +45,13 @@ public function update(UpdatePostRequest $request, Post $post)
 php artisan inertia-static:purge --tags=posts,post:42          # synchronous
 php artisan inertia-static:purge --tags=posts --queue          # queued
 ```
+
+### Mode
+
+| `PurgeMode` | Effect |
+|---|---|
+| `Soft` (default) | marked stale, served while refreshed |
+| `Hard` | removed now |
 
 ## Good to know
 

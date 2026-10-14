@@ -6,7 +6,7 @@ use App\Models\Post;
 use Fydellys\InertiaStatic\Contracts\StaticPathsProvider;
 
 /**
- * Lists the concrete pages of the route  /blog/{post:slug}  (like generateStaticParams in Next.js).
+ * Lists the concrete pages of the route  /blog/{post:slug}.
  *
  * Attached in routes/web.php:
  *
@@ -25,7 +25,7 @@ use Fydellys\InertiaStatic\Contracts\StaticPathsProvider;
  *     php artisan inertia-static:purge --all --warm                     → deploy hook: purge, then refill
  *
  * With ->isr() it is optional (unlisted posts are rendered and cached on their first visit).
- * With ->static() and parameters it is required (the exporter needs the finite list).
+ * With ->static() and parameters it is required (every page is known in advance).
  */
 class PostPaths implements StaticPathsProvider
 {

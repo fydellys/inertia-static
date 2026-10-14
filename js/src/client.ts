@@ -144,6 +144,11 @@ export class StaticHttpClient implements HttpClient {
       url: url.origin + jsonPath(path, `${manifest.prefix}/live`, version, this.options.index) + search,
     })
 
+    // Preview mode: fresh content, never the cache.
+    if (hasCookie(manifest.previewCookie)) {
+      return live('preview', url.search)
+    }
+
     const bypass = BYPASS_HEADERS.find((header) => hasHeader(config.headers, header))
 
     if (bypass) {
@@ -254,6 +259,14 @@ export class StaticHttpClient implements HttpClient {
       console.debug('[inertia-static]', config.url, decision)
     }
   }
+}
+
+function hasCookie(name: string): boolean {
+  if (typeof document === 'undefined') {
+    return false
+  }
+
+  return document.cookie.split('; ').some((cookie) => cookie.startsWith(`${name}=`) && cookie.length > name.length + 1)
 }
 
 export function createStaticHttpClient(options: InertiaStaticOptions = {}): StaticHttpClient {

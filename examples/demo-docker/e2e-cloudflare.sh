@@ -96,7 +96,7 @@ for u in /login /api/me; do
 done
 get /blog -H "Authorization: Bearer abc"
 match "Authorization request bypasses the cache" "$(hdr cf-cache-status)" "^(BYPASS|DYNAMIC)$"
-has "  origin marked it BYPASS" "$(hdr x-inertia-static)" "BYPASS; reason=authorization"
+eq "  origin marked it BYPASS" "$(hdr x-inertia-static-reason)" "authorization"
 
 # ---------------------------------------------------------------- 2
 section "2. warm Cloudflare, then a new browser: no page reaches the origin"

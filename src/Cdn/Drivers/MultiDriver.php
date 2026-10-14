@@ -5,6 +5,7 @@ namespace Fydellys\InertiaStatic\Cdn\Drivers;
 use Fydellys\InertiaStatic\Cdn\Driver;
 use Fydellys\InertiaStatic\Contracts\CdnDriver;
 use Fydellys\InertiaStatic\Enums\Capability;
+use Fydellys\InertiaStatic\Enums\PurgeMode;
 use Fydellys\InertiaStatic\Support\CachePolicy;
 
 /**
@@ -78,6 +79,14 @@ class MultiDriver extends Driver
         }
 
         return $this->drivers !== [];
+    }
+
+    public function withMode(PurgeMode $mode): static
+    {
+        $multi = clone $this;
+        $multi->drivers = array_map(fn (CdnDriver $driver) => $driver->withMode($mode), $this->drivers);
+
+        return $multi;
     }
 
     public function canPurge(): bool

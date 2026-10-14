@@ -12,7 +12,7 @@
 
 ```bash
 composer test                  # or ./bin-php vendor/bin/pest (Docker)
-npm test                       # or ./bin-node npm test
+npm test                       # client tests (package development)
 ```
 
 ## The demo

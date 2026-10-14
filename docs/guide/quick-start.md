@@ -63,7 +63,7 @@ const { data: me } = useStaticIsland<{ user: { name: string } | null }>('/api/me
 ## 5. Install the client plugin and check
 
 ```bash
-php artisan inertia-static:manifest && npm run build
+npm run build      # the Vite plugin writes the manifest first
 php artisan inertia-static:routes
 php artisan inertia-static:doctor
 curl -I https://example.com/blog
@@ -76,5 +76,5 @@ cloudflare-cdn-cache-control: public, max-age=300, stale-while-revalidate=86400,
 cache-tag: posts
 etag: "9f2c0d…"
 x-inertia-static-cache: cacheable
-x-inertia-static: MISS; ttl=300
+x-inertia-static: MISS
 ```

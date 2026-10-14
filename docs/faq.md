@@ -72,7 +72,7 @@ accessor (for example `auth()->check()`). Move it to an island, or make the rout
 - nginx / Bunny: enable the [tag registry](./guide/revalidation.md#tag-registry), otherwise tag purges have no URL to purge.
 - Cloudflare Free: 5 tag/prefix purges per minute. Set `INERTIA_STATIC_PURGE_RATE_LIMIT=5`.
 
-## Pages are never cached and `X-Inertia-Static: BYPASS; reason=ssr-unavailable`
+## Pages are never cached and `X-Inertia-Static-Reason: ssr-unavailable`
 
 The SSR server is down or not configured (`php artisan inertia:check-ssr`). HTML without SSR is never cached
 unless `INERTIA_STATIC_SSR_REQUIRED=false`.

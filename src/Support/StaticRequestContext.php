@@ -17,6 +17,9 @@ class StaticRequestContext
     /** The response is a redirect to the canonical URL (always cacheable). */
     public bool $canonicalRedirect = false;
 
+    /** A valid preview cookie was sent. */
+    public bool $preview = false;
+
     /** The page path served by the JSON endpoint ("/blog/post"). */
     public ?string $pagePath = null;
 
@@ -43,6 +46,7 @@ class StaticRequestContext
         $this->jsonEndpoint = false;
         $this->pagePath = null;
         $this->canonicalRedirect = false;
+        $this->preview = false;
         $this->bypass = false;
         $this->bypassReason = null;
         $this->overrides = [];

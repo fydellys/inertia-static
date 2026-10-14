@@ -36,7 +36,9 @@ export function recordingClient(inner: HttpClient = xhrHttpClient): HttpClient {
           url: new URL(config.url, location.href).pathname + new URL(config.url, location.href).search,
           status: response.status,
           cache: response.headers['x-cache-status'] ?? response.headers['cf-cache-status']?.toUpperCase() ?? '-',
-          inertiaStatic: response.headers['x-inertia-static'] ?? '-',
+          inertiaStatic:
+            response.headers['x-inertia-static'] ??
+            (response.headers['x-inertia-static-reason'] ? `BYPASS: ${response.headers['x-inertia-static-reason']}` : '-'),
           xInertiaOnWire: response.headers['x-inertia'] !== undefined,
           originHit: !['HIT', 'STALE', 'UPDATING', 'REVALIDATED'].includes((response.headers['x-cache-status'] ?? response.headers['cf-cache-status'] ?? '').toUpperCase()),
           browser: '…',

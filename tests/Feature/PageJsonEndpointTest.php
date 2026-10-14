@@ -10,7 +10,7 @@ it('serves the page JSON on its own URL with the Inertia headers', function () {
 
     $response->assertOk()
         ->assertHeader('X-Inertia', 'true')
-        ->assertHeader('X-Inertia-Static', 'MISS; ttl=3600')
+        ->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(3600)
         ->assertJsonPath('component', 'Blog/Show')
         ->assertJsonPath('url', '/blog/hello-world')
         ->assertJsonPath('version', 'v1')
@@ -66,7 +66,7 @@ it('serves never-cached page JSON on the live endpoint', function () {
     $response->assertOk()
         ->assertHeader('X-Inertia', 'true')
         ->assertHeader('Cache-Control', 'no-store, private')
-        ->assertHeader('X-Inertia-Static', 'BYPASS; reason=live')
+        ->assertHeader('X-Inertia-Static-Reason', 'live')
         ->assertHeader('X-Inertia-Static-Cache', 'bypass')
         ->assertJsonPath('component', 'Blog/Index')
         ->assertJsonPath('url', '/blog?page=2');
@@ -124,4 +124,9 @@ it('hands session validation errors and Inertia flash data to the live endpoint 
         ->get('/__inertia/v1/blog.json')
         ->assertOk()
         ->assertJsonPath('props.errors', []);
+});
+
+it('keeps no request state between requests handled by the same app', function () {
+    $this->get('/__inertia/v1/blog.json')->assertHeader('X-Inertia-Static', 'MISS');
+    $this->get('/__inertia/v1/blog/hello-world.json')->assertHeader('X-Inertia-Static', 'MISS');
 });

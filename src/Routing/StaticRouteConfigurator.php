@@ -43,6 +43,25 @@ class StaticRouteConfigurator
     }
 
     /**
+     * Turn a static route back into a regular dynamic one (session pipeline restored).
+     */
+    public function downgrade(Route $route, string $reason): Route
+    {
+        $action = $route->getAction();
+        $stripped = $this->strippedMiddleware();
+
+        $action[RouteOptions::ACTION_KEY] = ['mode' => RenderMode::Dynamic->value, 'downgraded' => $reason] + (array) ($action[RouteOptions::ACTION_KEY] ?? []);
+        $action[RouteOptions::ACTION_KEY]['mode'] = RenderMode::Dynamic->value;
+        $action['middleware'] = array_values(array_diff((array) ($action['middleware'] ?? []), [RenderStatically::ALIAS]));
+        $action['excluded_middleware'] = array_values(array_diff((array) ($action['excluded_middleware'] ?? []), $stripped));
+
+        $route->setAction($action);
+        $route->computedMiddleware = null;
+
+        return $route;
+    }
+
+    /**
      * @return array<int, string>
      */
     public function strippedMiddleware(): array
@@ -72,7 +91,7 @@ class StaticRouteConfigurator
         }
 
         if ($options->mode === RenderMode::Static && $route->parameterNames() !== [] && $options->paths === null) {
-            throw new InvalidStaticRoute("[inertia-static] Static route [{$route->uri()}] has parameters but no paths provider; the exporter needs an explicit, finite list of paths.");
+            throw new InvalidStaticRoute("[inertia-static] Static route [{$route->uri()}] has parameters but no paths provider; static pages must be listed in advance.");
         }
     }
 }

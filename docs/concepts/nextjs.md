@@ -9,7 +9,12 @@
 | `/_next/data/{buildId}/{path}.json` | `/__inertia/{assetVersion}/{path}.json` |
 | `buildId` / deployment skew protection | Inertia asset version + 409 full reload |
 | `x-nextjs-cache: HIT/MISS/STALE` | `X-Inertia-Static` (origin decision) + your CDN's status header |
-| `cookies()` / `headers()` opt a route out of static | leak detector (throw in dev, `no-store` in prod) |
+| `cookies()` / `headers()` opt a route out of static | leak detector: throw in dev, `auto` in prod (the route becomes dynamic) |
+| `expireTime` / `cacheLife({ revalidate, expire })` | `revalidate` + `expire` (`stale-while-revalidate = expire - revalidate`) |
+| `revalidateTag(tag, 'max')` / `updateTag(tag)` | `PurgeMode::Soft` / `PurgeMode::Hard` |
+| implicit `_N_T_` path tags | implicit `_IST_/…/` path tags |
+| `draftMode()` | `StaticCache::enablePreview()` / `isPreview()` |
+| `x-nextjs-cache: MISS` | `X-Inertia-Static: MISS` |
 | incremental cache on the origin | the CDN is the cache; the origin only renders |
 
 The main difference: Next.js invalidates its own origin-side cache and, by its own docs,
