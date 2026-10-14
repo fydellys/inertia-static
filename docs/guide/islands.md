@@ -26,12 +26,13 @@ const { data, loading, error, load } = useStaticIsland<{ user: { name: string } 
   with `refreshAfterMutations: false`.
 - Options: `immediate` (default `true`), `initial`, `init` (extra `fetch` options), `refreshAfterMutations`.
 
-The endpoint must be dynamic and never cached:
+The endpoint is a regular dynamic route. Nothing else is needed: Laravel already answers with
+`Cache-Control: private`, which CDNs never store.
 
 ```php
-Route::get('/api/me', fn (Request $request) => response()
-    ->json(['user' => $request->user()?->only('id', 'name')])
-    ->header('Cache-Control', 'no-store, private'));
+Route::get('/api/me', fn (Request $request) => [
+    'user' => $request->user()?->only('id', 'name'),
+]);
 ```
 
 ## Put islands in a persistent layout

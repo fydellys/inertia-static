@@ -22,58 +22,82 @@ X-Inertia-Static-Cache: cacheable
 `proxy-revalidate`, which disables `stale-while-revalidate`. Cloudflare does not forward this header downstream,
 and it takes precedence over `CDN-Cache-Control`. `Cache-Tag` is stripped by Cloudflare before reaching visitors.
 
-## Required zone configuration
+## Zone setup: two rules
 
 ::: danger Cloudflare does not cache HTML or JSON by default
-It decides by file extension. Without a Cache Rule your pages are always `DYNAMIC` (never cached), no matter
-which headers the origin sends.
+It decides by file extension. Without rule 1 your pages are always `DYNAMIC` (never cached), no matter which
+headers the origin sends.
 :::
 
-1. **Caching → Cache Rules**, for your hostname:
+Create **both** rules, in this order. They live in two different tabs of **Caching → Cache Rules**:
+
+| | Tab | What it does |
+|---|---|---|
+| **Rule 1** | **Cache Rules** | Makes your hostname eligible for cache, following the origin's headers. |
+| **Rule 2** | **Cache Response Rules** | Safety net: refuses to store anything the package did not mark as cacheable. |
+
+Rule 1 alone already works: static pages are cached and dynamic routes are not, because Laravel answers them with
+`Cache-Control: private`. Rule 2 protects you from your own mistakes. Without it, any route of yours that sends
+`Cache-Control: public` by accident would be stored and served to everyone. This was reproduced on a real zone.
+
+### Rule 1: Cache Rule
+
+**Caching → Cache Rules → Create rule**
+
+1. *Rule name*: `inertia-static`
+2. *If incoming requests match…* → **Custom filter expression** → **Edit expression**:
+
+   ```txt
+   (http.host eq "example.com")
+   ```
+3. *Then…*
    - *Cache eligibility*: **Eligible for cache**
    - *Edge TTL*: **Use cache-control header if present, bypass cache if not**
-   - *Browser TTL*: respect origin
-   - *Respect strong ETags*: **on** (otherwise compression weakens the ETag and 304s stop working)
-2. **Cache Response Rule** (strongly recommended safety net, see below).
+   - *Browser TTL*: **Respect origin TTL**
+   - *Respect strong ETags*: **on**. Without it, Cloudflare drops the ETag of compressed HTML and `304`
+     revalidation stops working.
+4. *Place at*: if the zone has other Cache Rules that match the same hostname, put this one **after** them.
+   Later rules override earlier ones.
+5. **Deploy**.
 
-Dynamic routes keep sending `Cache-Control: no-cache, private` (Laravel's default) and are bypassed.
+### Rule 2: Cache Response Rule (safety net)
 
-## Safety net: Cache Response Rule
+**Caching → Cache Rules → Cache Response Rules** tab → **Create rule**. It must be this tab: regular Cache Rules
+run on the request and reject `http.response.headers`.
 
-A zone-wide "eligible for cache" rule stores **any** response with `Cache-Control: public`. For example, a
-cookie-less API route of yours that sends `public, max-age=300` by mistake. This was reproduced on a real zone:
-`MISS` → `HIT`, the same response served to everyone. The safety net makes the edge store **only** what the
-package marks as cacheable:
-
-1. **Caching → Cache Rules → Cache Response Rules** tab → **Create rule**. This is a different tab from the regular
-   Cache Rules: the regular ones run on the request and reject `http.response.headers`.
-2. Rule name: `inertia-static safety net`
-3. *Custom filter expression* → **Edit expression**:
+1. *Rule name*: `inertia-static safety net`
+2. *If incoming requests match…* → **Custom filter expression** → **Edit expression**:
 
    ```txt
    (http.host eq "example.com" and not any(http.response.headers["x-inertia-static-cache"][*] eq "cacheable"))
    ```
-4. *Then*: **Modify cache-control directives** → **Add directive** → **`no-store`**, with **Cloudflare only** on (the
-   browser still receives your origin's `Cache-Control`).
-5. **Deploy**.
+3. *Then…* → **Modify cache-control directives**:
+   - *Action*: **Add directive**
+   - *Directive*: **`no-store`**
+   - **Cloudflare only**: **on** (browsers still receive your origin's `Cache-Control`)
+4. **Deploy**.
 
-Verified on a real zone: the careless route goes from `HIT` to `BYPASS`, and static pages stay `HIT`.
+### Check it
+
+```bash
+curl -sI https://example.com/ | grep -i -E 'cf-cache-status|x-inertia-static'
+# 1st request: cf-cache-status: MISS, x-inertia-static: MISS
+# 2nd request: cf-cache-status: HIT
+curl -sI https://example.com/login | grep -i cf-cache-status
+# cf-cache-status: BYPASS or DYNAMIC (never HIT)
+```
 
 ### Optional: bypass Inertia requests on HTML URLs
 
 Clients using the plugin never send Inertia visits to HTML URLs. For clients without it (an old tab with a stale
-bundle, a custom HTTP client), add a regular **Cache Rule** placed **after** the "eligible" one:
+bundle, a custom HTTP client), add a third rule in the **Cache Rules** tab, placed **after** rule 1:
 
 ```txt
 (http.host eq "example.com" and any(http.request.headers["x-inertia"][*] eq "true"))
 ```
 
-→ **Bypass cache**. Cloudflare ignores `Vary: X-Inertia`, so without this rule such a request would get the cached HTML.
-
-::: tip Respect strong ETags
-Without it, Cloudflare drops the ETag of compressed HTML (observed on a real zone), so `If-None-Match`
-revalidation does not work for HTML. Page JSON kept its ETag. Turn it on in the Cache Rule of your hostname.
-:::
+→ *Cache eligibility*: **Bypass cache**. Cloudflare ignores `Vary: X-Inertia`, so without this rule such a request
+would get the cached HTML.
 
 ## Purge API
 
@@ -110,7 +134,7 @@ available on every plan. A tag can be at most 1,024 characters; the whole `Cache
 
 - **Live API tests** (`tests/Live/CloudflareLiveTest.php`): URL purge (HTML + JSON), batching over 100 items,
   tag purge, prefix purge.
-- **E2E through a Cloudflare Tunnel** (`examples/demo-docker/e2e-cloudflare.sh`, 51 checks, Chromium and Firefox):
+- **E2E through a Cloudflare Tunnel** (`examples/demo-docker/e2e-cloudflare.sh`, 84 checks, Chromium and Firefox):
   - HTML and page JSON cached (`MISS` → `HIT`); dynamic pages and `Authorization` requests `BYPASS`;
   - a new browser navigates 9 pages entirely from Cloudflare (no synchronous origin hit);
   - no trace of a signed-in user in anything Cloudflare stored;

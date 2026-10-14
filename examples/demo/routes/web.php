@@ -47,12 +47,11 @@ Route::get('/preview/disable', fn () => redirect('/')->withCookie(StaticCache::d
 Route::get('/api/me', [PageController::class, 'me'])->name('me');
 
 // Demo only: origin hit counter (never cached).
-Route::get('/__origin/stats', fn () => response()->json(cache('origin-hits', ['static' => 0, 'dynamic' => 0, 'log' => []]))
-    ->header('Cache-Control', 'no-store, private'));
+Route::get('/__origin/stats', fn () => cache('origin-hits', ['static' => 0, 'dynamic' => 0, 'log' => []]));
 Route::get('/__origin/reset', function () {
     cache()->forget('origin-hits');
 
-    return response()->json(['ok' => true])->header('Cache-Control', 'no-store, private');
+    return ['ok' => true];
 });
 
 // Demo only: a dynamic route that wrongly sends a public Cache-Control (no X-Inertia-Static-Cache).

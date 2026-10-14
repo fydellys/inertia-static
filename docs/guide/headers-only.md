@@ -29,24 +29,16 @@ The name is configurable (`INERTIA_STATIC_CACHE_HEADER`; empty disables it).
 
 ### Cloudflare
 
-1. **Cache Rule** (request phase) for your hostname: *Eligible for cache*, *Edge TTL: use cache-control header
-   if present, bypass cache if not* (`edge_ttl.mode: respect_origin`). Cloudflare does not cache HTML/JSON
-   without it.
-2. **Cache Response Rule** (response phase, separate tab) as a safety net: when
-
-   ```txt
-   (http.host eq "example.com" and not any(http.response.headers["x-inertia-static-cache"][*] eq "cacheable"))
-   ```
-
-   then *Modify cache-control directives* → add `no-store` (*Cloudflare only*). Only pages marked by the package
-   are stored, even when a dynamic route forgets `Cache-Control: private`. Step by step in
-   [Cloudflare](../cdn/cloudflare.md#safety-net-cache-response-rule). Verified on a real zone.
+Two rules, created in this order: a **Cache Rule** that makes your hostname eligible for cache (Cloudflare does
+not cache HTML or JSON without it), then a **Cache Response Rule** that stores only responses with
+`X-Inertia-Static-Cache: cacheable`. Step by step in [Cloudflare: zone setup](../cdn/cloudflare.md#zone-setup-two-rules).
+Verified on a real zone.
 
 ### Other CDNs
 
 | CDN | Safety net | Verified |
 |---|---|---|
-| [Cloudflare](../cdn/cloudflare.md#safety-net-cache-response-rule) | Cache Response Rule → `no-store` | ✅ real zone |
+| [Cloudflare](../cdn/cloudflare.md#rule-2-cache-response-rule-safety-net) | Cache Response Rule → `no-store` | ✅ real zone |
 | [nginx](../cdn/nginx.md) | `map $upstream_http_x_inertia_static_cache` + `proxy_no_cache` | ✅ demo E2E |
 | [Varnish](../cdn/varnish.md) | `vcl_backend_response`: `beresp.uncacheable` unless `cacheable` | ✅ Varnish 7.7 |
 | [Fastly](../cdn/fastly.md#safety-net-vcl-snippets) | `vcl_fetch` snippet: `return(pass)` unless `cacheable` | docs only |
