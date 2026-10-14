@@ -1,0 +1,31 @@
+# Varnish 7 (+ xkey) instead of nginx, configured with docs/varnish.vcl:
+#
+#   docker compose -f compose.yml -f compose.varnish.yml up -d
+#   CDN=varnish ./e2e.sh
+#
+# Varnish shares the network namespace of "cdn", so the browser reaches it on localhost:8089.
+services:
+  cdn:
+    ports:
+      - "8089:8089"
+
+  varnish:
+    image: varnish:7.7
+    network_mode: "service:cdn"
+    depends_on: [cdn]
+    environment:
+      VARNISH_HTTP_PORT: "8089"
+      VARNISH_SIZE: 100M
+    volumes:
+      - ../../docs/varnish.vcl:/etc/varnish/inertia-static.vcl:ro
+      - ./varnish-demo.vcl:/etc/varnish/default.vcl:ro
+
+  app:
+    environment:
+      APP_URL: http://localhost:8089
+      INERTIA_STATIC_BASE_URL: http://localhost:8089
+      INERTIA_STATIC_CDN: varnish
+      VARNISH_HOSTS: http://cdn:8089
+      INERTIA_STATIC_WARM_URL: http://cdn:8089
+      # Same expectations as nginx (which only hard-purges); e2e.sh checks soft purges separately.
+      INERTIA_STATIC_PURGE_MODE: hard

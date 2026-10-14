@@ -4,10 +4,10 @@
 
 | Header | Example | Who reads it |
 |---|---|---|
-| `Cache-Control` | `public, max-age=0, must-revalidate` | browsers (and `s-maxage` caches on Varnish) |
+| `Cache-Control` | `public, max-age=0, must-revalidate` | browsers |
 | `Cloudflare-CDN-Cache-Control` | `public, max-age=3600, stale-while-revalidate=86400, stale-if-error=604800` | Cloudflare |
 | `CDN-Cache-Control` | same | RFC 9213 CDNs (null, Bunny) |
-| `Surrogate-Control` | `max-age=3600, stale-while-revalidate=86400` | Fastly |
+| `Surrogate-Control` | `max-age=3600, stale-while-revalidate=86400` | Fastly, Varnish (removed by the VCL) |
 | `X-Accel-Expires` | `3600` | nginx |
 | `Cache-Tag` / `Surrogate-Key` / `xkey` | `posts,post:42,_IST_/,_IST_/blog/,…` | Cloudflare / Fastly / Varnish (explicit + [implicit path tags](../guide/revalidation.md#implicit-path-tags)) |
 | `ETag` | `"9f2c0d…"` (strong) | everyone; `If-None-Match` → `304` |

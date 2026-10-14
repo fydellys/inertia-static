@@ -8,9 +8,14 @@ VARNISH_HOSTS=http://varnish-1:6081,http://varnish-2:6081
 ## Headers
 
 ```http
-Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400, stale-if-error=604800
+Cache-Control: public, max-age=0, must-revalidate
+Surrogate-Control: max-age=3600, stale-while-revalidate=86400, stale-if-error=604800
 xkey: posts post:42
 ```
+
+The VCL reads `Surrogate-Control` (TTL and grace) and removes it. Browsers only get `Cache-Control`: if the edge
+directives were there, browsers would apply `stale-while-revalidate` too and keep showing their own stale copy,
+for example an old asset version after a deploy.
 
 ## Purge protocol
 
@@ -35,7 +40,7 @@ What it does:
 | `vcl_backend_response` safety net | only responses with `X-Inertia-Static-Cache: cacheable` are stored; everything else becomes hit-for-miss |
 | `vcl_recv` `X-Inertia` pass | an Inertia visit on an HTML URL always goes to the origin (Varnish also honours `Vary: X-Inertia`; this is defense in depth) |
 | `xkey.softpurge` | tag purges mark objects stale: the next request gets the old page instantly (`STALE`) while Varnish refetches |
-| `grace` from `stale-while-revalidate` | time-based revalidation in the background |
+| TTL and `grace` from `Surrogate-Control` | time-based revalidation in the background; the header is removed before delivery |
 | `X-Cache: HIT / STALE / MISS` | debug header |
 
 ## Verified (Varnish 7.7, 2026-10-14)

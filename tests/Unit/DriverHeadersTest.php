@@ -42,7 +42,8 @@ it('builds the headers of each driver', function (string $driver, array $expecte
         'CDN-Cache-Control' => 'public, max-age=3600, stale-while-revalidate=60, stale-if-error=600',
     ]],
     'varnish' => ['varnish', [
-        'Cache-Control' => 'public, max-age=0, s-maxage=3600, stale-while-revalidate=60, stale-if-error=600',
+        'Cache-Control' => 'public, max-age=0, must-revalidate',
+        'Surrogate-Control' => 'max-age=3600, stale-while-revalidate=60, stale-if-error=600',
         'xkey' => 'posts post:1',
     ]],
     'nginx' => ['nginx', [

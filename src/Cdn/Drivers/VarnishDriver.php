@@ -30,9 +30,11 @@ class VarnishDriver extends Driver
 
     public function cacheHeaders(CachePolicy $policy): array
     {
-        // Varnish's builtin VCL honours s-maxage before max-age.
+        // Edge directives go in Surrogate-Control (read and removed by the VCL): in Cache-Control,
+        // stale-while-revalidate would also let browsers serve their stale copy.
         return [
-            'Cache-Control' => implode(', ', ['public', 'max-age=0', ...$policy->edgeDirectives('s-maxage')]),
+            'Cache-Control' => $policy->browserCacheControl,
+            'Surrogate-Control' => implode(', ', $policy->edgeDirectives()),
         ];
     }
 

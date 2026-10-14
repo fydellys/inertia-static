@@ -40,7 +40,7 @@ export function recordingClient(inner: HttpClient = xhrHttpClient): HttpClient {
             response.headers['x-inertia-static'] ??
             (response.headers['x-inertia-static-reason'] ? `BYPASS: ${response.headers['x-inertia-static-reason']}` : '-'),
           xInertiaOnWire: response.headers['x-inertia'] !== undefined,
-          originHit: !['HIT', 'STALE', 'UPDATING', 'REVALIDATED'].includes((response.headers['x-cache-status'] ?? response.headers['cf-cache-status'] ?? '').toUpperCase()),
+          originHit: !SERVED_BY_CDN.includes((response.headers['x-cache-status'] ?? response.headers['cf-cache-status'] ?? '').toUpperCase()),
           browser: '…',
           originMs: '-',
           ms: Math.round(performance.now() - started),
@@ -64,6 +64,8 @@ export function recordingClient(inner: HttpClient = xhrHttpClient): HttpClient {
   }
 }
 
+const SERVED_BY_CDN = ['HIT', 'STALE', 'UPDATING', 'REVALIDATED']
+
 function inspectTiming(url: string, record: RecordedRequest) {
   const href = new URL(url, location.href).href
   const timing = performance.getEntriesByName(href).at(-1) as (PerformanceResourceTiming & { responseStatus?: number }) | undefined
@@ -76,6 +78,13 @@ function inspectTiming(url: string, record: RecordedRequest) {
   const delivery = (timing as PerformanceResourceTiming & { deliveryType?: string }).deliveryType
   // deliveryType "cache" + bytes on the wire = revalidated (304); nothing on the wire = served locally.
   record.browser = timing.transferSize === 0 ? 'local cache' : delivery === 'cache' ? '304' : '200'
+  // After a 304 the XHR exposes the headers of the copy in the browser cache (an older CDN
+  // status). Server-Timing comes from the response actually received, so it wins when present.
+  const cdn = timing.serverTiming?.find((entry) => entry.name === 'cdn')?.description.toUpperCase()
+  if (cdn) {
+    record.cache = cdn
+    record.originHit = !SERVED_BY_CDN.includes(cdn)
+  }
   const origin = timing.serverTiming?.find((entry) => entry.name === 'cfOrigin')
   record.originMs = origin ? String(Math.round(origin.duration)) : '-'
 }

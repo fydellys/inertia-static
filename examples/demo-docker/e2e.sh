@@ -3,6 +3,7 @@
 #
 #   ./e2e.sh                 # Chromium + Firefox, windows visible
 #   HEADED= ./e2e.sh         # headless
+#   CDN=varnish ./e2e.sh     # through Varnish (docs/varnish.vcl), see compose.varnish.yml
 #
 # Requires: docker compose up -d (app + cdn + browser). The "cdn" is nginx with
 # proxy_cache + ngx_cache_purge; it deliberately strips X-Inertia from
@@ -10,7 +11,12 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-BASE=http://localhost:8088
+CDN=${CDN:-nginx}
+case "$CDN" in
+  nginx)   BASE=http://localhost:8088; CREDENTIALS_ENV=NGINX_CACHE_HOSTS ;;
+  varnish) BASE=http://localhost:8089; CREDENTIALS_ENV=VARNISH_HOSTS ;;
+  *) echo "unknown CDN=$CDN (nginx|varnish)"; exit 1 ;;
+esac
 HEADED=${HEADED---headed}
 FAILED=0
 PASSED=0
@@ -69,15 +75,22 @@ ready() { # waits until Vue hydrated the page (the network panel renders on moun
   done
 }
 
+clear_cdn() { # empties the CDN cache without the package (test setup only)
+  case "$CDN" in
+    nginx)   docker compose exec -T cdn sh -c 'rm -rf /var/cache/nginx/inertia/*' ;;
+    varnish) docker compose -f compose.yml -f compose.varnish.yml exec -T varnish varnishadm 'ban req.url ~ .' >/dev/null ;;
+  esac
+}
+
 section() { printf '\n\033[1m▶ %s\033[0m\n' "$1"; }
 
 # ---------------------------------------------------------------- setup
-section "0. setup: CDN cache, tag registry and origin counter reset"
-docker compose exec -T cdn sh -c 'rm -rf /var/cache/nginx/inertia/*'
+section "0. setup ($CDN): CDN cache, tag registry and origin counter reset"
+clear_cdn
 artisan inertia-static:purge --all
 docker compose exec -T app php artisan tinker --execute='App\Models\Post::find(1)?->update(["title" => "Post number 1"]);' >/dev/null 2>&1
 queue_idle # let the debounced purge of that update run
-docker compose exec -T cdn sh -c 'rm -rf /var/cache/nginx/inertia/*'
+clear_cdn
 pw close-all >/dev/null 2>&1
 reset_origin
 ok "clean environment"
@@ -101,7 +114,7 @@ check "no synchronous origin hit: static origin hits <= background refreshes (ST
 check "persistent layout: the /api/me island was fetched ONCE for 9 navigations" "$O" "d['dynamic'] == 1 and d['log'][-1]['uri'] == '/api/me'"
 check "every transition came from the CDN cache" "$R" "len(d) == 9 and all(r[4] in ('HIT','STALE') for r in d)"
 check "every transition used the versioned JSON URL" "$R" "all(r[2].startswith('/__inertia/') for r in d)"
-check "the CDN stripped X-Inertia (#1923 scenario) on all of them" "$R" "all(r[6] == 'NO' for r in d)"
+[ "$CDN" = nginx ] && check "the CDN stripped X-Inertia (#1923 scenario) on all of them" "$R" "all(r[6] == 'NO' for r in d)"
 check "no Inertia error / invalid-response modal" "$S" "d['errors'] == 'Inertia errors: none' and d['modal1923'] == 0 and not d['bodyHasPlainJsonError']"
 
 # ---------------------------------------------------------------- 3-5 privacy
@@ -300,6 +313,17 @@ artisan inertia-static:warm --only=home --only=blog.index --only=blog.show
 for u in / /blog /blog/post-7 "$(json_url /blog/post-12)"; do eq "warm: $u is a HIT on the first visit" "$(cdn "$u")" "HIT"; done
 
 # ---------------------------------------------------------------- 10 edge cases
+if [ "$CDN" = varnish ]; then
+  section "9b. soft purge (xkey-softpurge): stale served once, refreshed in the background"
+  rendered /blog/post-4; rendered /blog/post-4; A=$AT
+  eq "post-4 cached (HIT)" "$(hdr X-Cache-Status)" "HIT"
+  docker compose exec -T -e INERTIA_STATIC_PURGE_MODE=soft app php artisan inertia-static:purge --tags=post:4 >/dev/null
+  rendered /blog/post-4
+  eq "right after the soft purge: STALE, old content, no wait" "$AT|$(hdr X-Cache-Status)" "$A|STALE"
+  until_cdn /blog/post-4 HIT
+  ne "  then HIT with content rendered after the purge" "$AT" "$A"
+fi
+
 section "10. edge cases"
 get /blog/does-not-exist
 eq "404: status" "$(echo "$H" | head -1 | cut -d' ' -f2)" "404"
@@ -338,7 +362,7 @@ eq "bypassed response: X-Inertia-Static-Cache: bypass" "$(hdr X-Inertia-Static-C
 get /login
 eq "dynamic page: no X-Inertia-Static-Cache header" "$(hdr X-Inertia-Static-Cache)" ""
 eq "  so the CDN rule never stores it" "$(cdn /login)" "MISS"
-NOCRED="docker compose exec -T -e NGINX_CACHE_HOSTS= app php artisan"
+NOCRED="docker compose exec -T -e $CREDENTIALS_ENV= app php artisan"
 eq "without credentials: StaticCache::canPurge() is false" "$($NOCRED tinker --execute='echo Fydellys\InertiaStatic\Facades\StaticCache::canPurge() ? "yes" : "no";' 2>/dev/null | tr -dc a-z)" "no"
 has "  purge command refuses with a clear message" "$($NOCRED inertia-static:purge --all 2>&1)" "headers only"
 BEFORE=$(docker compose exec -T app php artisan tinker --execute='echo DB::table("jobs")->count();' 2>/dev/null | tr -dc 0-9)

@@ -9,6 +9,8 @@ backend default { .host = "app"; .port = "8000"; }
 acl purge { "localhost"; "127.0.0.1"; "10.0.0.0"/8; "172.16.0.0"/12; }
 
 sub vcl_recv {
+    unset req.http.X-Cache-Pass;
+
     if (req.method == "PURGE" || req.method == "BAN") {
         if (!client.ip ~ purge) { return (synth(405, "Not allowed")); }
 
@@ -37,8 +39,12 @@ sub vcl_recv {
         return (purge);
     }
 
-    # Preview mode (StaticCache::enablePreview()): never answer from the cache.
-    if (req.http.Cookie ~ "inertia_static_preview=") {
+    if (req.method != "GET" && req.method != "HEAD") {
+        return (pass);
+    }
+
+    # Signed requests and preview mode (StaticCache::enablePreview()): never from the cache.
+    if (req.http.Authorization || req.http.Cookie ~ "inertia_static_preview=") {
         return (pass);
     }
 
@@ -48,8 +54,15 @@ sub vcl_recv {
         return (pass);
     }
 
-    # Static pages ignore cookies anyway; cookies would make builtin.vcl pass.
-    if (req.url !~ "^/(login|logout|dashboard|api|admin)") { unset req.http.Cookie; }
+    # Look up even when the request has cookies (builtin.vcl would pass): the cache key
+    # ignores them, and only responses marked cacheable are stored (vcl_backend_response).
+    # Those come from static routes, which drop the cookies themselves. Dynamic routes are
+    # never stored, so they still receive the visitor's cookies and session.
+    return (hash);
+}
+
+sub vcl_pass {
+    set req.http.X-Cache-Pass = "1";
 }
 
 sub vcl_backend_response {
@@ -64,15 +77,24 @@ sub vcl_backend_response {
     set beresp.http.x-url = bereq.url;
     set beresp.http.x-host = bereq.http.host;
 
-    # Map stale-while-revalidate to grace when the app sends it.
-    if (beresp.http.Cache-Control ~ "stale-while-revalidate=") {
-        set beresp.grace = std.duration(regsub(beresp.http.Cache-Control, ".*stale-while-revalidate=([0-9]+).*", "\1") + "s", 0s);
+    # TTL and grace come from Surrogate-Control, removed here so browsers never see it
+    # (their Cache-Control is "max-age=0, must-revalidate").
+    if (beresp.http.Surrogate-Control ~ "(^|[ ,])max-age=[0-9]+") {
+        set beresp.ttl = std.duration(regsub(beresp.http.Surrogate-Control, "^(.*[ ,])?max-age=([0-9]+).*$", "\2") + "s", 0s);
     }
+    if (beresp.http.Surrogate-Control ~ "stale-while-revalidate=[0-9]+") {
+        set beresp.grace = std.duration(regsub(beresp.http.Surrogate-Control, "^.*stale-while-revalidate=([0-9]+).*$", "\1") + "s", 0s);
+    }
+    unset beresp.http.Surrogate-Control;
+
+    return (deliver);
 }
 
 sub vcl_deliver {
-    # HIT / STALE (grace: soft-purged or expired, refreshing in the background) / MISS
-    if (obj.hits > 0 && obj.ttl <= 0s) {
+    # HIT / STALE (grace: soft-purged or expired, refreshing in the background) / MISS / BYPASS
+    if (req.http.X-Cache-Pass) {
+        set resp.http.X-Cache = "BYPASS";
+    } elseif (obj.hits > 0 && obj.ttl <= 0s) {
         set resp.http.X-Cache = "STALE";
     } elseif (obj.hits > 0) {
         set resp.http.X-Cache = "HIT";
