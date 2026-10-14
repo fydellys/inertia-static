@@ -3,7 +3,7 @@
 Pick the driver of the cache in front of your app:
 
 ```ini
-INERTIA_STATIC_CDN=cloudflare   # cloudflare | fastly | bunny | varnish | nginx | multi | null
+INERTIA_STATIC_CDN=cloudflare   # cloudflare | fastly | bunny | cloudfront | varnish | nginx | multi | null
 ```
 
 | Driver | Purge by tag | Credentials |
@@ -11,6 +11,7 @@ INERTIA_STATIC_CDN=cloudflare   # cloudflare | fastly | bunny | varnish | nginx 
 | [`cloudflare`](./cloudflare.md) | yes | `CLOUDFLARE_ZONE_ID`, `CLOUDFLARE_API_TOKEN` |
 | [`fastly`](./fastly.md) | yes | `FASTLY_SERVICE_ID`, `FASTLY_API_TOKEN` |
 | [`bunny`](./bunny.md) | through the tag registry | `BUNNY_PULL_ZONE_ID`, `BUNNY_API_KEY` |
+| [`cloudfront`](./cloudfront.md) | through the tag registry | `CLOUDFRONT_DISTRIBUTION_ID`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` |
 | [`varnish`](./varnish.md) | yes | `VARNISH_HOSTS` |
 | [`nginx`](./nginx.md) | through the tag registry | `NGINX_CACHE_HOSTS` |
 | `multi` | see below | each driver's |

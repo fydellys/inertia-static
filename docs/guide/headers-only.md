@@ -31,4 +31,4 @@ The name is configurable (`INERTIA_STATIC_CACHE_HEADER`; empty disables it).
 
 Each CDN page shows how to store only responses marked `cacheable`:
 [Cloudflare](../cdn/cloudflare.md#zone-setup), [Fastly](../cdn/fastly.md#service-setup),
-[Bunny](../cdn/bunny.md#pull-zone-setup), [Varnish](../cdn/varnish.md#vcl), [nginx](../cdn/nginx.md#server-setup).
+[Bunny](../cdn/bunny.md#pull-zone-setup), [CloudFront](../cdn/cloudfront.md#distribution-setup), [Varnish](../cdn/varnish.md#vcl), [nginx](../cdn/nginx.md#server-setup).

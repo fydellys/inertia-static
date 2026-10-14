@@ -46,6 +46,10 @@ it('builds the headers of each driver', function (string $driver, array $expecte
         'Surrogate-Control' => 'max-age=3600, stale-while-revalidate=60, stale-if-error=600',
         'xkey' => 'posts post:1',
     ]],
+    'cloudfront' => ['cloudfront', [
+        // No stale-while-revalidate: in Cache-Control it would reach browsers too.
+        'Cache-Control' => 'public, max-age=0, s-maxage=3600',
+    ]],
     'nginx' => ['nginx', [
         'Cache-Control' => 'public, max-age=0, must-revalidate',
         'X-Accel-Expires' => '3600',

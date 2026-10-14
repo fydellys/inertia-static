@@ -2,7 +2,7 @@
 
 SSG + ISR for **Laravel + Inertia.js**. Pages are rendered once at the origin with SSR, served from any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
 
-Works with Cloudflare, Fastly, Bunny, Varnish, nginx or any HTTP cache.
+Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cache.
 
 **Documentation:** https://fydellys.github.io/inertia-static/
 

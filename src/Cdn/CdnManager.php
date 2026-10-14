@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Cdn;
 
 use Fydellys\InertiaStatic\Cdn\Drivers\BunnyDriver;
 use Fydellys\InertiaStatic\Cdn\Drivers\CloudflareDriver;
+use Fydellys\InertiaStatic\Cdn\Drivers\CloudFrontDriver;
 use Fydellys\InertiaStatic\Cdn\Drivers\FastlyDriver;
 use Fydellys\InertiaStatic\Cdn\Drivers\MultiDriver;
 use Fydellys\InertiaStatic\Cdn\Drivers\NginxDriver;
@@ -86,6 +87,14 @@ class CdnManager extends Manager
     protected function createVarnishDriver(array $config): CdnDriver
     {
         return new VarnishDriver($this->http(), $config);
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     */
+    protected function createCloudfrontDriver(array $config): CdnDriver
+    {
+        return new CloudFrontDriver($this->http(), $config);
     }
 
     /**

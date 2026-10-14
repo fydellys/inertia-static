@@ -57,9 +57,10 @@
 | Key | Env | Default |
 |---|---|---|
 | `cdn` | `INERTIA_STATIC_CDN` | `null` |
-| `drivers.cloudflare.zone_id` / `api_token` / `batch_size` | `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_PURGE_BATCH_SIZE` | — / — / `100` |
-| `drivers.fastly.service_id` / `api_token` / `soft_purge` | `FASTLY_SERVICE_ID` / `FASTLY_API_TOKEN` | — / — / `true` |
+| `drivers.cloudflare.zone_id` / `api_token` / `purge_everything` | `CLOUDFLARE_ZONE_ID` / `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_PURGE_EVERYTHING` | — / — / `false` |
+| `drivers.fastly.service_id` / `api_token` | `FASTLY_SERVICE_ID` / `FASTLY_API_TOKEN` | — |
 | `drivers.bunny.pull_zone_id` / `api_key` / `native_tags` | `BUNNY_PULL_ZONE_ID` / `BUNNY_API_KEY` | — / — / `false` |
+| `drivers.cloudfront.distribution_id` / `key` / `secret` / `token` / `stale` | `CLOUDFRONT_DISTRIBUTION_ID` / `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_SESSION_TOKEN` / `CLOUDFRONT_STALE` | — / — / — / — / `false` |
 | `drivers.varnish.hosts` / `tag_header` | `VARNISH_HOSTS` (comma separated) | `http://127.0.0.1:6081` / `xkey` |
 | `drivers.nginx.hosts` / `purge_path` | `NGINX_CACHE_HOSTS` (comma separated) | `http://127.0.0.1` / `/purge` |
 | `drivers.multi.drivers` | — | `['varnish', 'cloudflare']` |

@@ -34,6 +34,7 @@ export default defineConfig({
           { text: 'Cloudflare', link: '/cdn/cloudflare' },
           { text: 'Fastly', link: '/cdn/fastly' },
           { text: 'Bunny', link: '/cdn/bunny' },
+          { text: 'CloudFront', link: '/cdn/cloudfront' },
           { text: 'Varnish', link: '/cdn/varnish' },
           { text: 'nginx', link: '/cdn/nginx' },
           { text: 'Without CDN credentials', link: '/guide/headers-only' },

@@ -20,7 +20,7 @@ features:
   - title: Static, ISR or dynamic, per route
     details: "Route::get(...)->isr(revalidate: 3600) or #[StaticPage]. Pages render once at the origin (with Inertia SSR) and are served by the CDN."
   - title: CDN-agnostic
-    details: Cloudflare, Fastly, Bunny, Varnish, nginx, or any HTTP cache. Purge by tag, URL, prefix or everything, through queued jobs with batching and rate limits.
+    details: Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx, or any HTTP cache. Purge by tag, URL, prefix or everything, through queued jobs with batching and rate limits.
   - title: Fail-safe privacy
     details: Session pipeline removed, cookies dropped, shared props whitelisted, Set-Cookie stripped, and a leak detector that catches auth()->user() during a static render.
   - title: SPA navigation stays intact

@@ -250,7 +250,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Supported: "null", "cloudflare", "fastly", "bunny", "varnish", "nginx",
-    | "multi". Custom drivers can be added with StaticCache::extend().
+    | "cloudfront", "multi". Custom drivers can be added with StaticCache::extend().
     |
     */
 
@@ -287,6 +287,17 @@ return [
             'api_key' => env('BUNNY_API_KEY'),
             // Bunny stores one CDN-Tag per response; keep false to purge tags via the registry.
             'native_tags' => false,
+        ],
+
+        'cloudfront' => [
+            'driver' => 'cloudfront',
+            'distribution_id' => env('CLOUDFRONT_DISTRIBUTION_ID'),
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'token' => env('AWS_SESSION_TOKEN'),
+            // true only with a response headers policy that replaces the viewer's
+            // Cache-Control: enables stale-while-revalidate at the edge.
+            'stale' => (bool) env('CLOUDFRONT_STALE', false),
         ],
 
         'varnish' => [

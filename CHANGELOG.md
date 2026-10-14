@@ -5,6 +5,7 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 ## [Unreleased]
 
 ### Added
+- CloudFront driver: `s-maxage` headers, purges through invalidations (signed with AWS SigV4, no SDK needed).
 - The built client ships inside the Composer package (`js/dist`), plus a Vite plugin
   (`vendor/fydellys/inertia-static/js/vite.js`): alias, dedupe of `@inertiajs/core` / `vue`, and automatic
   `inertia-static:manifest`. No npm install needed.
@@ -18,6 +19,8 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 - Purge all falls back to a `/` prefix purge on drivers without purge all (nginx).
 
 ### Changed
+- Varnish: edge TTL and stale time moved to `Surrogate-Control` (read and removed by the VCL); browsers only get
+  `max-age=0, must-revalidate`. Update your VCL from `docs/varnish.vcl`.
 - The JSON endpoint controller resolves its request context per call: the router keeps controller instances
   between requests (Octane), which could leak the previous request's state.
 - The cacheable page JSON endpoint redirects (`301`, cacheable) non-canonical queries to the canonical JSON URL,
