@@ -67,11 +67,15 @@ cd demo-docker && docker compose up -d --build
 ./e2e.sh
 HEADED= ./e2e.sh     # headless
 ./pw open http://localhost:8088/ --headed --browser=chromium   # ad-hoc commands
+
+# the same suite through Varnish (docs/varnish.vcl, http://localhost:8089)
+docker compose -f compose.yml -f compose.varnish.yml up -d
+CDN=varnish ./e2e.sh
 ```
 
 If you restart the `cdn` container, restart `browser` too: it shares the CDN's network namespace.
 
-## Checklist (`e2e.sh`, 105 checks)
+## Checklist (`e2e.sh`)
 
 | § | Scenario |
 |---|---|

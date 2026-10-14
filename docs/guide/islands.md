@@ -56,9 +56,6 @@ defineOptions({ layout: Layout })   // persistent: kept across visits
 </template>
 ```
 
-Verified in the demo: `/api/me` is fetched **once** for 9 navigations (it was 9 times with the layout inside the
-pages).
-
 ## Forms on static pages
 
 Both Inertia ways of submitting a form work on a static page, with **no CSRF helper** on Laravel 13:
@@ -111,13 +108,10 @@ which cached pages never read. The package handles both:
 Flash data shared through `HandleInertiaRequests::share()` (for example `->with('status', ...)`) is not a public
 shared prop, so it does not reach static pages: use `Inertia::flash()`.
 
-Verified on a real Cloudflare zone, with the page cached and **no cookies at all** (so no CSRF token): errors,
-flash, no modal, and a second visitor sees none of it.
-
 ### CSRF
 
 - **Laravel 13**: `PreventRequestForgery` accepts same-origin requests through the `Sec-Fetch-Site` header that
-  browsers send. No token, no helper: verified with every cookie deleted before submitting.
+  browsers send. No token and no helper needed.
 - **Laravel 12** (`ValidateCsrfToken`) needs the token. Call [`ensureCsrfCookie()`](../api/ensure-csrf-cookie.md)
   before submitting:
 

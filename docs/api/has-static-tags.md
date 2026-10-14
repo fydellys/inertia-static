@@ -42,4 +42,3 @@ return Inertia::render('Post/Show', [...])->tags(["post:{$post->id}", "author:{$
 
 - Ten saves of the same model inside the debounce window produce **one** purge.
 - The purge is queued after the transaction commits: a rolled back change purges nothing.
-- Verified end to end on a real Cloudflare zone: rename a post → HTML, page JSON and the `posts` listing refreshed.

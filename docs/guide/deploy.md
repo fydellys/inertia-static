@@ -19,8 +19,6 @@ A visitor with an old page open requests `/__inertia/{oldVersion}/page.json`:
 - otherwise the origin answers `409` + `X-Inertia-Location` and Inertia performs one full reload onto the new
   version. Then navigation continues on the new version.
 
-This flow is covered by the [E2E suite](../testing/e2e.md) (§11).
-
 ## Checklist
 
 - [ ] `INERTIA_STATIC_BASE_URL` (or `APP_URL`) is the public URL.

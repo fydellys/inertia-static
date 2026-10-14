@@ -78,3 +78,7 @@ etag: "9f2c0d…"
 x-inertia-static-cache: cacheable
 x-inertia-static: MISS
 ```
+
+## Next
+
+Set up your CDN so it stores the pages: [Choosing a driver](../cdn/overview.md).

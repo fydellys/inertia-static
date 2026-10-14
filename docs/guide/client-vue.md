@@ -17,10 +17,9 @@ createInertiaApp({
 ## Which visits are rewritten
 
 ::: danger Never the HTML URL
-An Inertia visit to a static page **never** uses the page's HTML URL. CDNs that ignore `Vary: X-Inertia` (Cloudflare,
-among others) would answer it with the cached HTML, and Inertia would show the "invalid response" modal
-([inertia#1923](https://github.com/inertiajs/inertia/issues/1923)). This was reproduced on a real Cloudflare zone
-by clicking the link of the current page.
+An Inertia visit to a static page **never** uses the page's HTML URL. CDNs that ignore `Vary: X-Inertia` would answer it with the
+cached HTML, and Inertia would show the "invalid response" modal
+([inertia#1923](https://github.com/inertiajs/inertia/issues/1923)).
 :::
 
 A `GET` router visit (`X-Inertia` header) to a path of the manifest goes to one of two URLs:

@@ -34,6 +34,6 @@ useStaticIsland<T>(url: string, options?: {
 
 - Never runs during SSR, so the cached HTML is identical for every visitor.
 - Put it in a **persistent layout** (`defineOptions({ layout: Layout })` in the pages). Then it is fetched once,
-  not on every navigation. Verified: 1 request for 9 navigations instead of 9.
+  not on every navigation.
 - It reloads after sign in, sign out and forms (non-GET visits), even when the page component is reused.
 - The endpoint is a regular dynamic route: Laravel's default `Cache-Control: private` already keeps it out of the CDN.

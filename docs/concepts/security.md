@@ -63,9 +63,3 @@ deterministically returns `null`, the anonymous value.
 ## Islands
 
 User data on static pages is loaded in the browser from dynamic endpoints ([Islands](../guide/islands.md)).
-
-## Verified end to end
-
-The E2E suite signs a user in, browses static pages (their props carry no `auth`/`flash`/`csrf`), then checks
-that an anonymous visitor finds no trace of that user in the cached HTML, the JSON, or the cookies
-([Testing](../testing/e2e.md)).

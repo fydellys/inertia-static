@@ -28,17 +28,10 @@ return Inertia::render('Blog/Show', [
 </Head>
 ```
 
-## Verified
+## When SSR is down
 
-The E2E suites (behind nginx and behind a real Cloudflare zone) check:
-
-- the HTML **served by the CDN** is server-rendered: `data-server-rendered="true"`, the page content inside `#app`,
-  and `<title>` from `<Head>`;
-- with **JavaScript disabled**, the title, the `h1`, the meta description and the absolute canonical are present;
-- after hydration, the browser console shows **no hydration mismatch** and no errors (persistent layout, forms,
-  islands rendered only on the client);
-- with the SSR server stopped, the HTML is sent with `no-store` and not cached; once SSR is back, the page is
-  cacheable again.
+The page is still served, without SSR and with `no-store`, so the CDN never stores it. Once SSR is back, the page is
+cached again.
 
 ## Deferred props
 

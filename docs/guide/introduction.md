@@ -43,8 +43,3 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
 | inertiajs/inertia-laravel | ^3.0 |
 | @inertiajs/core / vue3 | ^3.0 (Vue 3.5+) |
 | Inertia SSR | recommended (by default HTML is not cached without SSR) |
-
-::: tip Status
-The PHP core, the JSON endpoint, the CDN drivers, the purge queue and the Vue client are done and covered by
-unit tests, an end-to-end suite in real browsers and live tests against the Cloudflare API. Still planned: React/Svelte adapters, CloudFront/Akamai drivers.
-:::

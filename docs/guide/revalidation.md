@@ -15,8 +15,6 @@ t=11    STALE  served instantly, refresh in background (renderedAt 10:00:00)
 t=12    HIT    refreshed version                       (renderedAt 10:00:11)
 ```
 
-This is verified by the [E2E suite](../testing/e2e.md) on both the HTML and the page JSON.
-
 ### `revalidate` and `expire`
 
 Two numbers control the lifetime:
@@ -103,16 +101,15 @@ transaction commits**.
 
 ### The purge queue
 
-Every purge is a queued `PurgeStaticCache` job:
+Purges run on your queue. Options in `config/inertia-static.php`:
 
-| Concern | How |
-|---|---|
-| Debounce | the job is delayed by `purge.debounce` seconds and is `ShouldBeUnique` for that window, so ten saves of the same post produce one purge |
-| Batching | items are split by the provider limit (Cloudflare 100, Fastly 256 keys, …) |
-| Rate limits | `RateLimited` job middleware, `purge.rate_limit_per_minute` (Cloudflare Free: 5 tag/prefix purges per minute) |
-| Retries | exponential `purge.backoff`, `purge.tries` exceptions, `retryUntil` one hour; HTTP 429/5xx are retried by the client too |
-| Failure | `failed()` logs the purge that could not be done |
-| Warmup | `purge.warm_after_purge` re-requests the purged URLs afterwards |
+| Option | Default | |
+|---|---|---|
+| `purge.debounce` | `5` | seconds to wait, so ten saves of the same post produce one purge |
+| `purge.rate_limit_per_minute` | `60` | purge requests per minute allowed by your CDN plan (Cloudflare Free: `5`) |
+| `purge.tries` / `purge.backoff` | `5` / `[5, 30, 120]` | retries of a failed purge |
+| `purge.warm_after_purge` | `false` | request the purged pages again, so the next visitor gets a `HIT` |
+| `purge.queue` / `purge.connection` | default | where the jobs go |
 
 Purge synchronously (deploy scripts, tests) with `StaticCache::purgeNow(PurgeOperation::Tags, ['posts'])` or the
 [`inertia-static:purge`](./commands.md) command.

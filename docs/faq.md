@@ -13,17 +13,14 @@ something that is not an Inertia response. Usually it is the **cached HTML**, be
 `Vary: X-Inertia`; sometimes it is JSON without the `X-Inertia` header.
 
 With the client plugin, visits to static pages never use the HTML URL: they go to the cacheable JSON URL or to the
-never-cached live endpoint, and `x-inertia` is injected. Clicking the current page (served from the cache), reloads
-and polling (live) were verified on a real Cloudflare zone. Before this, a visit to the current page went to the HTML
-URL and Cloudflare served the cached HTML.
+never-cached live endpoint, and `x-inertia` is injected. If you still see it, check that `createInertiaApp` uses
+`http: inertiaStatic({ manifest })` and that the manifest is up to date (it is written on every Vite build).
 
 ## I never see a `304` in DevTools
 
 The browser hides 304s from the code that made the request: the XHR sees a `200` built from its local cache. In
-Chrome DevTools, uncheck **Disable cache** to see `304 Not Modified`. The demo's network panel reads the Resource
-Timing API: a `304` shows up as headers-only transfer with `deliveryType: "cache"`. Cloudflare's `Server-Timing`
-(`cfOrigin;dur=0`) proves that the origin was not contacted. On Cloudflare, HTML keeps its ETag only with
-**Respect strong ETags** on.
+Chrome DevTools, uncheck **Disable cache** to see `304 Not Modified`. On Cloudflare, turn **Respect strong ETags** on
+(see [Rule 1](./cdn/cloudflare.md#rule-1-cache-rule)).
 
 Extra protection for clients without the plugin (or with a stale manifest): a Cloudflare **Cache Rule** that bypasses
 the cache when the request has the header, `any(http.request.headers["x-inertia"][*] eq "true")` → *Bypass cache*.
@@ -32,13 +29,7 @@ On dynamic routes, make sure your proxies forward `X-Inertia` and honour `Vary: 
 ## Pressing back shows raw JSON
 
 Same root cause (HTML and JSON on one URL in the browser cache). Static pages are not affected: their JSON has its
-own URL. This is verified in Firefox by the E2E suite.
-
-## A form on a static page: errors do not show / the modal appears after `return back()`
-
-Update the package. Redirects of Inertia visits to static pages now go to the live JSON URL, which carries the
-validation errors and `Inertia::flash()` data ([Forms on static pages](./guide/islands.md#forms-on-static-pages)).
-Flash shared via `HandleInertiaRequests::share()` never reaches static pages: use `Inertia::flash()` or `useHttp`.
+own URL.
 
 ## Do I need a CSRF token for forms on static pages?
 
