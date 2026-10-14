@@ -8,7 +8,7 @@ Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cac
 
 ## Requirements
 
-PHP 8.3+, Laravel 12 or 13, `inertiajs/inertia-laravel` ^3.0, Vue 3.5+. Inertia SSR is recommended.
+PHP 8.3+, Laravel 12 or 13, Inertia 2 or 3 (`inertiajs/inertia-laravel` ^2.0.16 or ^3.0), Vue 3.5+. Inertia SSR is recommended.
 
 ## Installation
 
@@ -38,6 +38,8 @@ createInertiaApp({
   // resolve, setup...
 })
 ```
+
+On Inertia 2, install it on axios instead: `installInertiaStatic(axios, { manifest })` from `@fydellys/inertia-static/inertia2`.
 
 ## Usage
 

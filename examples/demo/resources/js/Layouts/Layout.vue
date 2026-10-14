@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router, usePage } from '@inertiajs/vue3'
-import { useStaticIsland } from '@fydellys/inertia-static/vue'
+import { useStaticIsland } from '@inertia-version'
 import { computed } from 'vue'
 import NetworkPanel from '../Components/NetworkPanel.vue'
 

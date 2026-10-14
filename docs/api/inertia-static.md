@@ -1,7 +1,7 @@
 # `inertiaStatic()`
 
-The client plugin: an HTTP client for `createInertiaApp` that serves visits to static pages from their cacheable
-JSON URL.
+The client plugin for **Inertia 3**: an HTTP client for `createInertiaApp` that serves visits to static pages from
+their cacheable JSON URL. On Inertia 2, use [`installInertiaStatic()`](./install-inertia-static.md).
 
 ```ts
 import { createInertiaApp } from '@inertiajs/vue3'

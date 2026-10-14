@@ -1,16 +1,17 @@
-import type { HttpRequestHeaders } from '@inertiajs/core'
+/** Request or response headers: a plain object, Inertia's headers or an AxiosHeaders instance. */
+export type HeaderBag = object
 
-export function getHeader(headers: HttpRequestHeaders | undefined, name: string): unknown {
+export function getHeader(headers: HeaderBag | undefined, name: string): unknown {
   if (!headers) {
     return undefined
   }
 
   const key = Object.keys(headers).find((header) => header.toLowerCase() === name.toLowerCase())
 
-  return key === undefined ? undefined : headers[key]
+  return key === undefined ? undefined : (headers as Record<string, unknown>)[key]
 }
 
-export function hasHeader(headers: HttpRequestHeaders | undefined, name: string): boolean {
+export function hasHeader(headers: HeaderBag | undefined, name: string): boolean {
   const value = getHeader(headers, name)
 
   return value !== undefined && value !== null && value !== false && value !== ''

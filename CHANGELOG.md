@@ -5,6 +5,8 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 ## [Unreleased]
 
 ### Added
+- Inertia 2 support: `inertiajs/inertia-laravel` ^2.0.16, and `installInertiaStatic(axios, { manifest })` from
+  `@fydellys/inertia-static/inertia2` for `@inertiajs/vue3` 2.x.
 - CloudFront driver: `s-maxage` headers, purges through invalidations (signed with AWS SigV4, no SDK needed).
 - The built client ships inside the Composer package (`js/dist`), plus a Vite plugin
   (`vendor/fydellys/inertia-static/js/vite.js`): alias, dedupe of `@inertiajs/core` / `vue`, and automatic

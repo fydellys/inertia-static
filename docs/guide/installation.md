@@ -40,12 +40,13 @@ export default defineConfig({
 
 The plugin:
 
-- aliases `@fydellys/inertia-static` (and `@fydellys/inertia-static/vue`) to the built client in `vendor/`;
-- **dedupes** `@inertiajs/core` and `vue`, so the client and your app share one copy (the client relies on
-  Inertia's own classes);
+- aliases `@fydellys/inertia-static` (and `/vue`, `/inertia2`) to the built client in `vendor/`;
+- **dedupes** `@inertiajs/core`, `vue` and `axios`, so the client and your app share one copy;
 - runs `php artisan inertia-static:manifest` when the build starts. Options: `manifest: false`, `php`, `artisan`.
 
-```ts
+::: code-group
+
+```ts [Inertia 3]
 // resources/js/app.ts
 import { createInertiaApp } from '@inertiajs/vue3'
 import { inertiaStatic } from '@fydellys/inertia-static/vue'
@@ -56,6 +57,24 @@ createInertiaApp({
   // resolve, setup, ...
 })
 ```
+
+```ts [Inertia 2]
+// resources/js/app.ts
+import { createInertiaApp } from '@inertiajs/vue3'
+import axios from 'axios'
+import { installInertiaStatic } from '@fydellys/inertia-static/inertia2'
+import manifest from './inertia-static.json'
+
+installInertiaStatic(axios, { manifest })
+
+createInertiaApp({
+  // resolve, setup, ...
+})
+```
+
+:::
+
+On Inertia 2, import `useStaticIsland` and `ensureCsrfCookie` from `@fydellys/inertia-static/inertia2` too.
 
 TypeScript: point the alias at the bundled types in `tsconfig.json`:
 
@@ -88,8 +107,7 @@ php artisan inertia-static:doctor
 
 ## Configure the CDN
 
-Pick a driver in `.env` and follow its page ([Cloudflare](../cdn/cloudflare.md), [Fastly](../cdn/fastly.md),
-[Bunny](../cdn/bunny.md), [Varnish](../cdn/varnish.md), [nginx](../cdn/nginx.md)):
+Pick a driver in `.env` and follow its page ([Choosing a driver](../cdn/overview.md)):
 
 ```ini
 INERTIA_STATIC_CDN=cloudflare

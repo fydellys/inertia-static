@@ -1,6 +1,6 @@
 {
   "\u0000rolldown/runtime.js": [],
-  "../../js/dist/vue.js": [],
+  "../../js/dist/shared-G4Y2JLCZ.js": [],
   "resources/js/Components/NetworkPanel.vue": [],
   "resources/js/Components/NetworkPanel.vue?vue&type=script&setup=true&lang.ts": [],
   "resources/js/Components/NewsletterForms.vue": [],
@@ -20,5 +20,6 @@
   "resources/js/Pages/Login.vue": [],
   "resources/js/Pages/Login.vue?vue&type=script&setup=true&lang.ts": [],
   "resources/js/devtools/recorder.ts": [],
+  "resources/js/inertia/v3.ts": [],
   "resources/js/ssr.ts": []
 }

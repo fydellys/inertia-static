@@ -25,7 +25,8 @@ Every public function: signature, parameters, return value, examples and what is
 
 ## Client
 
-- [`inertiaStatic()`](./inertia-static)
+- [`inertiaStatic()`](./inertia-static) (Inertia 3)
+- [`installInertiaStatic()`](./install-inertia-static) (Inertia 2)
 - [`useStaticIsland()`](./use-static-island)
 - [`ensureCsrfCookie()`](./ensure-csrf-cookie)
 - [Vite plugin](./vite-plugin)

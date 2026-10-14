@@ -15,7 +15,7 @@ var __exportAll = (all, no_symbols) => {
 	return target;
 };
 //#endregion
-//#region ../../js/dist/vue.js
+//#region ../../js/dist/shared-G4Y2JLCZ.js
 function useStaticIsland(url, options = {}) {
 	const data = shallowRef(options.initial ?? null);
 	const loading = ref(false);
@@ -85,6 +85,9 @@ if (typeof document !== "undefined") for (const name of ["httpException", "netwo
 	const detail = event.detail;
 	network.errors.unshift(`${name}: ${detail?.response?.status ?? detail?.error?.message ?? "?"}`);
 });
+//#endregion
+//#region resources/js/inertia/v3.ts
+var useJsonForm = useHttp;
 //#endregion
 //#region resources/js/Components/NetworkPanel.vue?vue&type=script&setup=true&lang.ts
 var NetworkPanel_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -243,7 +246,7 @@ var NewsletterForms_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ 
 		usePage();
 		const form = useForm({ email: "" });
 		const resultA = ref("");
-		const http = useHttp({ email: "" });
+		const http = useJsonForm({ email: "" });
 		const resultB = ref("");
 		return (_ctx, _push, _parent, _attrs) => {
 			_push(`<section${ssrRenderAttrs(mergeProps({ class: "mt-6 grid gap-4 rounded border bg-white p-3 text-sm md:grid-cols-2" }, _attrs))}><form data-testid="form-a"><h3 class="font-bold">A. useForm → return back()</h3><input${ssrRenderAttr("value", unref(form).email)} class="w-full border p-1" placeholder="email" data-testid="a-email"><p class="text-red-600" data-testid="a-error">${ssrInterpolate(unref(form).errors.email ?? "")}</p><p class="text-green-700" data-testid="a-flash">${ssrInterpolate(_ctx.$page.flash?.newsletter ?? "")}</p><p data-testid="a-result">${ssrInterpolate(resultA.value)}</p><button class="mt-1 rounded bg-slate-800 px-3 py-1 text-white" data-testid="a-submit">Subscribe</button></form><form data-testid="form-b"><h3 class="font-bold">B. useHttp → JSON</h3><input${ssrRenderAttr("value", unref(http).email)} class="w-full border p-1" placeholder="email" data-testid="b-email"><p class="text-red-600" data-testid="b-error">${ssrInterpolate(unref(http).errors.email ?? "")}</p><p class="text-green-700" data-testid="b-result">${ssrInterpolate(resultB.value)}</p><button class="mt-1 rounded bg-slate-800 px-3 py-1 text-white" data-testid="b-submit">Subscribe</button></form></section>`);

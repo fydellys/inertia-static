@@ -68,6 +68,11 @@ cd demo-docker && docker compose up -d --build
 HEADED= ./e2e.sh     # headless
 ./pw open http://localhost:8088/ --headed --browser=chromium   # ad-hoc commands
 
+# the same suite on Inertia 2 (inertia-laravel 2.x + @inertiajs/vue3 2.x, copy in examples/.demo-inertia2)
+../inertia2.sh
+docker compose -f compose.yml -f compose.inertia2.yml up -d --force-recreate app
+./e2e.sh
+
 # the same suite through Varnish (docs/varnish.vcl, http://localhost:8089)
 docker compose -f compose.yml -f compose.varnish.yml up -d
 CDN=varnish ./e2e.sh

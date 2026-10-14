@@ -1,0 +1,53 @@
+// Inertia 2: visits go through axios; the static client is an axios adapter.
+import axios from 'axios'
+import { installInertiaStatic, type InertiaStaticOptions } from '@fydellys/inertia-static/inertia2'
+import { reactive } from 'vue'
+import { recordResponse } from '../devtools/recorder'
+
+export { useStaticIsland } from '@fydellys/inertia-static/inertia2'
+
+export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['manifest']>) {
+  // The recorder goes first, so it sits below the static adapter and sees the CDN's response.
+  const network = axios.getAdapter(axios.defaults.adapter)
+  axios.defaults.adapter = async (config) => {
+    const started = performance.now()
+    const url = new URL(config.url ?? '', location.href).href
+
+    try {
+      const response = await network(config)
+      recordResponse(config.method ?? 'get', url, response, started)
+      return response
+    } catch (error) {
+      const response = (error as { response?: { status: number; headers: object } }).response
+      if (response) recordResponse(config.method ?? 'get', url, response, started)
+      throw error
+    }
+  }
+
+  installInertiaStatic(axios, { manifest })
+
+  return {}
+}
+
+/** Same shape as Inertia 3's useHttp(), for the demo form (Inertia 2 has no useHttp). */
+export function useJsonForm<T extends Record<string, unknown>>(initial: T) {
+  const form = reactive({
+    ...initial,
+    errors: {} as Record<string, string>,
+    async post(url: string, options: { onSuccess?: (data: never) => void; onError?: () => void } = {}) {
+      form.errors = {}
+      try {
+        const { errors: _errors, post: _post, ...data } = form
+        const response = await axios.post(url, data, { headers: { Accept: 'application/json' } })
+        options.onSuccess?.(response.data as never)
+      } catch (error) {
+        const response = (error as { response?: { status: number; data: { errors?: Record<string, string[]> } } }).response
+        if (response?.status !== 422) throw error
+        form.errors = Object.fromEntries(Object.entries(response.data.errors ?? {}).map(([key, value]) => [key, value[0] ?? '']))
+        options.onError?.()
+      }
+    },
+  })
+
+  return form
+}

@@ -1,4 +1,3 @@
-import { HttpResponseError, xhrHttpClient, type HttpClient, type HttpResponse } from '@inertiajs/core'
 import { reactive } from 'vue'
 
 export interface RecordedRequest {
@@ -22,46 +21,29 @@ export const network = reactive({ requests: [] as RecordedRequest[], errors: [] 
 let id = 0
 
 /**
- * Demo only: sits BELOW inertiaStatic(), so it sees the raw response from the
- * CDN (rewritten URL, status, cache headers) before the plugin fixes headers.
+ * Demo only: records a response as the CDN sent it. Called by the HTTP layer of
+ * resources/js/inertia/v2.ts or v3.ts, BELOW the static client (rewritten URL,
+ * status and cache headers, before the client fixes headers).
  */
-export function recordingClient(inner: HttpClient = xhrHttpClient): HttpClient {
-  return {
-    async request(config) {
-      const started = performance.now()
-      const record = (response: HttpResponse) => {
-        const entry = {
-          id: ++id,
-          method: config.method.toUpperCase(),
-          url: new URL(config.url, location.href).pathname + new URL(config.url, location.href).search,
-          status: response.status,
-          cache: response.headers['x-cache-status'] ?? response.headers['cf-cache-status']?.toUpperCase() ?? '-',
-          inertiaStatic:
-            response.headers['x-inertia-static'] ??
-            (response.headers['x-inertia-static-reason'] ? `BYPASS: ${response.headers['x-inertia-static-reason']}` : '-'),
-          xInertiaOnWire: response.headers['x-inertia'] !== undefined,
-          originHit: !SERVED_BY_CDN.includes((response.headers['x-cache-status'] ?? response.headers['cf-cache-status'] ?? '').toUpperCase()),
-          browser: '…',
-          originMs: '-',
-          ms: Math.round(performance.now() - started),
-        }
-        network.requests.unshift(entry)
-        // Resource Timing tells what the XHR API hides: a 304 revalidation of the browser cache.
-        setTimeout(() => inspectTiming(config.url, network.requests.find((r) => r.id === entry.id)!), 50)
-      }
-
-      try {
-        const response = await inner.request(config)
-        record(response)
-        return response
-      } catch (error) {
-        if (error instanceof HttpResponseError) {
-          record(error.response as HttpResponse)
-        }
-        throw error
-      }
-    },
+export function recordResponse(method: string, url: string, response: { status: number; headers: object }, started: number) {
+  const headers = response.headers as Record<string, string | undefined>
+  const entry = {
+    id: ++id,
+    method: method.toUpperCase(),
+    url: new URL(url, location.href).pathname + new URL(url, location.href).search,
+    status: response.status,
+    cache: headers['x-cache-status'] ?? headers['cf-cache-status']?.toUpperCase() ?? '-',
+    inertiaStatic:
+      headers['x-inertia-static'] ?? (headers['x-inertia-static-reason'] ? `BYPASS: ${headers['x-inertia-static-reason']}` : '-'),
+    xInertiaOnWire: headers['x-inertia'] !== undefined,
+    originHit: !SERVED_BY_CDN.includes((headers['x-cache-status'] ?? headers['cf-cache-status'] ?? '').toUpperCase()),
+    browser: '…',
+    originMs: '-',
+    ms: Math.round(performance.now() - started),
   }
+  network.requests.unshift(entry)
+  // Resource Timing tells what the XHR API hides: a 304 revalidation of the browser cache.
+  setTimeout(() => inspectTiming(url, network.requests.find((r) => r.id === entry.id)!), 50)
 }
 
 const SERVED_BY_CDN = ['HIT', 'STALE', 'UPDATING', 'REVALIDATED']

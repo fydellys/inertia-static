@@ -40,6 +40,10 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
 |---|---|
 | PHP | 8.3+ |
 | Laravel | 12.x, 13.x |
-| inertiajs/inertia-laravel | ^3.0 |
-| @inertiajs/core / vue3 | ^3.0 (Vue 3.5+) |
+| inertiajs/inertia-laravel | ^2.0.16 or ^3.0 |
+| @inertiajs/vue3 | ^2.3 or ^3.0 (Vue 3.5+) |
 | Inertia SSR | recommended (by default HTML is not cached without SSR) |
+
+::: warning Inertia 2 with SSR
+Vue 3.5.44 breaks the SSR of Inertia 2 (pages render `[object Promise]`). Keep `vue` at `3.5.43` on Inertia 2.
+:::

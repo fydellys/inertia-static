@@ -1,7 +1,7 @@
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
-  entry: { index: 'js/src/index.ts', vue: 'js/src/vue/index.ts' },
+  entry: { index: 'js/src/index.ts', vue: 'js/src/vue/index.ts', inertia2: 'js/src/inertia2.ts' },
   outDir: 'js/dist',
   format: ['esm'],
   dts: true,
@@ -9,8 +9,9 @@ export default defineConfig({
   sourcemap: true,
   target: 'es2022',
   external: ['@inertiajs/core', 'vue'],
-  // Stable file names: js/dist is committed and shipped in the Composer package.
+  // js/dist is committed and shipped in the Composer package: chunk names only
+  // change when their content does.
   esbuildOptions(options) {
-    options.chunkNames = 'shared'
+    options.chunkNames = 'shared-[hash]'
   },
 })

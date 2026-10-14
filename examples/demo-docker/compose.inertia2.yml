@@ -1,0 +1,8 @@
+# The demo on Inertia 2 (built by ../inertia2.sh):
+#
+#   ../inertia2.sh
+#   docker compose -f compose.yml -f compose.inertia2.yml up -d --force-recreate app
+#   ./e2e.sh
+services:
+  app:
+    working_dir: /repo/examples/.demo-inertia2

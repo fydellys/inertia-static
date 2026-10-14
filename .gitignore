@@ -12,3 +12,5 @@
 /docs/.vitepress/cache
 /project
 .claude
+/examples/.demo-inertia2
+.claude/*

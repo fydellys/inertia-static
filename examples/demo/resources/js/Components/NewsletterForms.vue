@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useForm, useHttp, usePage } from '@inertiajs/vue3'
+import { useForm, usePage } from '@inertiajs/vue3'
+import { useJsonForm } from '@inertia-version'
 import { ref } from 'vue'
 
 // Two ways of submitting a form, to compare them on static and dynamic pages:
@@ -19,7 +20,7 @@ function submitA() {
   })
 }
 
-const http = useHttp({ email: '' })
+const http = useJsonForm({ email: '' })
 const resultB = ref('')
 
 async function submitB() {

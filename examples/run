@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Runs a command in the demo app (PHP 8.3 + Node 22) with the repository mounted.
+# Runs a command in the demo app (DEMO=.demo-inertia2 for the Inertia 2 copy) (PHP 8.3 + Node 22) with the repository mounted.
 REPO="$(cd "$(dirname "$0")/.." && pwd)"
 exec docker run --rm -i -u "$(id -u):$(id -g)" -v "$REPO":/repo -v "$HOME/.cache/composer-docker":/tmp/composer \
     -v "$HOME/.cache/npm-docker":/tmp/npm -e COMPOSER_HOME=/tmp/composer -e npm_config_cache=/tmp/npm -e HOME=/tmp \
-    -w /repo/examples/demo inertia-static-app "$@"
+    -w "/repo/examples/${DEMO:-demo}" inertia-static-app "$@"

@@ -95,6 +95,7 @@ export default defineConfig({
           { text: 'canPurge()', link: '/api/can-purge' },
           { text: 'enablePreview()', link: '/api/preview' },
           { text: 'inertiaStatic()', link: '/api/inertia-static' },
+          { text: 'installInertiaStatic() (Inertia 2)', link: '/api/install-inertia-static' },
           { text: 'useStaticIsland()', link: '/api/use-static-island' },
           { text: 'ensureCsrfCookie()', link: '/api/ensure-csrf-cookie' },
           { text: 'Vite plugin', link: '/api/vite-plugin' },

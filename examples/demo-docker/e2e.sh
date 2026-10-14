@@ -45,7 +45,7 @@ hdr() { echo "$H" | grep -i "^$1:" | head -1 | cut -d' ' -f2-; }
 cdn() { get "$@"; hdr X-Cache-Status; }
 rendered() { # fetch; sets $AT = renderedAt of the page (SSR HTML or page JSON). No subshell!
   get "$@"
-  AT=$(echo "$B" | grep -o '"renderedAt":"[^"]*"' | head -1 | cut -d'"' -f4)
+  AT=$(echo "$B" | sed 's/&quot;/"/g' | grep -o '"renderedAt":"[^"]*"' | head -1 | cut -d'"' -f4)
 }
 
 ok() { printf '  \033[32m✔\033[0m %s\n' "$1"; PASSED=$((PASSED + 1)); }
@@ -209,9 +209,9 @@ pw -s=forms close >/dev/null
 # ---------------------------------------------------------------- ssr / seo
 section "SSR & SEO. server-rendered HTML from the CDN, JavaScript disabled, hydration"
 for u in / /about /blog /blog/post-1; do get "$u"; get "$u"
-  has "  $u (from the CDN): server-rendered markup" "$B" 'data-server-rendered="true"'
+  check "  $u (from the CDN): server-rendered markup" "{\"n\": $(echo "$B" | grep -cE '<div [^>]*id="app"[^>]*>[[:space:]]*<[a-z]')}" "d['n'] >= 1"
   check "  $u: content inside #app, not only the page JSON" "{\"n\": $(echo "$B" | sed -n '/id="app"/,$p' | grep -c '<h1')}" "d['n'] >= 1"
-  has "  $u: <title> from <Head>" "$B" '<title data-inertia="">'
+  check "  $u: <title> from <Head>" "{\"n\": $(echo "$B" | grep -cE '<title (data-inertia=\"\"|inertia)>')}" "d['n'] >= 1"
 done
 get /blog/post-1
 has "post: meta description" "$B" '<meta name="description" content="Public content of post 1."'
@@ -229,6 +229,7 @@ pw -s=hydra close >/dev/null 2>&1
 
 # ---------------------------------------------------------------- 6 time based
 section "6. time-based revalidation (/about: revalidate 10s, stale-while-revalidate)"
+queue_idle # a queued purge from an earlier section must not run during the wait
 artisan inertia-static:purge --url=/about
 rendered /about; A=$AT
 eq "1st visit: MISS (rendered at the origin)" "$(hdr X-Cache-Status)" "MISS"
@@ -385,7 +386,7 @@ reset_origin
 click -s=anon nav-blog; sleep 1.5
 O=$(origin)
 check "old window requested /__inertia/<old version>/… and got 409" "$O" "any(l['status'] == 409 and '$OLD' in l['uri'] for l in d['log'])"
-check "Inertia did a full reload: page now on the new version" "$(result -s=anon eval "() => JSON.parse(document.querySelector('script[data-page]').textContent).version")" "d == '$NEW'"
+check "Inertia did a full reload: page now on the new version" "$(result -s=anon eval "() => JSON.parse(document.querySelector('script[data-page]')?.textContent ?? document.getElementById('app').dataset.page).version")" "d == '$NEW'"
 click -s=anon nav-about
 check "next navigation already uses the new version" "$(requests -s=anon)" "'$NEW' in d[0][2] and d[0][3] == '200'"
 check "no Inertia errors across the version change" "$(state -s=anon)" "d['errors'] == 'Inertia errors: none'"

@@ -41,7 +41,7 @@ json_url() { local p="${1#/}"; echo "/__inertia/$VERSION/${p:-index}.json"; }
 get() { rm -f "$TMP/body"; H=$(curl -s -D - -o "$TMP/body" "${@:2}" "$BASE$1" | tr -d '\r'); B=$(cat "$TMP/body" 2>/dev/null); }
 hdr() { echo "$H" | grep -i "^$1:" | head -1 | cut -d' ' -f2-; }
 cf() { get "$@"; hdr cf-cache-status; }
-rendered() { get "$@"; AT=$(echo "$B" | grep -o '"renderedAt":"[^"]*"' | head -1 | cut -d'"' -f4); }
+rendered() { get "$@"; AT=$(echo "$B" | sed 's/&quot;/"/g' | grep -o '"renderedAt":"[^"]*"' | head -1 | cut -d'"' -f4); }
 until_cf() { # url, expected statuses (regex): Cloudflare purges propagate asynchronously
   for _ in $(seq 1 20); do rendered "$1"; [[ "$(hdr cf-cache-status)" =~ ^($2)$ ]] && return 0; sleep 1; done
 }
@@ -161,9 +161,9 @@ pw -s=forms close >/dev/null
 # ---------------------------------------------------------------- ssr / seo
 section "SSR & SEO. server-rendered HTML from the CDN, JavaScript disabled, hydration"
 for u in / /about /blog /blog/post-1; do get "$u"; get "$u"
-  has "  $u (from the CDN): server-rendered markup" "$B" 'data-server-rendered="true"'
+  check "  $u (from the CDN): server-rendered markup" "{\"n\": $(echo "$B" | grep -cE '<div [^>]*id="app"[^>]*>[[:space:]]*<[a-z]')}" "d['n'] >= 1"
   check "  $u: content inside #app, not only the page JSON" "{\"n\": $(echo "$B" | sed -n '/id="app"/,$p' | grep -c '<h1')}" "d['n'] >= 1"
-  has "  $u: <title> from <Head>" "$B" '<title data-inertia="">'
+  check "  $u: <title> from <Head>" "{\"n\": $(echo "$B" | grep -cE '<title (data-inertia=\"\"|inertia)>')}" "d['n'] >= 1"
 done
 get /blog/post-1
 has "post: meta description" "$B" '<meta name="description" content="Public content of post 1."'

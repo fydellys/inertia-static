@@ -1,3 +1,25 @@
+// js/src/headers.ts
+function getHeader(headers, name) {
+  if (!headers) {
+    return void 0;
+  }
+  const key = Object.keys(headers).find((header) => header.toLowerCase() === name.toLowerCase());
+  return key === void 0 ? void 0 : headers[key];
+}
+function hasHeader(headers, name) {
+  const value = getHeader(headers, name);
+  return value !== void 0 && value !== null && value !== false && value !== "";
+}
+var BYPASS_HEADERS = [
+  "X-Inertia-Partial-Component",
+  "X-Inertia-Partial-Data",
+  "X-Inertia-Partial-Except",
+  "X-Inertia-Reset",
+  "X-Inertia-Infinite-Scroll-Merge-Intent",
+  "X-Inertia-Static-Bypass",
+  "Precognition"
+];
+
 // js/src/manifest.ts
 var DEFAULT_PREFIX = "/__inertia";
 var DEFAULT_PREVIEW_COOKIE = "inertia_static_preview";
@@ -44,43 +66,13 @@ function normalizePath(pathname, policy) {
   return policy === "always" ? pathname.replace(/\/?$/, "/") : pathname.replace(/\/+$/, "");
 }
 
-// js/src/client.ts
-import {
-  HttpResponseError,
-  xhrHttpClient
-} from "@inertiajs/core";
-
-// js/src/headers.ts
-function getHeader(headers, name) {
-  if (!headers) {
-    return void 0;
-  }
-  const key = Object.keys(headers).find((header) => header.toLowerCase() === name.toLowerCase());
-  return key === void 0 ? void 0 : headers[key];
-}
-function hasHeader(headers, name) {
-  const value = getHeader(headers, name);
-  return value !== void 0 && value !== null && value !== false && value !== "";
-}
-var BYPASS_HEADERS = [
-  "X-Inertia-Partial-Component",
-  "X-Inertia-Partial-Data",
-  "X-Inertia-Partial-Except",
-  "X-Inertia-Reset",
-  "X-Inertia-Infinite-Scroll-Merge-Intent",
-  "X-Inertia-Static-Bypass",
-  "Precognition"
-];
-
-// js/src/client.ts
+// js/src/core.ts
 var MISSING_STATUSES = [403, 404, 410];
-var StaticHttpClient = class {
+var StaticRouting = class {
   manifest;
   loading = null;
-  inner;
   options;
   constructor(options = {}) {
-    this.inner = options.client ?? xhrHttpClient;
     this.manifest = options.manifest ? compileManifest(options.manifest) : null;
     this.options = {
       manifestUrl: options.manifestUrl ?? `${options.manifest?.prefix ?? DEFAULT_PREFIX}/manifest.json`,
@@ -90,27 +82,8 @@ var StaticHttpClient = class {
       debug: options.debug ?? false
     };
   }
-  async request(config) {
-    const decision = this.decide(config, await this.loadManifest());
-    this.log(config, decision);
-    if (!decision.rewrite || !decision.url) {
-      return this.withInertiaHeader(config, await this.inner.request(config));
-    }
-    try {
-      const response = await this.inner.request({ ...config, url: decision.url });
-      if (!this.isPageJson(response)) {
-        return this.missing(config);
-      }
-      return { ...response, headers: { ...response.headers, "x-inertia": "true" } };
-    } catch (error) {
-      if (error instanceof HttpResponseError && MISSING_STATUSES.includes(error.response.status)) {
-        return this.missing(config);
-      }
-      throw error;
-    }
-  }
   /**
-   * Whether (and where) a request is rewritten. Exposed for debugging/tests.
+   * Whether (and where) a visit is rewritten.
    *
    * An Inertia visit to a static page never uses the page's HTML URL: CDNs that
    * ignore "Vary: X-Inertia" would answer it with the cached HTML (inertia#1923).
@@ -118,20 +91,20 @@ var StaticHttpClient = class {
    * - visits that need fresh data (router.reload / polling, partial reloads,
    *   deferred props, non canonical query) go to /{prefix}/live/{version}/{path}.json
    */
-  decide(config, manifest = this.manifest) {
+  decide(request, manifest = this.manifest) {
     if (!manifest || manifest.routes.length === 0) {
       return { rewrite: false, reason: "no-manifest" };
     }
-    if (config.method.toLowerCase() !== "get") {
+    if (request.method.toLowerCase() !== "get") {
       return { rewrite: false, reason: "method" };
     }
-    if (!hasHeader(config.headers, "X-Inertia")) {
+    if (!hasHeader(request.headers, "X-Inertia")) {
       return { rewrite: false, reason: "not-a-visit" };
     }
-    if (config.data && typeof config.data === "object" && Object.keys(config.data).length > 0) {
+    if (request.data && typeof request.data === "object" && Object.keys(request.data).length > 0) {
       return { rewrite: false, reason: "data" };
     }
-    const url = new URL(config.url, window.location.href);
+    const url = new URL(request.url, window.location.href);
     if (url.origin !== window.location.origin) {
       return { rewrite: false, reason: "cross-origin" };
     }
@@ -140,7 +113,7 @@ var StaticHttpClient = class {
       return { rewrite: false, reason: "not-static" };
     }
     const path = normalizePath(url.pathname, this.options.trailingSlash);
-    const version = getHeader(config.headers, "X-Inertia-Version");
+    const version = getHeader(request.headers, "X-Inertia-Version");
     const live = (reason, search) => ({
       rewrite: true,
       cacheable: false,
@@ -150,11 +123,11 @@ var StaticHttpClient = class {
     if (hasCookie(manifest.previewCookie)) {
       return live("preview", url.search);
     }
-    const bypass = BYPASS_HEADERS.find((header) => hasHeader(config.headers, header));
+    const bypass = BYPASS_HEADERS.find((header) => hasHeader(request.headers, header));
     if (bypass) {
       return live(bypass.toLowerCase(), url.search);
     }
-    if (String(getHeader(config.headers, "Cache-Control") ?? "").includes("no-cache")) {
+    if (String(getHeader(request.headers, "Cache-Control") ?? "").includes("no-cache")) {
       return live("reload", url.search);
     }
     const query = canonicalQuery(url, route.query);
@@ -168,30 +141,21 @@ var StaticHttpClient = class {
       url: url.origin + jsonPath(path, manifest.prefix, version, this.options.index) + query
     };
   }
-  async missing(config) {
-    if (this.options.onMissing === "origin") {
-      return this.inner.request(config);
-    }
-    return {
-      status: 409,
-      data: "",
-      headers: { "x-inertia-location": new URL(config.url, window.location.href).href }
-    };
+  /** A 409 + X-Inertia-Location makes Inertia perform a full page load of the original URL. */
+  reloadLocation(request) {
+    return new URL(request.url, window.location.href).href;
   }
   /**
    * A visit can end on a page JSON without its "x-inertia" header: the browser
    * followed a redirect inside the XHR (e.g. `return back()` to a static page,
    * rewritten to the live JSON URL), or a proxy stripped the header. When the
-   * body IS an Inertia page, restore the header (inertia#1923).
+   * body IS an Inertia page, the header must be restored (inertia#1923).
    */
-  withInertiaHeader(config, response) {
-    if (response.headers["x-inertia"] !== void 0 || !hasHeader(config.headers, "X-Inertia") || response.status !== 200 || !this.isInertiaPage(response)) {
-      return response;
-    }
-    return { ...response, headers: { ...response.headers, "x-inertia": "true" } };
+  needsInertiaHeader(request, response) {
+    return getHeader(response.headers, "x-inertia") === void 0 && hasHeader(request.headers, "X-Inertia") && response.status === 200 && this.isInertiaPage(response);
   }
   isInertiaPage(response) {
-    if (!(response.headers["content-type"] ?? "").includes("json") || typeof response.data !== "string") {
+    if (!String(getHeader(response.headers, "content-type") ?? "").includes("json") || typeof response.data !== "string") {
       return false;
     }
     try {
@@ -202,7 +166,7 @@ var StaticHttpClient = class {
     }
   }
   isPageJson(response) {
-    const type = response.headers["content-type"] ?? "";
+    const type = String(getHeader(response.headers, "content-type") ?? "");
     if (type && !type.includes("json")) {
       return false;
     }
@@ -216,9 +180,9 @@ var StaticHttpClient = class {
     this.manifest = await this.loading;
     return this.manifest;
   }
-  log(config, decision) {
+  log(url, decision) {
     if (this.options.debug) {
-      console.debug("[inertia-static]", config.url, decision);
+      console.debug("[inertia-static]", url, decision);
     }
   }
 };
@@ -227,9 +191,6 @@ function hasCookie(name) {
     return false;
   }
   return document.cookie.split("; ").some((cookie) => cookie.startsWith(`${name}=`) && cookie.length > name.length + 1);
-}
-function createStaticHttpClient(options = {}) {
-  return new StaticHttpClient(options);
 }
 
 // js/src/csrf.ts
@@ -249,12 +210,13 @@ function ensureCsrfCookie(url = "/sanctum/csrf-cookie", cookieName = "XSRF-TOKEN
 }
 
 export {
+  getHeader,
   compileManifest,
   matchRoute,
   canonicalQuery,
   jsonPath,
-  StaticHttpClient,
-  createStaticHttpClient,
+  MISSING_STATUSES,
+  StaticRouting,
   ensureCsrfCookie
 };
-//# sourceMappingURL=shared.js.map
+//# sourceMappingURL=shared-4NC3HMDQ.js.map

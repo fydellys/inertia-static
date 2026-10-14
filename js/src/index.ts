@@ -1,5 +1,7 @@
 export { createStaticHttpClient, StaticHttpClient } from './client'
 export type { InertiaStaticOptions, RewriteDecision } from './client'
+export { StaticRouting } from './core'
+export type { StaticRoutingOptions } from './core'
 export { ensureCsrfCookie } from './csrf'
 export { compileManifest, matchRoute } from './manifest'
 export type { CompiledManifest, StaticManifest, StaticManifestRoute } from './manifest'
