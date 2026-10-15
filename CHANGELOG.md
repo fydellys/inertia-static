@@ -5,6 +5,17 @@ minor versions may contain breaking changes.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-15
+
+### Client
+- `withInertiaStatic({ manifest })`: the same setup on Inertia 2 and 3,
+  `createInertiaApp({ ...withInertiaStatic({ manifest }) })`. The Vite plugin detects the Inertia version installed
+  (option `inertia` to force it) and resolves `@fydellys/inertia-static/vue` and `/react` to the matching client.
+  `ssrRender` is also exported for Inertia 3, so `ssr.ts` is the same on both versions.
+- Islands that load when they become visible, the island version of `<WhenVisible>` for user data: the
+  `<StaticIsland url when="visible">` component (Vue and React) and `useStaticIsland(url, { when: 'visible', buffer })`
+  with its `target`.
+
 ## [0.1.0] - 2026-10-15
 
 First release.
@@ -39,11 +50,8 @@ First release.
 
 ### Client
 - Shipped inside the Composer package with a Vite plugin: no npm install.
-- Vue and React, on Inertia 2 and 3 with the same code: `createInertiaApp({ ...withInertiaStatic({ manifest }) })`.
-  The Vite plugin detects the Inertia version and loads the matching client (`inertiaStatic()` for Inertia 3,
-  `installInertiaStatic(axios)` for Inertia 2, both also usable directly); `ssrRender` for Vue SSR.
-- Islands: `useStaticIsland()` and `<StaticIsland>` load user data in the browser, on mount or when they become
-  visible (`when: 'visible'`).
+- Vue and React, on Inertia 3 (`createInertiaApp({ http: inertiaStatic({ manifest }) })`) and Inertia 2
+  (`installInertiaStatic(axios, { manifest })`, plus `ssrRender` for Vue SSR).
 - Forms on static pages work on Laravel 12 and 13 without CSRF code.
 - Inertia features on static pages: deferred props, `<WhenVisible>`, `<InfiniteScroll>`, polling, partial reloads,
   merge and once props, prefetch, `useRemember`, history encryption, `<Form>`, and on Inertia 3 instant visits and
@@ -53,5 +61,6 @@ First release.
 - Artisan commands: `inertia-static:routes`, `manifest`, `purge`, `warm`, `doctor`.
 - Supports PHP 8.3+, Laravel 12 and 13, `inertiajs/inertia-laravel` ^2.0.16 or ^3.0.
 
-[Unreleased]: https://github.com/fydellys/inertia-static/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/fydellys/inertia-static/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/fydellys/inertia-static/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/fydellys/inertia-static/releases/tag/v0.1.0

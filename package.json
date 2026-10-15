@@ -1,7 +1,7 @@
 {
   "name": "@fydellys/inertia-static",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Client of fydellys/inertia-static (ships inside the Composer package, js/dist). Development only.",
   "license": "MIT",
   "type": "module",
