@@ -1,5 +1,5 @@
 interface StaticIslandOptions<T> {
-    /** Fetch immediately (on mount inside a component). Default: true. */
+    /** Fetch automatically (see `when`). `false`: only when you call `load()`. Default: true. */
     immediate?: boolean;
     /** Value used before the island loads and on the server (SSR). */
     initial?: T | null;
@@ -11,6 +11,13 @@ interface StaticIslandOptions<T> {
      * reused (e.g. logout redirecting to the same page). Default: true.
      */
     refreshAfterMutations?: boolean;
+    /**
+     * When to fetch: "mount" (default) or "visible", the first time the island's
+     * element (`target`) enters the viewport, like Inertia's <WhenVisible>.
+     */
+    when?: 'mount' | 'visible';
+    /** With `when: "visible"`: start loading this many pixels before the element is visible. Default: 0. */
+    buffer?: number;
 }
 
 export type { StaticIslandOptions as S };

@@ -92,4 +92,4 @@ export {
   ssrRender,
   installInertiaStatic
 };
-//# sourceMappingURL=shared-7TBKCW4U.js.map
+//# sourceMappingURL=shared-YYCU7CCX.js.map

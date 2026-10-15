@@ -14,7 +14,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   target: 'es2022',
-  external: ['@inertiajs/core', 'vue', 'react'],
+  external: ['@inertiajs/core', 'vue', 'react', 'axios'],
   // js/dist is committed and shipped in the Composer package: chunk names only
   // change when their content does.
   esbuildOptions(options) {

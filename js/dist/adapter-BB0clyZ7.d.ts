@@ -19,7 +19,7 @@ interface AxiosLike {
     defaults: {
         adapter?: unknown;
     };
-    getAdapter?: (adapter: unknown) => AxiosAdapterLike;
+    getAdapter?: (adapter: never) => AxiosAdapterLike;
 }
 type RenderToString = (app: never) => Promise<string>;
 /**

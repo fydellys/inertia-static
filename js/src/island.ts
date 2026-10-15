@@ -1,7 +1,7 @@
 // Framework-agnostic parts of useStaticIsland() (Vue and React).
 
 export interface StaticIslandOptions<T> {
-  /** Fetch immediately (on mount inside a component). Default: true. */
+  /** Fetch automatically (see `when`). `false`: only when you call `load()`. Default: true. */
   immediate?: boolean
   /** Value used before the island loads and on the server (SSR). */
   initial?: T | null
@@ -13,6 +13,39 @@ export interface StaticIslandOptions<T> {
    * reused (e.g. logout redirecting to the same page). Default: true.
    */
   refreshAfterMutations?: boolean
+  /**
+   * When to fetch: "mount" (default) or "visible", the first time the island's
+   * element (`target`) enters the viewport, like Inertia's <WhenVisible>.
+   */
+  when?: 'mount' | 'visible'
+  /** With `when: "visible"`: start loading this many pixels before the element is visible. Default: 0. */
+  buffer?: number
+}
+
+/**
+ * Calls `callback` once, the first time `element` enters the viewport (or right away
+ * without IntersectionObserver). Returns a function that stops observing.
+ */
+export function onceVisible(element: Element, buffer: number, callback: () => unknown): () => void {
+  if (typeof IntersectionObserver === 'undefined') {
+    void callback()
+
+    return () => undefined
+  }
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect()
+        void callback()
+      }
+    },
+    { rootMargin: `${buffer}px` },
+  )
+
+  observer.observe(element)
+
+  return () => observer.disconnect()
 }
 
 /** Fetches the island's JSON (cookies included, never cached by the CDN). */

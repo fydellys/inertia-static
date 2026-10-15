@@ -32,7 +32,7 @@ type AxiosAdapterLike = (config: AxiosConfigLike) => Promise<AxiosResponseLike>
 
 export interface AxiosLike {
   defaults: { adapter?: unknown }
-  getAdapter?: (adapter: unknown) => AxiosAdapterLike
+  getAdapter?: (adapter: never) => AxiosAdapterLike
 }
 
 const INSTALLED = Symbol.for('fydellys.inertia-static')
@@ -88,7 +88,7 @@ export function installInertiaStatic(axios: AxiosLike, options: StaticRoutingOpt
   }
 
   const base: AxiosAdapterLike =
-    typeof previous === 'function' ? (previous as AxiosAdapterLike) : (axios.getAdapter as NonNullable<AxiosLike['getAdapter']>)(previous)
+    typeof previous === 'function' ? (previous as AxiosAdapterLike) : (axios.getAdapter as NonNullable<AxiosLike['getAdapter']>)(previous as never)
   const routing = new StaticRouting(options)
 
   const adapter = async (config: AxiosConfigLike): Promise<AxiosResponseLike> => {

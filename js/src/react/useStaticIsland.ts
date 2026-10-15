@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { fetchIsland, refreshAfterMutations, type StaticIslandOptions } from '../island'
+import { fetchIsland, onceVisible, refreshAfterMutations, type StaticIslandOptions } from '../island'
 
 export type { StaticIslandOptions } from '../island'
 
@@ -8,6 +8,8 @@ export interface StaticIsland<T> {
   loading: boolean
   error: unknown
   load: () => Promise<T | null>
+  /** With `when: "visible"`: the element to watch (`<div ref={island.target}>`). */
+  target: (element: Element | null) => void
 }
 
 /**
@@ -20,11 +22,14 @@ export function useStaticIsland<T = unknown>(url: string, options: StaticIslandO
   const [data, setData] = useState<T | null>(options.initial ?? null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<unknown>(null)
+  const [element, setElement] = useState<Element | null>(null)
   const current = useRef<T | null>(data)
+  const loaded = useRef(false)
   const init = useRef(options.init)
   init.current = options.init
 
   const load = useCallback(async (): Promise<T | null> => {
+    loaded.current = true
     setLoading(true)
     setError(null)
 
@@ -40,13 +45,28 @@ export function useStaticIsland<T = unknown>(url: string, options: StaticIslandO
     return current.current
   }, [url])
 
+  const visible = options.when === 'visible'
+  const buffer = options.buffer ?? 0
+
   useEffect(() => {
-    if (options.immediate !== false) {
+    if (options.immediate !== false && !visible) {
       void load()
     }
-  }, [load, options.immediate])
+  }, [load, options.immediate, visible])
 
-  useEffect(() => (options.refreshAfterMutations === false ? undefined : refreshAfterMutations(load)), [load, options.refreshAfterMutations])
+  useEffect(() => {
+    if (options.immediate === false || !visible || !element || loaded.current) {
+      return undefined
+    }
 
-  return { data, loading, error, load }
+    return onceVisible(element, buffer, load)
+  }, [load, options.immediate, visible, element, buffer])
+
+  // A visible island that has not loaded yet loads with fresh data anyway.
+  useEffect(
+    () => (options.refreshAfterMutations === false ? undefined : refreshAfterMutations(() => (loaded.current ? load() : undefined))),
+    [load, options.refreshAfterMutations],
+  )
+
+  return { data, loading, error, load, target: setElement }
 }

@@ -1,4 +1,21 @@
 // js/src/island.ts
+function onceVisible(element, buffer, callback) {
+  if (typeof IntersectionObserver === "undefined") {
+    void callback();
+    return () => void 0;
+  }
+  const observer = new IntersectionObserver(
+    (entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        observer.disconnect();
+        void callback();
+      }
+    },
+    { rootMargin: `${buffer}px` }
+  );
+  observer.observe(element);
+  return () => observer.disconnect();
+}
 async function fetchIsland(url, init) {
   const response = await fetch(url, {
     credentials: "same-origin",
@@ -33,7 +50,8 @@ function refreshAfterMutations(callback) {
 }
 
 export {
+  onceVisible,
   fetchIsland,
   refreshAfterMutations
 };
-//# sourceMappingURL=shared-6RC5UHRP.js.map
+//# sourceMappingURL=shared-6NJEPP6G.js.map
