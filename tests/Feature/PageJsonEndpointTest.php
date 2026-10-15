@@ -132,7 +132,12 @@ it('keeps no request state between requests handled by the same app', function (
 });
 
 it('hands the CSRF cookie to static pages when the manifest asks for it', function () {
-    expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBeNull(); // Laravel 13: not needed
+    // Automatic: only where Laravel has no PreventRequestForgery (Laravel 12).
+    $automatic = class_exists(PreventRequestForgery::class) ? null : '/__inertia/csrf';
+    expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBe($automatic);
+
+    config(['inertia-static.csrf_cookie' => false]);
+    expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBeNull();
 
     config(['inertia-static.csrf_cookie' => true]);
     expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBe('/__inertia/csrf');
