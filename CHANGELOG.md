@@ -4,6 +4,18 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 
 ## [Unreleased]
 
+### Security
+- Forwarded host headers (`X-Forwarded-Host`, `X-Forwarded-Port`, `X-Forwarded-Prefix`, `Forwarded`) are removed on
+  static routes: with trusted proxies they could change `url()`/`asset()`/`@vite` URLs in a cached page.
+- Inertia visits on HTML URLs (and partial reloads) are never cached, whatever the status: a 404 or a rewritten
+  redirect could be stored under the HTML URL.
+- The leak detector's `auto` mode turns a route dynamic only after a successful render: a reportable exception
+  (Laravel's handler reads `Auth::id()`) no longer downgrades the route permanently.
+- Percent-encoded spellings of a page get a 301 to the canonical URL (HTML and JSON), and a `?`/`#` smuggled into the
+  page JSON path is rejected: one cache entry and one registry row per page.
+- Static routes must accept GET only; preview cookies require `APP_KEY`; CI runs with read-only token permissions;
+  the Inertia 2 `ssrRender` placeholder carries a random nonce.
+
 ### Added
 - React: `@fydellys/inertia-static/react` (Inertia 3) and `@fydellys/inertia-static/inertia2/react` (Inertia 2), with
   a React `useStaticIsland` hook.

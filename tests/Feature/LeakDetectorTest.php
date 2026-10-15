@@ -125,3 +125,13 @@ it('defaults to "auto" outside local / testing', function () {
 
     expect(app(RenderGuard::class)->mode())->toBe('auto');
 });
+
+it('does not turn a route dynamic when its render fails (exception reporting reads Auth::id())', function () {
+    config(['inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+
+    $this->get('/boom')->assertStatus(500)->assertHeader('Cache-Control', 'no-store, private');
+
+    $route = $this->router()->getRoutes()->match(Request::create('/boom'));
+    expect(app(Downgrades::class)->has($route))->toBeFalse();
+});

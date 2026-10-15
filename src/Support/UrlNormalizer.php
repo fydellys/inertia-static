@@ -34,6 +34,13 @@ class UrlNormalizer
 
     public function canonicalPath(string $path): string
     {
+        // One spelling per page (RFC 3986): decode unreserved escapes, uppercase the others.
+        $path = (string) preg_replace_callback('/%[0-9A-Fa-f]{2}/', function (array $match) {
+            $char = rawurldecode($match[0]);
+
+            return preg_match('/^[A-Za-z0-9._~-]$/', $char) === 1 ? $char : strtoupper($match[0]);
+        }, $path);
+
         if ($path === '/' || $path === '') {
             return '/';
         }

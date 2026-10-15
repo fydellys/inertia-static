@@ -8,16 +8,17 @@ import {
 var INSTALLED = /* @__PURE__ */ Symbol.for("fydellys.inertia-static");
 function ssrRender(renderToString) {
   const nested = [];
+  const nonce = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36);
   let rendering = false;
   return ((app) => {
     if (rendering) {
       nested.push(renderToString(app));
-      return `<!--inertia-static-ssr:${nested.length - 1}-->`;
+      return `<!--inertia-static-ssr:${nonce}:${nested.length - 1}-->`;
     }
     rendering = true;
     return renderToString(app).then(async (html) => {
       const parts = await Promise.all(nested);
-      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${index}-->`, () => part), html);
+      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${nonce}:${index}-->`, () => part), html);
     });
   });
 }
@@ -91,4 +92,4 @@ export {
   ssrRender,
   installInertiaStatic
 };
-//# sourceMappingURL=shared-3CCO6UAF.js.map
+//# sourceMappingURL=shared-7TBKCW4U.js.map

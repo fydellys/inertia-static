@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Support;
 
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Http\Request;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Cookie;
 
 /**
@@ -53,6 +54,12 @@ class Preview
 
     protected function sign(string $value): string
     {
-        return hash_hmac('sha256', 'inertia-static-preview|'.$value, (string) $this->config->get('app.key'));
+        $key = (string) $this->config->get('app.key');
+
+        if ($key === '') {
+            throw new RuntimeException('[inertia-static] Preview mode needs APP_KEY: the preview cookie is signed with it.');
+        }
+
+        return hash_hmac('sha256', 'inertia-static-preview|'.$value, $key);
     }
 }

@@ -3,7 +3,7 @@ import {
 } from "../shared-GZEQP4SL.js";
 import {
   installInertiaStatic
-} from "../shared-3CCO6UAF.js";
+} from "../shared-7TBKCW4U.js";
 import "../shared-6RC5UHRP.js";
 import {
   ensureCsrfCookie

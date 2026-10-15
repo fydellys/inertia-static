@@ -26,7 +26,7 @@ What the macro does:
   `AuthenticateSession`, `ShareErrorsFromSession`, CSRF);
 - adds the `inertia-static` route middleware (shared props whitelist and leak detector).
 
-Validation is strict: only `GET` routes can be static, `revalidate` cannot be negative, the paths provider must
+Validation is strict: only `GET` routes can be static (not `Route::match` or `Route::any`), `revalidate` cannot be negative, the paths provider must
 exist, and `static` routes with parameters need a paths provider (every page must be known in advance).
 
 ## Attribute

@@ -1,7 +1,11 @@
 <?php
 
 use Fydellys\InertiaStatic\Exceptions\InvalidStaticRoute;
+use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Tests\Fixtures\FakeSsrGateway;
+use Illuminate\Http\Middleware\TrustProxies;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -200,4 +204,45 @@ it('can disable implicit path tags', function () {
     config(['inertia-static.implicit_tags' => false, 'inertia-static.cdn' => 'cloudflare', 'inertia-static.drivers.cloudflare.zone_id' => 'z', 'inertia-static.drivers.cloudflare.api_token' => 't']);
 
     $this->get('/blog/hello-world')->assertHeader('Cache-Tag', 'posts,post:hello-world');
+});
+
+it('never caches an Inertia visit on the HTML URL, whatever the status', function () {
+    // Production mode: Inertia renders its 404 page through the app's shared props (a session read).
+    config(['inertia-static.defaults.cache_redirects' => true, 'inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+    $inertia = ['X-Inertia' => 'true', 'X-Inertia-Version' => 'v1'];
+
+    // The redirect is rewritten to the live JSON URL for this header only.
+    $this->get('/moved', $inertia)
+        ->assertHeader('X-Inertia-Static-Reason', 'inertia-json-on-html-url')
+        ->assertHeader('Cache-Control', 'no-store, private');
+
+    $this->get('/missing', $inertia)
+        ->assertNotFound()
+        ->assertHeader('X-Inertia-Static-Reason', 'inertia-json-on-html-url');
+
+    // A failed render never turns the route dynamic.
+    $route = app('router')->getRoutes()->match(Request::create('/missing'));
+    expect(app(Downgrades::class)->has($route))->toBeFalse();
+
+    // Plain visits keep their cacheable redirect and 404.
+    $this->get('/moved')->assertHeader('X-Inertia-Static', 'MISS');
+    $this->get('/missing')->assertNotFound()->assertHeader('X-Inertia-Static', 'MISS');
+});
+
+it('ignores forwarded host headers on static pages (they are not part of the cache key)', function () {
+    // As an app behind a CDN commonly does: trustProxies(at: '*').
+    TrustProxies::at('*');
+
+    try {
+        $this->get('/__inertia/v1/absolute.json', ['X-Forwarded-Host' => 'evil.example', 'X-Forwarded-Port' => '8443'])
+            ->assertOk()
+            ->assertJsonPath('props.asset', 'https://example.com/build/app.js');
+
+        // The HTML route renders on the real request: read its props through an Inertia request.
+        $this->get('/absolute', ['X-Forwarded-Host' => 'evil.example', 'X-Inertia' => 'true', 'X-Inertia-Version' => 'v1'])
+            ->assertJsonPath('props.asset', 'https://example.com/build/app.js');
+    } finally {
+        TrustProxies::flushState();
+    }
 });

@@ -3,6 +3,7 @@
 namespace Fydellys\InertiaStatic\Support;
 
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
+use Illuminate\Routing\Route;
 
 /**
  * Per-request state (bound as "scoped", so it is reset for every request
@@ -27,6 +28,9 @@ class StaticRequestContext
 
     public ?string $bypassReason = null;
 
+    /** @var array{route: Route, reason: string}|null leak "auto" mode, persisted after a successful render */
+    public ?array $pendingDowngrade = null;
+
     /** @var array<string, int|null> */
     protected array $overrides = [];
 
@@ -49,6 +53,7 @@ class StaticRequestContext
         $this->preview = false;
         $this->bypass = false;
         $this->bypassReason = null;
+        $this->pendingDowngrade = null;
         $this->overrides = [];
         $this->tags = [];
         $this->violations = [];

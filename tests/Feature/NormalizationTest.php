@@ -56,3 +56,19 @@ it('canonicalizes the query of the cacheable page JSON URL too (one cache entry 
 it('does not canonicalize the never-cached live endpoint', function () {
     $this->get('/__inertia/live/v1/blog.json?utm_source=x&page=2')->assertOk();
 });
+
+it('redirects percent-encoded spellings of a page to one canonical URL', function () {
+    $this->get('/blog/%68ello-world')->assertStatus(301)->assertHeader('Location', 'https://example.com/blog/hello-world');
+    $this->get('/__inertia/v1/blog/%68ello-world.json')->assertStatus(301)->assertHeader('Location', 'https://example.com/__inertia/v1/blog/hello-world.json');
+    $this->get('/__inertia/v%31/blog.json')->assertStatus(301)->assertHeader('Location', 'https://example.com/__inertia/v1/blog.json');
+
+    // Already canonical (reserved and non-ASCII characters stay encoded, in uppercase): no loop.
+    $this->get('/blog/h%C3%A9llo')->assertOk();
+    $this->get('/__inertia/v1/blog/h%C3%A9llo.json')->assertOk();
+    $this->get('/blog/h%c3%a9llo')->assertStatus(301)->assertHeader('Location', 'https://example.com/blog/h%C3%A9llo');
+});
+
+it('rejects a query or fragment smuggled into the page JSON path', function () {
+    $this->get('/__inertia/v1/blog%3Fpage%3D2.json')->assertNotFound();
+    $this->get('/__inertia/v1/blog%23x.json')->assertNotFound();
+});

@@ -30,6 +30,10 @@ it('rejects non-GET static routes', function () {
     Route::post('/form', fn () => 'x')->isr();
 })->throws(InvalidStaticRoute::class);
 
+it('rejects static routes that also accept other verbs (their CSRF middleware is removed)', function () {
+    Route::match(['GET', 'POST'], '/form', fn () => 'x')->isr();
+})->throws(InvalidStaticRoute::class);
+
 it('marks routes as dynamic explicitly', function () {
     $route = Route::get('/explicit', fn () => 'x')->dynamic();
 

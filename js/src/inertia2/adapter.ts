@@ -51,13 +51,15 @@ type RenderToString = (app: never) => Promise<string>
  */
 export function ssrRender(renderToString: RenderToString): (app: never) => Promise<string> {
   const nested: Promise<string>[] = []
+  // Random per render: raw page HTML (v-html) can never contain a placeholder by chance or on purpose.
+  const nonce = globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36)
   let rendering = false
 
   return ((app: never) => {
     if (rendering) {
       nested.push(renderToString(app))
 
-      return `<!--inertia-static-ssr:${nested.length - 1}-->`
+      return `<!--inertia-static-ssr:${nonce}:${nested.length - 1}-->`
     }
 
     rendering = true
@@ -65,7 +67,7 @@ export function ssrRender(renderToString: RenderToString): (app: never) => Promi
     return renderToString(app).then(async (html) => {
       const parts = await Promise.all(nested)
 
-      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${index}-->`, () => part), html)
+      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${nonce}:${index}-->`, () => part), html)
     })
   }) as (app: never) => Promise<string>
 }

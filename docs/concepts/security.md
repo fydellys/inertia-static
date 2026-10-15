@@ -15,6 +15,17 @@ The global middleware empties the request cookies (and the `Cookie` header) of s
 pipeline runs. No identity can be resolved: even an eager `'user' => $request->user()` in
 `HandleInertiaRequests::share()` returns `null`, and a remember-me cookie is never read.
 
+## Forwarded host headers dropped
+
+`X-Forwarded-Host`, `X-Forwarded-Port`, `X-Forwarded-Prefix` and `Forwarded` are removed from static requests too.
+The CDN keys pages on `Host` and the URL only, so with trusted proxies these headers could otherwise change the
+URLs of `url()`, `route()`, `asset()` and `@vite` in a page cached for everyone.
+
+## One URL per page
+
+Non-canonical spellings of a page (`/blog/%68ello`, a trailing slash, an unknown query parameter) are redirected
+to the canonical URL before rendering, on the HTML and the JSON URLs.
+
 ## Public shared props only
 
 ```php

@@ -2,7 +2,6 @@
 
 namespace Fydellys\InertiaStatic\Http\Controllers;
 
-use Fydellys\InertiaStatic\Support\AssetVersion;
 use Fydellys\InertiaStatic\Support\RouteOptions;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Fydellys\InertiaStatic\Support\StaticUrls;
@@ -13,6 +12,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Facade;
+use Illuminate\Support\Str;
 use Illuminate\Support\ViewErrorBag;
 use Inertia\Support\Header;
 use Symfony\Component\HttpFoundation\Response;
@@ -130,7 +130,13 @@ class PageJsonController
     {
         $pagePath = $this->urls->pagePathFromJson($path) ?? throw new NotFoundHttpException;
 
-        $page = $this->pageRequest($request, $pagePath, AssetVersion::fromSegment($version), $live);
+        // The router already decoded the segments: a "?" or "#" here was smuggled as %3F / %23.
+        if (Str::contains($pagePath, ['?', '#'])) {
+            throw new NotFoundHttpException;
+        }
+
+        $version = $version === '_' ? '' : $version;
+        $page = $this->pageRequest($request, $pagePath, $version, $live);
 
         try {
             $route = $this->router->getRoutes()->match($page);
@@ -162,13 +168,10 @@ class PageJsonController
     protected function canonicalJsonUrl(Request $request, string $version, string $pagePath, RouteOptions $options): ?string
     {
         $raw = (string) $request->server->get('QUERY_STRING', '');
-        $canonical = $this->normalizer->canonicalQuery($raw, $options->query);
+        $encoded = implode('/', array_map('rawurlencode', explode('/', $pagePath)));
+        $canonical = $this->urls->json($encoded, $version).$this->normalizer->canonicalQuery($raw, $options->query);
 
-        if ($canonical === ($raw === '' ? '' : '?'.$raw)) {
-            return null;
-        }
-
-        return $this->urls->json($pagePath, AssetVersion::fromSegment($version)).$canonical;
+        return $canonical === $request->getPathInfo().($raw === '' ? '' : '?'.$raw) ? null : $canonical;
     }
 
     protected function pageRequest(Request $request, string $pagePath, string $version, bool $live = false): Request

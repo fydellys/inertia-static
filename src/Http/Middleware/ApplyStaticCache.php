@@ -87,6 +87,12 @@ class ApplyStaticCache
             $request->headers->remove('Cookie');
         }
 
+        // The CDN keys pages on Host + URL only: forwarded host headers sent by a client would
+        // otherwise change url()/route()/asset() in a page cached for everyone (trusted proxies).
+        foreach (['X-Forwarded-Host', 'X-Forwarded-Port', 'X-Forwarded-Prefix', 'Forwarded'] as $header) {
+            $request->headers->remove($header);
+        }
+
         if ($options !== null && ! $this->context->bypass && $target = $this->normalizer->redirectTarget($request, $options)) {
             return $this->finalizer->finalize(
                 $request,

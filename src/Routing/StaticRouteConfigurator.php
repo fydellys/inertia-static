@@ -78,7 +78,9 @@ class StaticRouteConfigurator
             return;
         }
 
-        if (! in_array('GET', $route->methods(), true)) {
+        // GET only: the session and CSRF middleware are removed from the route, so another
+        // verb on it (Route::match / Route::any) would run without CSRF protection.
+        if (! in_array('GET', $route->methods(), true) || array_diff($route->methods(), ['GET', 'HEAD']) !== []) {
             throw new InvalidStaticRoute("[inertia-static] Route [{$route->uri()}] must be a GET route to be {$options->mode->value}.");
         }
 

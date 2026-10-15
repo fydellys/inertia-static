@@ -47,6 +47,8 @@ Route::middleware('web')->group(function () {
     Route::get('/devtools', fn () => response()->json(['ok' => true])->header('X-Inertia-Devtools-Id', 'abc'))->isr();
     Route::get('/preview-check', fn () => Inertia::render('Home', ['preview' => StaticCache::isPreview()]))->isr();
     Route::get('/broken', fn () => abort(500))->isr();
+    Route::get('/boom', fn () => throw new RuntimeException('boom'))->isr();
+    Route::get('/absolute', fn () => Inertia::render('Home', ['asset' => url('/build/app.js')]))->isr();
     Route::get('/missing', fn () => abort(404))->isr();
     Route::get('/moved', fn () => redirect('/'))->isr();
     Route::get('/deferred', fn () => Inertia::render('Deferred', ['slow' => Inertia::defer(fn () => 'x')]))->isr();

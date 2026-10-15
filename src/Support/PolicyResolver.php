@@ -117,11 +117,13 @@ class PolicyResolver
             $this->context->bypass => $this->context->bypassReason ?? 'bypass',
             $this->context->hasViolations() => 'leak',
             $status >= 500 => 'server-error',
+            // Before any status arm: these requests get a response the cache key does not
+            // reflect (a partial page, or JSON / a rewritten redirect on the HTML URL).
+            $this->isPartialReload($request) => 'partial-reload',
+            $this->isInertiaVisitOnHtmlUrl($request) => 'inertia-json-on-html-url',
             $status === 404 => null,
             $response->isRedirection() && $status !== 304 => $this->config->get('inertia-static.defaults.cache_redirects') ? null : 'redirect',
             $status !== 200 => "status:{$status}",
-            $this->isPartialReload($request) => 'partial-reload',
-            $this->isInertiaVisitOnHtmlUrl($request) => 'inertia-json-on-html-url',
             $this->isDegradedHtml($request, $response) => 'ssr-unavailable',
             default => null,
         };

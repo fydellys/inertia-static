@@ -5,7 +5,6 @@ namespace Fydellys\InertiaStatic\Security;
 use Closure;
 use Fydellys\InertiaStatic\Events\StaticRenderViolated;
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
-use Fydellys\InertiaStatic\Support\Downgrades;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
@@ -142,9 +141,11 @@ class RenderGuard
             throw $violation;
         }
 
-        // "auto": the route stops being static (it becomes a regular dynamic route).
+        // "auto": the route stops being static (it becomes a regular dynamic route). Persisted by
+        // RenderStatically only when the render succeeds: Laravel's exception reporting reads
+        // Auth::id(), and a failed request must not turn a route dynamic for good.
         if ($this->mode() === 'auto' && ($route = $this->request?->route()) instanceof Route) {
-            $this->app->make(Downgrades::class)->add($route, "{$type}: {$detail}");
+            $this->context->pendingDowngrade ??= ['route' => $route, 'reason' => "{$type}: {$detail}"];
         }
 
         $channel = $this->config->get('inertia-static.leak_detector.log_channel');
