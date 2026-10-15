@@ -48,6 +48,10 @@ return Inertia::render('Pricing', [
 </WhenVisible>
 ```
 
+::: warning Vue with SSR
+Use `@inertiajs/vue3` 2.3.20+ (or 3.0.1+). Older versions crash the SSR server when they render `<WhenVisible>`.
+:::
+
 ## Infinite scroll
 
 Add the page parameter to the route's `query`, so `/blog?page=2` opened directly is cached as its own page:
