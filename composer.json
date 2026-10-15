@@ -3,14 +3,31 @@
     "description": "SSG + ISR for Laravel + Inertia, CDN-agnostic.",
     "type": "library",
     "license": "MIT",
+    "authors": [
+        {
+            "name": "fydellys",
+            "homepage": "https://github.com/fydellys"
+        }
+    ],
+    "homepage": "https://fydellys.github.io/inertia-static/",
+    "support": {
+        "issues": "https://github.com/fydellys/inertia-static/issues",
+        "source": "https://github.com/fydellys/inertia-static",
+        "docs": "https://fydellys.github.io/inertia-static/"
+    },
     "keywords": [
         "laravel",
         "inertia",
+        "inertiajs",
         "ssg",
         "isr",
         "cdn",
         "cache",
-        "static"
+        "static",
+        "ssr",
+        "vue",
+        "react",
+        "cloudflare"
     ],
     "require": {
         "php": "^8.3",
