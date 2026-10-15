@@ -64,6 +64,7 @@ export default defineConfig({
           { text: 'Deploying', link: '/guide/deploy' },
           { text: 'Artisan commands', link: '/guide/commands' },
           { text: 'Troubleshooting', link: '/faq' },
+          { text: 'AI agents', link: '/guide/ai-agents' },
         ],
       },
       {

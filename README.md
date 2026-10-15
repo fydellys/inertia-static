@@ -141,6 +141,13 @@ php artisan inertia-static:doctor
 
 The CDN also needs its own configuration. On Cloudflare, HTML is not cached until you add a Cache Rule. See [CDN setup](https://fydellys.github.io/inertia-static/cdn/overview).
 
+## AI agents
+
+The package ships a skill for coding agents: `php artisan boost:install` with
+[Laravel Boost](https://laravel.com/docs/boost), or in Claude Code
+`/plugin marketplace add fydellys/inertia-static` then `/plugin install inertia-static@inertia-static`.
+See [AI agents](https://fydellys.github.io/inertia-static/guide/ai-agents).
+
 ## How it works
 
 - **No session on static routes.** Cookies, the session, CSRF and private shared props are removed. A leak detector throws when code reads the user or the session during a static render.

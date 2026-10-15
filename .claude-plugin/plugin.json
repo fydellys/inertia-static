@@ -1,0 +1,9 @@
+{
+  "name": "inertia-static",
+  "description": "Make Laravel + Inertia pages static or ISR, cache them on any CDN, purge and add user islands.",
+  "author": { "name": "Fydellys Ramalho" },
+  "homepage": "https://fydellys.github.io/inertia-static/",
+  "repository": "https://github.com/fydellys/inertia-static",
+  "license": "MIT",
+  "skills": ["./resources/boost/skills/"]
+}

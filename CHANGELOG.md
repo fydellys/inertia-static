@@ -21,6 +21,10 @@ minor versions may contain breaking changes.
 - Islands: a failed reload puts `data` back to `initial` (no previous user after a `401`), and an older response
   never overwrites a newer one.
 
+### Added
+- Agent skill `inertia-static-development` and guidelines for Laravel Boost (`php artisan boost:install`), also
+  installable as a Claude Code plugin (`/plugin marketplace add fydellys/inertia-static`).
+
 ### Fixed
 - Leak detector, `auto` mode: a leak that only happens in a partial reload (a `<WhenVisible>`, deferred or scroll
   prop reading the user) no longer turns the whole route dynamic. It is still logged and served with `no-store`;

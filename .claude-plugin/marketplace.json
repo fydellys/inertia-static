@@ -1,0 +1,24 @@
+{
+  "name": "inertia-static",
+  "owner": {
+    "name": "Fydellys Ramalho"
+  },
+  "metadata": {
+    "description": "Skill for building static and ISR pages with fydellys/inertia-static."
+  },
+  "plugins": [
+    {
+      "name": "inertia-static",
+      "source": "./",
+      "description": "Make Laravel + Inertia pages static or ISR, cache them on any CDN, purge and add user islands.",
+      "category": "development",
+      "tags": [
+        "laravel",
+        "inertia",
+        "ssg",
+        "isr",
+        "cdn"
+      ]
+    }
+  ]
+}
