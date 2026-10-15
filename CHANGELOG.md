@@ -21,6 +21,8 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 - Purge all falls back to a `/` prefix purge on drivers without purge all (nginx).
 
 ### Changed
+- SSR is optional: apps without Inertia SSR get their HTML cached. `ssr.required` only applies when SSR is enabled
+  (a page rendered while the SSR server is down is sent with `no-store`).
 - Varnish: edge TTL and stale time moved to `Surrogate-Control` (read and removed by the VCL); browsers only get
   `max-age=0, must-revalidate`. Update your VCL from `docs/varnish.vcl`.
 - The JSON endpoint controller resolves its request context per call: the router keeps controller instances

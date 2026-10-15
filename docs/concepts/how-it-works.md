@@ -70,7 +70,7 @@ When in doubt, `no-store`. A response is cacheable only if **none** of these hol
 | status other than 200 / 404 / canonical 301 | `status:<code>` |
 | partial reload / deferred props / reset | `partial-reload` |
 | Inertia JSON requested on the HTML URL | `inertia-json-on-html-url` |
-| HTML rendered without SSR (`ssr.required`) | `ssr-unavailable` |
+| SSR enabled but the page rendered without it (`ssr.required`) | `ssr-unavailable` |
 
 Non-cacheable responses get `Cache-Control: no-store, private`, no CDN headers, and
 `X-Inertia-Static-Cache: bypass`.

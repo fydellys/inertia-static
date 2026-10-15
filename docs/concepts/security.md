@@ -56,7 +56,7 @@ deterministically returns `null`, the anonymous value.
 ## Never cached
 
 - requests with `Authorization`;
-- HTML without SSR (a degraded client-side shell);
+- with SSR enabled, a page rendered without it (SSR server down);
 - 5xx, partial reloads, the Inertia JSON on the HTML URL;
 - the per-request id of Inertia DevTools: DevTools is disabled on static routes.
 

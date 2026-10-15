@@ -97,13 +97,9 @@ keeps the normal Inertia flow (fail-open).
 
 ## SSR
 
-Inertia SSR is strongly recommended: by default an HTML response rendered **without** SSR is sent with
-`no-store` (`inertia-static.ssr.required`). Follow the
-[Inertia SSR guide](https://inertiajs.com/docs/v3/advanced/server-side-rendering), then check:
-
-```bash
-php artisan inertia-static:doctor
-```
+The package works with or without [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering).
+With SSR enabled, a page that renders without it (SSR server down) is not cached, so the CDN never stores a
+degraded copy.
 
 ## Configure the CDN
 

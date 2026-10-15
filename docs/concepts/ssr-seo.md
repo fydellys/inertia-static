@@ -1,11 +1,11 @@
 # SSR & SEO
 
-Every cached HTML page comes from the official Inertia SSR. The package does not render anything itself.
+SSR is optional. Without it, pages are cached as Inertia renders them (the page data and an empty root element).
+With [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering), the cached HTML contains the
+rendered page, which is what search engines and social previews read.
 
-- **SSR down** → the HTML is a client-side shell: it is sent with `no-store` and logged
-  (`ssr.required = true`, the default). The CDN keeps serving the previous good copy (`stale-if-error`) until
-  SSR is back.
-- Set `INERTIA_STATIC_SSR_REQUIRED=false` only if you do not run SSR and accept caching CSR shells.
+When SSR is enabled and the SSR server is down, pages are sent with `no-store` and logged: the CDN keeps the
+previous copy until SSR is back.
 
 ## Head tags
 
@@ -27,11 +27,6 @@ return Inertia::render('Blog/Show', [
   <link rel="canonical" :href="canonical" />
 </Head>
 ```
-
-## When SSR is down
-
-The page is still served, without SSR and with `no-store`, so the CDN never stores it. Once SSR is back, the page is
-cached again.
 
 ## Deferred props
 

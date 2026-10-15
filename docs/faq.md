@@ -65,8 +65,8 @@ accessor (for example `auth()->check()`). Move it to an island, or make the rout
 
 ## Pages are never cached and `X-Inertia-Static-Reason: ssr-unavailable`
 
-The SSR server is down or not configured (`php artisan inertia:check-ssr`). HTML without SSR is never cached
-unless `INERTIA_STATIC_SSR_REQUIRED=false`.
+SSR is enabled in `config/inertia.php`, but the SSR server is not responding (`php artisan inertia:check-ssr`).
+Start it, or disable SSR if the app does not use it.
 
 ## Old visitors after a deploy
 

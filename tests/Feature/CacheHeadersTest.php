@@ -35,7 +35,13 @@ it('renders full SSR HTML for SEO', function () {
         ->assertSee('<h1>Post hello-world</h1>', false);
 });
 
-it('never caches degraded HTML when SSR is unavailable', function () {
+it('caches HTML rendered without SSR when the app does not use SSR', function () {
+    config(['inertia.ssr.enabled' => false]);
+
+    $this->get('/')->assertOk()->assertHeader('X-Inertia-Static', 'MISS')->assertHeader('X-Inertia-Static-Cache', 'cacheable');
+});
+
+it('never caches degraded HTML when SSR is enabled but unavailable', function () {
     FakeSsrGateway::$available = false;
 
     $response = $this->get('/blog');

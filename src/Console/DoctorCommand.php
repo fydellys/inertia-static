@@ -33,7 +33,7 @@ class DoctorCommand extends Command
         $this->check('Package enabled', (bool) config('inertia-static.enabled'), 'INERTIA_STATIC_ENABLED is false.', warn: true);
         $this->check('Global middleware registered', method_exists($kernel, 'hasMiddleware') && $kernel->hasMiddleware(ApplyStaticCache::class), 'ApplyStaticCache is not in the global middleware stack.');
         $this->check('Base URL is absolute', (bool) filter_var(config('inertia-static.base_url'), FILTER_VALIDATE_URL), 'Set INERTIA_STATIC_BASE_URL / APP_URL.');
-        $this->check('Inertia SSR enabled', (bool) config('inertia.ssr.enabled', false), 'Static pages will not be cached without SSR (inertia-static.ssr.required).', warn: ! config('inertia-static.ssr.required', true));
+        $this->components->twoColumnDetail('Inertia SSR', config('inertia.ssr.enabled', false) ? 'enabled' : 'disabled');
         $this->checkSsrHealth();
 
         try {

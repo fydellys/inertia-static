@@ -40,5 +40,5 @@ The [policy resolver](../concepts/how-it-works.md#fail-safe-cache-policy) decide
 | canonical `301` (query / trailing slash) | yes, `defaults.redirect_ttl` |
 | other redirects | only with `defaults.cache_redirects` |
 | `5xx`, `409`, anything else | never |
-| HTML without SSR | never (unless `ssr.required` is false) |
+| HTML rendered without SSR while SSR is enabled (SSR server down) | never (unless `ssr.required` is false) |
 | requests with `Authorization`, partial reloads, leaks | never |

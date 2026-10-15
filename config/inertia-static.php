@@ -133,8 +133,9 @@ return [
     | SSR
     |--------------------------------------------------------------------------
     |
-    | When "required" is true, an HTML response rendered without SSR (the
-    | gateway is disabled or failed) is NEVER cached: it is sent as no-store.
+    | SSR is optional. When Inertia SSR is enabled and "required" is true, a
+    | page that renders without it (SSR server down) is sent as no-store, so
+    | the CDN never stores the degraded copy.
     |
     */
 

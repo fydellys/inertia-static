@@ -29,7 +29,7 @@
 
 | Key | Env | Default | |
 |---|---|---|---|
-| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `true` | HTML without SSR is sent with `no-store`. |
+| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `true` | When Inertia SSR is enabled, a page rendered without it (SSR server down) is sent with `no-store`. |
 | `deferred_props` | `INERTIA_STATIC_DEFERRED_PROPS` | `throw` | `throw` or `allow` deferred props on static pages. |
 
 ## Cache policy defaults

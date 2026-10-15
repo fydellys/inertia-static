@@ -1,6 +1,6 @@
 # Inertia Static
 
-SSG + ISR for **Laravel + Inertia.js**. Pages are rendered once at the origin with SSR, served from any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
+SSG + ISR for **Laravel + Inertia.js**. Pages are rendered once at the origin, served from any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
 
 Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cache.
 
@@ -8,7 +8,7 @@ Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cac
 
 ## Requirements
 
-PHP 8.3+, Laravel 12 or 13, Inertia 2 or 3 (`inertiajs/inertia-laravel` ^2.0.16 or ^3.0), Vue 3.5+. Inertia SSR is recommended.
+PHP 8.3+, Laravel 12 or 13, Inertia 2 or 3 (`inertiajs/inertia-laravel` ^2.0.16 or ^3.0), Vue 3.5+. Works with or without Inertia SSR.
 
 ## Installation
 
@@ -101,7 +101,7 @@ The CDN also needs its own configuration. On Cloudflare, HTML is not cached unti
 
 - **No session on static routes.** Cookies, the session, CSRF and private shared props are removed. A leak detector throws when code reads the user or the session during a static render.
 - **Page JSON on its own URL** (`/__inertia/{version}/{path}.json`). CDNs that ignore `Vary: X-Inertia` never mix HTML and JSON.
-- **Fail-safe headers.** Strong ETags and 304s. When in doubt the response is `no-store`, for example when SSR is down, on 5xx, or with `Authorization`.
+- **Fail-safe headers.** Strong ETags and 304s. When in doubt the response is `no-store`, for example when the SSR server is down, on 5xx, or with `Authorization`.
 - **Purges are queued** with debounce, batching and rate limiting. CDNs without tag purges go through a tag → URL registry.
 
 ## Testing

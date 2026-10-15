@@ -22,7 +22,7 @@ A visitor with an old page open requests `/__inertia/{oldVersion}/page.json`:
 ## Checklist
 
 - [ ] `INERTIA_STATIC_BASE_URL` (or `APP_URL`) is the public URL.
-- [ ] Inertia SSR runs in production (`php artisan inertia:start-ssr` under a supervisor).
+- [ ] If you use Inertia SSR: the SSR server runs in production (`php artisan inertia:start-ssr` under a supervisor).
 - [ ] A queue worker runs (purges are queued).
 - [ ] The CDN caches HTML and JSON (Cloudflare: Cache Rule).
 - [ ] `public_shared_props` only lists public data.

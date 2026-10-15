@@ -144,11 +144,14 @@ class PolicyResolver
     }
 
     /**
-     * An HTML page rendered without SSR is a client-side shell: never cache it.
+     * SSR is optional. When the app enables it and a page still renders without it
+     * (SSR server down), that page is a degraded copy: never cache it.
      */
     protected function isDegradedHtml(Request $request, Response $response): bool
     {
-        if ($this->context->jsonEndpoint || ! $this->config->get('inertia-static.ssr.required', true)) {
+        if ($this->context->jsonEndpoint
+            || ! $this->config->get('inertia.ssr.enabled', false)
+            || ! $this->config->get('inertia-static.ssr.required', true)) {
             return false;
         }
 
@@ -160,9 +163,7 @@ class PolicyResolver
             return false;
         }
 
-        if ($this->config->get('inertia.ssr.enabled', false)) {
-            Log::warning('[inertia-static] SSR unavailable: the HTML of a static page was sent with no-store.', ['url' => $request->getRequestUri()]);
-        }
+        Log::warning('[inertia-static] SSR unavailable: the HTML of a static page was sent with no-store.', ['url' => $request->getRequestUri()]);
 
         return true;
     }

@@ -18,7 +18,7 @@ hero:
 
 features:
   - title: Static, ISR or dynamic, per route
-    details: "Route::get(...)->isr(revalidate: 3600) or #[StaticPage]. Pages render once at the origin (with Inertia SSR) and are served by the CDN."
+    details: "Route::get(...)->isr(revalidate: 3600) or #[StaticPage]. Pages render once at the origin (with or without Inertia SSR) and are served by the CDN."
   - title: CDN-agnostic
     details: Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx, or any HTTP cache. Purge by tag, URL, prefix or everything, through queued jobs with batching and rate limits.
   - title: Fail-safe privacy
