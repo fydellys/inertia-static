@@ -53,7 +53,7 @@ are rewritten to it by the `RewriteInertiaRedirects` global middleware.
 - `Vary: X-Inertia` is removed from these responses: the URL already identifies the representation, and Vary-aware
   caches would otherwise store duplicates.
 
-The client plugin rewrites visits to this URL ([Client](../guide/client-vue.md)), using the manifest
+The client plugin rewrites visits to this URL ([Client](../guide/client.md)), using the manifest
 (`/__inertia/manifest.json` or `inertia-static:manifest`) to know which routes are static.
 
 ## Fail-safe cache policy
