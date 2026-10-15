@@ -17,6 +17,7 @@ export CF_ENV_FILE CF_HOST
 
 BASE="https://$CF_HOST"
 HEADED=${HEADED---headed}
+FF_HEADED=${FF_HEADED-$HEADED}  # FF_HEADED= : Firefox headless, Chromium still visible
 FAILED=0
 PASSED=0
 STATE="$(cat e2e-state.js)"
@@ -258,7 +259,7 @@ eq "--warm: HIT on the first visit after the purge" "$(cf /blog/post-9)" "HIT"
 
 # ---------------------------------------------------------------- 7
 section "7. Firefox through Cloudflare"
-pw -s=firefox open "$BASE/blog" $HEADED --browser=firefox >/dev/null; ready -s=firefox
+pw -s=firefox open "$BASE/blog" $FF_HEADED --browser=firefox >/dev/null; ready -s=firefox
 walk -s=firefox
 for i in 1 2 3; do pw -s=firefox go-back >/dev/null; sleep 0.8; done
 pw -s=firefox goto "$BASE/__origin/stats" >/dev/null; ready -s=firefox; pw -s=firefox go-back >/dev/null; sleep 2

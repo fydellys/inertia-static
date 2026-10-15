@@ -3,6 +3,7 @@
 #
 #   ./e2e.sh                 # Chromium + Firefox, windows visible
 #   HEADED= ./e2e.sh         # headless
+#   FF_HEADED= ./e2e.sh      # Firefox headless only
 #   CDN=varnish ./e2e.sh     # through Varnish (docs/varnish.vcl), see compose.varnish.yml
 #
 # Requires: docker compose up -d (app + cdn + browser). The "cdn" is nginx with
@@ -18,6 +19,7 @@ case "$CDN" in
   *) echo "unknown CDN=$CDN (nginx|varnish)"; exit 1 ;;
 esac
 HEADED=${HEADED---headed}
+FF_HEADED=${FF_HEADED-$HEADED}  # FF_HEADED= : Firefox headless, Chromium still visible
 FAILED=0
 PASSED=0
 STATE="$(cat e2e-state.js)"
@@ -485,7 +487,7 @@ artisan inertia-static:purge --all
 
 # ---------------------------------------------------------------- 12 firefox
 section "12. Firefox: transitions, history and leave/come back (#1923 / #900)"
-pw -s=firefox open "$BASE/blog" $HEADED --browser=firefox >/dev/null; ready -s=firefox
+pw -s=firefox open "$BASE/blog" $FF_HEADED --browser=firefox >/dev/null; ready -s=firefox
 walk -s=firefox
 for i in 1 2 3 4; do pw -s=firefox go-back >/dev/null; sleep 0.6; done
 for i in 1 2; do pw -s=firefox go-forward >/dev/null; sleep 0.6; done
