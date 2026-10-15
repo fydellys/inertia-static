@@ -439,12 +439,12 @@ eq "  the CDN did not store it" "$(cdn /leak)" "MISS"
 docker compose exec -T app php artisan inertia:stop-ssr >/dev/null 2>&1; sleep 1
 artisan inertia-static:purge --url=/about
 get /about
-eq "SSR down: degraded HTML is not cached" "$(hdr X-Inertia-Static-Reason)" "ssr-unavailable"
-has "  Cache-Control no-store" "$(hdr Cache-Control)" "no-store"
-eq "  the CDN did not store it (MISS again)" "$(cdn /about)" "MISS"
+eq "SSR down: the page is still cached (ssr.required off)" "$(hdr X-Inertia-Static-Cache)" "cacheable"
+eq "  the CDN stored it" "$(cdn /about)" "HIT"
 docker compose exec -d app sh -c 'php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1'; sleep 3
+artisan inertia-static:purge --url=/about
 get /about; get /about
-eq "SSR back: cacheable again" "$(hdr X-Cache-Status)" "HIT"
+eq "SSR back + purge: cached again" "$(hdr X-Cache-Status)" "HIT"
 
 # ---------------------------------------------------------------- 10b cache header / headers only
 section "10b. X-Inertia-Static-Cache header and \"headers only\" mode (no CDN credentials)"

@@ -50,7 +50,7 @@ The CDN headers (`*-Cache-Control`, `Surrogate-*`, tag headers, `X-Accel-Expires
 | `redirect` | a redirect from your code, with `defaults.cache_redirects` off, or any redirect on the page JSON URL |
 | `status:404-json` | a `404` asked as JSON (`Accept: application/json`) on the HTML URL |
 | `status:<code>` | any status other than 200, 404 or a redirect (e.g. `status:409` after a deploy) |
-| `ssr-unavailable` | SSR is enabled but the HTML was rendered without it (`ssr.required`) |
+| `ssr-unavailable` | with `ssr.required` on: SSR is enabled but the HTML was rendered without it |
 | `not-static` | the page JSON URL of an unknown or dynamic route (404) |
 
 The header names follow `cache_header` and `debug_header` (`{debug_header}-Reason`); an empty value disables them.

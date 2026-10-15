@@ -121,8 +121,15 @@ keeps the normal Inertia flow (fail-open).
 ## SSR
 
 The package works with or without [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering).
-With SSR enabled, a page that renders without it (SSR server down) is sent with `no-store`, so the CDN never
-stores a degraded copy. Set `INERTIA_STATIC_SSR_REQUIRED=false` to cache those pages anyway.
+Pages are cached with or without SSR. Set `INERTIA_STATIC_SSR_REQUIRED=true` to never cache a page that rendered
+without SSR while SSR is enabled (SSR server down): it is sent with `no-store` instead.
+
+::: warning SSR server down
+With the default, a page rendered while the SSR server is down is cached without its server-rendered content until
+it expires or is purged: search engines and social previews see the page without it in that window. Supervise the
+SSR server, purge after it is back (`php artisan inertia-static:purge --all`), or set
+`INERTIA_STATIC_SSR_REQUIRED=true`.
+:::
 
 ## Configure the CDN
 

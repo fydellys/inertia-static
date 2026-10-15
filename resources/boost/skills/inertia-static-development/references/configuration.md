@@ -31,7 +31,7 @@ File: `config/inertia-static.php` (`php artisan vendor:publish --tag=inertia-sta
 
 | Key | Env | Default | Notes |
 |---|---|---|---|
-| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `true` | With Inertia SSR enabled, HTML rendered without SSR is sent `no-store`. |
+| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `false` | `true`: with Inertia SSR enabled, HTML rendered without SSR is sent `no-store` instead of cached. |
 | `csrf_cookie` | `INERTIA_STATIC_CSRF_COOKIE` | `null` | `true`: client fetches the cookie from `/__inertia/csrf` before the first form. `null`: only on Laravel 12. |
 | `deferred_props` | `INERTIA_STATIC_DEFERRED_PROPS` | `throw` | `throw` or `allow`. |
 

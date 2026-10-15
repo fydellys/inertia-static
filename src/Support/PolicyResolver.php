@@ -156,7 +156,7 @@ class PolicyResolver
     {
         if ($this->context->jsonEndpoint
             || ! $this->config->get('inertia.ssr.enabled', false)
-            || ! $this->config->get('inertia-static.ssr.required', true)) {
+            || ! $this->config->get('inertia-static.ssr.required', false)) {
             return false;
         }
 

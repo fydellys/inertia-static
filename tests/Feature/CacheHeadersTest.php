@@ -45,8 +45,9 @@ it('caches HTML rendered without SSR when the app does not use SSR', function ()
     $this->get('/')->assertOk()->assertHeader('X-Inertia-Static', 'MISS')->assertHeader('X-Inertia-Static-Cache', 'cacheable');
 });
 
-it('never caches degraded HTML when SSR is enabled but unavailable', function () {
+it('never caches degraded HTML when SSR is required but unavailable', function () {
     FakeSsrGateway::$available = false;
+    config(['inertia-static.ssr.required' => true]);
 
     $response = $this->get('/blog');
 
@@ -55,9 +56,8 @@ it('never caches degraded HTML when SSR is enabled but unavailable', function ()
         ->and($response->headers->has('CDN-Cache-Control'))->toBeFalse();
 });
 
-it('can serve HTML without SSR when SSR is not required', function () {
+it('caches HTML rendered without SSR by default, even when the SSR server is down', function () {
     FakeSsrGateway::$available = false;
-    config(['inertia-static.ssr.required' => false]);
 
     $this->get('/blog')->assertHeader('X-Inertia-Static', 'MISS')->assertTtl(300);
 });

@@ -45,5 +45,5 @@ Only responses of `isr` and `static` routes are cached, and only when it is safe
 | canonical `301` (query / trailing slash) | yes, `defaults.redirect_ttl` (300s) |
 | other redirects | only with `defaults.cache_redirects` |
 | `5xx` and any other status | never |
-| HTML rendered without SSR while SSR is enabled (SSR server down) | never (unless `ssr.required` is false) |
+| HTML rendered without SSR while SSR is enabled (SSR server down) | like any page (never with `ssr.required` on) |
 | requests with `Authorization`, preview mode, partial reloads, leaks | never |

@@ -13,9 +13,9 @@ it('serves the blog index as a cacheable static page', function () {
 });
 ```
 
-- A `bypass` response carries `X-Inertia-Static-Reason` (values in troubleshooting.md). If Inertia SSR is enabled in
-  the test environment without an SSR server, the reason is `ssr-unavailable`: disable Inertia SSR in tests or set
-  `INERTIA_STATIC_SSR_REQUIRED=false`.
+- A `bypass` response carries `X-Inertia-Static-Reason` (values in troubleshooting.md). With
+  `INERTIA_STATIC_SSR_REQUIRED=true` and Inertia SSR enabled in the test environment without an SSR server, the
+  reason is `ssr-unavailable`: disable Inertia SSR in tests or leave `INERTIA_STATIC_SSR_REQUIRED` off.
 - Non-whitelisted query parameters return a `301` to the canonical URL; assert with `assertRedirect()`.
 
 ## Purges

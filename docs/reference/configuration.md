@@ -31,7 +31,7 @@
 
 | Key | Env | Default | |
 |---|---|---|---|
-| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `true` | When Inertia SSR is enabled, an HTML page rendered without it (SSR server down) is sent with `no-store`. |
+| `ssr.required` | `INERTIA_STATIC_SSR_REQUIRED` | `false` | `true`: when Inertia SSR is enabled, an HTML page rendered without it (SSR server down) is sent with `no-store` instead of being cached. |
 | `csrf_cookie` | `INERTIA_STATIC_CSRF_COOKIE` | `null` | `true`: the client fetches the CSRF cookie from `/__inertia/csrf` before the first form submission. `null`: only on Laravel 12. |
 | `deferred_props` | `INERTIA_STATIC_DEFERRED_PROPS` | `throw` | `throw` or `allow` deferred props on static pages. |
 
