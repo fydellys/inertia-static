@@ -1,10 +1,31 @@
 # Inertia Static
 
-SSG + ISR for **Laravel + Inertia.js**. Pages are rendered once at the origin, served from any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
+Inertia Static brings SSG/ISR to **Laravel + Inertia.js** without depending on a specific provider. Your pages are rendered at the origin, cached at the edge of any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
+
+It is based on the rendering model of [Next.js](https://nextjs.org/docs/app/guides/incremental-static-regeneration): the same SSG and ISR ideas, with the same names (`revalidate`, tags, on-demand revalidation, preview mode), applied to Laravel routes and served by your CDN. See [Compared to Next.js](https://fydellys.github.io/inertia-static/concepts/nextjs) for the mapping.
 
 Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cache.
 
 **Documentation:** https://fydellys.github.io/inertia-static/
+
+## SSG and ISR in short
+
+**SSG (Static Site Generation).** A page is rendered once and the same HTML is served to every visitor, from a cache, without running your controller again. It is fast and cheap, and it survives traffic spikes, because the origin is not involved.
+
+**ISR (Incremental Static Regeneration).** SSG that updates itself, page by page, without a new deploy:
+
+- **By time.** After `revalidate` seconds the cached page is stale. The next visitor still gets it instantly, and the page is rendered again in the background (stale-while-revalidate). The following visitors get the new version.
+- **On demand.** When your data changes, purge the pages that use it (by tag, URL or prefix), for example when a post is saved. The next visit renders a fresh page.
+- **Pages that do not exist yet** are rendered on their first visit and cached from then on.
+
+| Request | CDN | What happens |
+|---|---|---|
+| 1st visit to `/blog/hello` | `MISS` | Laravel renders the page and the CDN caches it |
+| Next visits | `HIT` | Served from the CDN, Laravel is not called |
+| After `revalidate` seconds | `STALE` | The cached page is served at once and rendered again in the background |
+| Post saved | | Tag `post:1` is purged; the next visit renders the page again |
+
+Laravel stays in charge of everything dynamic: forms, sign in, and user data loaded in [islands](https://fydellys.github.io/inertia-static/guide/islands).
 
 ## Requirements
 
