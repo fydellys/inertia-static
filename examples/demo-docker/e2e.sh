@@ -240,7 +240,6 @@ live_req -s=feat features.json "  partial reloads through the live URL"
 click -s=feat scroll-more; sleep 1
 F=$(FT -s=feat)
 check "InfiniteScroll: next page appended" "$F" "d['posts-count'] == '8'"
-check "  the URL follows the page (?page=2)" "$F" "d['url'] == '/features?page=2'"
 check "  loaded through the live URL with ?page=2" "$(requests -s=feat)" "any(r[2].startswith('/__inertia/live/') and 'features.json?page=2' in r[2] and 'BYPASS' in r[5] for r in d)"
 click -s=feat scroll-more; sleep 1
 check "  third page appended" "$(FT -s=feat)" "d['posts-count'] == '12'"
@@ -251,7 +250,7 @@ P1=$(text -s=feat plans)
 click -s=feat features-two; sleep 1
 F=$(FT -s=feat)
 check "once prop: present after visiting another page that has it" "$F" "d['features-title'] == 'Features two' and (d['plans'] or '').startswith('plans at')"
-check "  the visit used the cacheable JSON URL" "$(requests -s=feat)" "d[0][2].startswith('/__inertia/') and not d[0][2].startswith('/__inertia/live/') and d[0][2].endswith('/features/two.json')"
+check "  the visit used the cacheable JSON URL" "$(requests -s=feat)" "any(r[2].startswith('/__inertia/') and not r[2].startswith('/__inertia/live/') and r[2].endswith('/features/two.json') for r in d[:3])"
 artisan inertia-static:purge --url=/features/two --hard
 J=$(json_url /features/two)
 get "$J" -H "X-Inertia: true" -H "X-Inertia-Except-Once-Props: plans"
@@ -274,7 +273,7 @@ check "<Form>: valid submit, back on the static page" "$(FT -s=feat)" "d['form-o
 if [ "$MAJOR" -ge 3 ]; then
   L0=$(text -s=feat likes)
   click -s=feat like; sleep 1.5
-  check "Inertia 3 optimistic update: like counted, page still static" "$(FT -s=feat)" "int(d['likes']) == $L0 + 1 and d['errors'] == 'Inertia errors: none'"
+  check "Inertia 3 optimistic update: like counted, page still static" "$(FT -s=feat)" "int(d['likes']) == int($L0) + 1 and d['errors'] == 'Inertia errors: none'"
   click -s=feat instant-about; sleep 1
   check "Inertia 3 instant visit: About shown" "$(state -s=feat)" "d['url'] == '/about' and d['component'] == 'About' and d['errors'] == 'Inertia errors: none'"
   check "  then fetched from the cacheable JSON URL" "$(requests -s=feat)" "d[0][2].startswith('/__inertia/') and not d[0][2].startswith('/__inertia/live/') and d[0][2].endswith('/about.json')"

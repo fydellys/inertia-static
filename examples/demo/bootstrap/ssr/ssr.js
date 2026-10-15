@@ -1,6 +1,6 @@
-import { computed, createSSRApp, createTextVNode, createVNode, defineComponent, getCurrentInstance, getCurrentScope, h, mergeProps, onMounted, onScopeDispose, onUnmounted, reactive, ref, shallowRef, toDisplayString, unref, useSSRContext, withCtx } from "vue";
-import { renderToString, ssrInterpolate, ssrRenderAttr, ssrRenderAttrs, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderSlot } from "vue/server-renderer";
-import { Head, Link, createInertiaApp, useForm, useHttp, usePage, usePoll } from "@inertiajs/vue3";
+import { Fragment, computed, createBlock, createCommentVNode, createSSRApp, createTextVNode, createVNode, defineComponent, getCurrentInstance, getCurrentScope, h, mergeProps, onMounted, onScopeDispose, onUnmounted, openBlock, reactive, ref, renderList, resolveDynamicComponent, shallowRef, toDisplayString, unref, useSSRContext, withCtx } from "vue";
+import { renderToString, ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderAttrs, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderSlot, ssrRenderStyle, ssrRenderVNode } from "vue/server-renderer";
+import { Deferred, Form, Head, InfiniteScroll, Link, WhenVisible, createInertiaApp, useForm, useHttp, usePage, usePoll, useRemember } from "@inertiajs/vue3";
 import "@inertiajs/core";
 import createServer from "@inertiajs/vue3/server";
 //#region \0rolldown/runtime.js
@@ -91,6 +91,39 @@ if (typeof document !== "undefined") for (const name of ["httpException", "netwo
 	network.errors.unshift(`${name}: ${detail?.response?.status ?? detail?.error?.message ?? "?"}`);
 });
 //#endregion
+//#region resources/js/Components/V3Features.vue?vue&type=script&setup=true&lang.ts
+var V3Features_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "V3Features",
+	__ssrInlineRender: true,
+	props: { likes: {} },
+	setup(__props) {
+		return (_ctx, _push, _parent, _attrs) => {
+			_push(`<div${ssrRenderAttrs(_attrs)}><b>Inertia 3:</b>`);
+			_push(ssrRenderComponent(unref(Link), {
+				href: "/about",
+				component: "About",
+				"data-testid": "instant-about"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`instant visit to About`);
+					else return [createTextVNode("instant visit to About")];
+				}),
+				_: 1
+			}, _parent));
+			_push(` · likes <span data-testid="likes">${ssrInterpolate(__props.likes)}</span><button class="ml-1 rounded border px-1" data-testid="like">like (optimistic)</button></div>`);
+		};
+	}
+});
+//#endregion
+//#region resources/js/Components/V3Features.vue
+var _sfc_setup$10 = V3Features_vue_vue_type_script_setup_true_lang_default.setup;
+V3Features_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/V3Features.vue");
+	return _sfc_setup$10 ? _sfc_setup$10(props, ctx) : void 0;
+};
+var V3Features_default = V3Features_vue_vue_type_script_setup_true_lang_default;
+//#endregion
 //#region resources/js/inertia/v3.ts
 /** Inertia 3 awaits its SSR render: nothing to adapt. */
 var ssrRender = (renderToString) => renderToString;
@@ -146,11 +179,11 @@ var NetworkPanel_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ def
 });
 //#endregion
 //#region resources/js/Components/NetworkPanel.vue
-var _sfc_setup$8 = NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$9 = NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup;
 NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/NetworkPanel.vue");
-	return _sfc_setup$8 ? _sfc_setup$8(props, ctx) : void 0;
+	return _sfc_setup$9 ? _sfc_setup$9(props, ctx) : void 0;
 };
 var NetworkPanel_default = NetworkPanel_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -204,6 +237,16 @@ var Layout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCom
 				_: 1
 			}, _parent));
 			_push(ssrRenderComponent(unref(Link), {
+				href: "/features",
+				"data-testid": "nav-features"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Features (isr)`);
+					else return [createTextVNode("Features (isr)")];
+				}),
+				_: 1
+			}, _parent));
+			_push(ssrRenderComponent(unref(Link), {
 				href: "/dashboard",
 				"data-testid": "nav-dashboard"
 			}, {
@@ -237,11 +280,11 @@ var Layout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCom
 });
 //#endregion
 //#region resources/js/Layouts/Layout.vue
-var _sfc_setup$7 = Layout_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$8 = Layout_vue_vue_type_script_setup_true_lang_default.setup;
 Layout_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Layouts/Layout.vue");
-	return _sfc_setup$7 ? _sfc_setup$7(props, ctx) : void 0;
+	return _sfc_setup$8 ? _sfc_setup$8(props, ctx) : void 0;
 };
 var Layout_default = Layout_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -262,11 +305,11 @@ var NewsletterForms_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ 
 });
 //#endregion
 //#region resources/js/Components/NewsletterForms.vue
-var _sfc_setup$6 = NewsletterForms_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$7 = NewsletterForms_vue_vue_type_script_setup_true_lang_default.setup;
 NewsletterForms_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/NewsletterForms.vue");
-	return _sfc_setup$6 ? _sfc_setup$6(props, ctx) : void 0;
+	return _sfc_setup$7 ? _sfc_setup$7(props, ctx) : void 0;
 };
 var NewsletterForms_default = NewsletterForms_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -289,11 +332,11 @@ var About_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComp
 //#endregion
 //#region resources/js/Pages/About.vue
 var About_exports = /* @__PURE__ */ __exportAll({ default: () => About_default });
-var _sfc_setup$5 = About_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$6 = About_vue_vue_type_script_setup_true_lang_default.setup;
 About_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/About.vue");
-	return _sfc_setup$5 ? _sfc_setup$5(props, ctx) : void 0;
+	return _sfc_setup$6 ? _sfc_setup$6(props, ctx) : void 0;
 };
 var About_default = About_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -355,11 +398,11 @@ var Index_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComp
 //#endregion
 //#region resources/js/Pages/Blog/Index.vue
 var Index_exports = /* @__PURE__ */ __exportAll({ default: () => Index_default });
-var _sfc_setup$4 = Index_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$5 = Index_vue_vue_type_script_setup_true_lang_default.setup;
 Index_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Blog/Index.vue");
-	return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
+	return _sfc_setup$5 ? _sfc_setup$5(props, ctx) : void 0;
 };
 var Index_default = Index_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -418,11 +461,11 @@ var Show_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCompo
 //#endregion
 //#region resources/js/Pages/Blog/Show.vue
 var Show_exports = /* @__PURE__ */ __exportAll({ default: () => Show_default });
-var _sfc_setup$3 = Show_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$4 = Show_vue_vue_type_script_setup_true_lang_default.setup;
 Show_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Blog/Show.vue");
-	return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
+	return _sfc_setup$4 ? _sfc_setup$4(props, ctx) : void 0;
 };
 var Show_default = Show_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -455,13 +498,163 @@ var Dashboard_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ define
 //#endregion
 //#region resources/js/Pages/Dashboard.vue
 var Dashboard_exports = /* @__PURE__ */ __exportAll({ default: () => Dashboard_default });
-var _sfc_setup$2 = Dashboard_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$3 = Dashboard_vue_vue_type_script_setup_true_lang_default.setup;
 Dashboard_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Dashboard.vue");
-	return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
+	return _sfc_setup$3 ? _sfc_setup$3(props, ctx) : void 0;
 };
 var Dashboard_default = Dashboard_vue_vue_type_script_setup_true_lang_default;
+//#endregion
+//#region resources/js/Pages/Features.vue?vue&type=script&setup=true&lang.ts
+var Features_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	layout: Layout_default,
+	__name: "Features",
+	__ssrInlineRender: true,
+	props: {
+		title: {},
+		renderedAt: {},
+		deferred: {},
+		visible: {},
+		posts: {},
+		log: {},
+		plans: {},
+		likes: {}
+	},
+	setup(__props) {
+		const remembered = useRemember({ note: "" }, "features-note");
+		return (_ctx, _push, _parent, _attrs) => {
+			_push(`<!--[-->`);
+			_push(ssrRenderComponent(unref(Head), { title: __props.title }, null, _parent));
+			_push(`<h1 class="text-2xl font-bold" data-testid="features-title">${ssrInterpolate(__props.title)}</h1><p>Rendered at the origin at <span data-testid="rendered-at">${ssrInterpolate(__props.renderedAt)}</span></p><p class="text-sm">`);
+			_push(ssrRenderComponent(unref(Link), {
+				href: "/features",
+				"data-testid": "features-one"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Features`);
+					else return [createTextVNode("Features")];
+				}),
+				_: 1
+			}, _parent));
+			_push(` · `);
+			_push(ssrRenderComponent(unref(Link), {
+				href: "/features/two",
+				"data-testid": "features-two"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`Features two`);
+					else return [createTextVNode("Features two")];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</p><section class="mt-4 space-y-3 text-sm"><div><b>Deferred:</b>`);
+			_push(ssrRenderComponent(unref(Deferred), { data: "deferred" }, {
+				fallback: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="deferred"${_scopeId}>loading…</span>`);
+					else return [createVNode("span", { "data-testid": "deferred" }, "loading…")];
+				}),
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="deferred"${_scopeId}>${ssrInterpolate(__props.deferred)}</span>`);
+					else return [createVNode("span", { "data-testid": "deferred" }, toDisplayString(__props.deferred), 1)];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</div><div><b>Once:</b> <span data-testid="plans">${ssrInterpolate(__props.plans)}</span></div><div><b>Merge:</b> <span data-testid="log-count">${ssrInterpolate(__props.log.length)}</span> entries <button class="ml-2 rounded border px-1" data-testid="log-add">add</button><button class="ml-1 rounded border px-1" data-testid="log-reset">reset</button></div><div><b>Remember:</b><input${ssrRenderAttr("value", unref(remembered).note)} class="border p-1" data-testid="remember-input" placeholder="type, leave, come back"></div>`);
+			_push(ssrRenderComponent(unref(Form), {
+				action: "/newsletter",
+				method: "post",
+				options: { preserveScroll: true }
+			}, {
+				default: withCtx(({ errors, processing, wasSuccessful }, _push, _parent, _scopeId) => {
+					if (_push) _push(`<b${_scopeId}>&lt;Form&gt;:</b><input name="email" class="border p-1" data-testid="form-email" placeholder="email"${_scopeId}><button type="submit" class="ml-1 rounded border px-1"${ssrIncludeBooleanAttr(processing) ? " disabled" : ""} data-testid="form-submit"${_scopeId}>Subscribe</button><span class="ml-2 text-red-600" data-testid="form-error"${_scopeId}>${ssrInterpolate(errors.email ?? "")}</span><span class="ml-2 text-green-700" data-testid="form-ok"${_scopeId}>${ssrInterpolate(wasSuccessful ? "subscribed" : "")}</span>`);
+					else return [
+						createVNode("b", null, "<Form>:"),
+						createVNode("input", {
+							name: "email",
+							class: "border p-1",
+							"data-testid": "form-email",
+							placeholder: "email"
+						}),
+						createVNode("button", {
+							type: "submit",
+							class: "ml-1 rounded border px-1",
+							disabled: processing,
+							"data-testid": "form-submit"
+						}, "Subscribe", 8, ["disabled"]),
+						createVNode("span", {
+							class: "ml-2 text-red-600",
+							"data-testid": "form-error"
+						}, toDisplayString(errors.email ?? ""), 1),
+						createVNode("span", {
+							class: "ml-2 text-green-700",
+							"data-testid": "form-ok"
+						}, toDisplayString(wasSuccessful ? "subscribed" : ""), 1)
+					];
+				}),
+				_: 1
+			}, _parent));
+			if (unref(V3Features_default)) ssrRenderVNode(_push, createVNode(resolveDynamicComponent(unref(V3Features_default)), { likes: __props.likes }, null), _parent);
+			else _push(`<!---->`);
+			_push(`<div><b>Infinite scroll:</b> <span data-testid="posts-count">${ssrInterpolate(__props.posts.data.length)}</span> posts `);
+			_push(ssrRenderComponent(unref(InfiniteScroll), {
+				data: "posts",
+				manual: ""
+			}, {
+				next: withCtx(({ loading, fetch, hasMore }, _push, _parent, _scopeId) => {
+					if (_push) {
+						if (hasMore) _push(`<button class="rounded border px-1"${ssrIncludeBooleanAttr(loading) ? " disabled" : ""} data-testid="scroll-more"${_scopeId}>load more</button>`);
+						else _push(`<!---->`);
+					} else return [hasMore ? (openBlock(), createBlock("button", {
+						key: 0,
+						class: "rounded border px-1",
+						disabled: loading,
+						"data-testid": "scroll-more",
+						onClick: fetch
+					}, "load more", 8, ["disabled", "onClick"])) : createCommentVNode("", true)];
+				}),
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) {
+						_push(`<ul class="ml-4 list-disc"${_scopeId}><!--[-->`);
+						ssrRenderList(__props.posts.data, (post) => {
+							_push(`<li data-testid="scroll-item"${_scopeId}>${ssrInterpolate(post.title)}</li>`);
+						});
+						_push(`<!--]--></ul>`);
+					} else return [createVNode("ul", { class: "ml-4 list-disc" }, [(openBlock(true), createBlock(Fragment, null, renderList(__props.posts.data, (post) => {
+						return openBlock(), createBlock("li", {
+							key: post.id,
+							"data-testid": "scroll-item"
+						}, toDisplayString(post.title), 1);
+					}), 128))])];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</div><div style="${ssrRenderStyle({ "height": "1600px" })}" class="border-l-2 border-dashed pl-2 text-xs text-slate-400">scroll down for WhenVisible</div><div><b>WhenVisible:</b>`);
+			_push(ssrRenderComponent(unref(WhenVisible), { data: "visible" }, {
+				fallback: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="visible"${_scopeId}>waiting…</span>`);
+					else return [createVNode("span", { "data-testid": "visible" }, "waiting…")];
+				}),
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="visible"${_scopeId}>${ssrInterpolate(__props.visible)}</span>`);
+					else return [createVNode("span", { "data-testid": "visible" }, toDisplayString(__props.visible), 1)];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</div></section><!--]-->`);
+		};
+	}
+});
+//#endregion
+//#region resources/js/Pages/Features.vue
+var Features_exports = /* @__PURE__ */ __exportAll({ default: () => Features_default });
+var _sfc_setup$2 = Features_vue_vue_type_script_setup_true_lang_default.setup;
+Features_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Pages/Features.vue");
+	return _sfc_setup$2 ? _sfc_setup$2(props, ctx) : void 0;
+};
+var Features_default = Features_vue_vue_type_script_setup_true_lang_default;
 //#endregion
 //#region resources/js/Pages/Home.vue?vue&type=script&setup=true&lang.ts
 var Home_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -550,6 +743,7 @@ createServer((page) => createInertiaApp({
 			"./Pages/Blog/Index.vue": Index_exports,
 			"./Pages/Blog/Show.vue": Show_exports,
 			"./Pages/Dashboard.vue": Dashboard_exports,
+			"./Pages/Features.vue": Features_exports,
 			"./Pages/Home.vue": Home_exports,
 			"./Pages/Login.vue": Login_exports
 		}))[`./Pages/${name}.vue`];

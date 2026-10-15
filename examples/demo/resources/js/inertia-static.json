@@ -29,6 +29,20 @@
             "query": []
         },
         {
+            "name": "features",
+            "pattern": "^/features/?$",
+            "mode": "isr",
+            "query": [
+                "page"
+            ]
+        },
+        {
+            "name": "features.two",
+            "pattern": "^/features/two/?$",
+            "mode": "isr",
+            "query": []
+        },
+        {
             "pattern": "^/leak/?$",
             "mode": "isr",
             "query": []
