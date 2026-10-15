@@ -46,7 +46,7 @@ export default defineConfig({
           { text: 'Static & ISR routes', link: '/guide/routes' },
           { text: 'Static paths', link: '/guide/static-paths' },
           { text: 'Responses & tags', link: '/guide/responses' },
-          { text: 'Client (Vue)', link: '/guide/client-vue' },
+          { text: 'Client', link: '/guide/client-vue' },
           { text: 'User data, forms & CSRF', link: '/guide/islands' },
         ],
       },

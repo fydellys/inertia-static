@@ -4,6 +4,7 @@
 #
 #   INERTIA=2 ./variant.sh inertia2             # inertia-laravel 2.x + @inertiajs/vue3 2.x
 #   LARAVEL=^12.0 ./variant.sh laravel12        # Laravel 12, Inertia 3
+#   FRONTEND=react ./variant.sh react         # React instead of Vue (also with INERTIA=2)
 #   INERTIA=2 INERTIA_LARAVEL=2.0.22 INERTIA_VUE=2.3.11 VUE=3.5.26 AXIOS=1.13.2 ./variant.sh app   # exact versions
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -17,6 +18,8 @@ else
   INERTIA_LARAVEL=${INERTIA_LARAVEL:-^3.0}; INERTIA_VUE=${INERTIA_VUE:-^3.0}
 fi
 VUE=${VUE:-^3.5}
+FRONTEND=${FRONTEND:-vue}
+REACT=${REACT:-^19}
 AXIOS=${AXIOS:-^1.12}
 
 export DEMO=".demo-$NAME"
@@ -26,7 +29,13 @@ tar -C demo --exclude=./vendor --exclude=./node_modules --exclude=./public/build
 
 ./run composer require ${LARAVEL:+"laravel/framework:$LARAVEL"} "inertiajs/inertia-laravel:$INERTIA_LARAVEL" -W --no-interaction --no-progress
 ./run npm install --no-audit --no-fund
-./run npm install --no-audit --no-fund "@inertiajs/vue3@$INERTIA_VUE" "@inertiajs/core@$INERTIA_VUE" "vue@$VUE" \
-    $([ "$INERTIA" = 2 ] && echo "axios@$AXIOS")
+if [ "$FRONTEND" = react ]; then
+  ./run npm install --no-audit --no-fund "@inertiajs/react@$INERTIA_VUE" "@inertiajs/core@$INERTIA_VUE" "react@$REACT" "react-dom@$REACT" \
+      "@vitejs/plugin-react@^6" $([ "$INERTIA" = 2 ] && echo "axios@$AXIOS")
+  printf '\nDEMO_FRONTEND=react\n' >> "$DEMO/.env"
+else
+  ./run npm install --no-audit --no-fund "@inertiajs/vue3@$INERTIA_VUE" "@inertiajs/core@$INERTIA_VUE" "vue@$VUE" \
+      $([ "$INERTIA" = 2 ] && echo "axios@$AXIOS")
+fi
 ./run php artisan inertia-static:manifest
 ./run npm run build

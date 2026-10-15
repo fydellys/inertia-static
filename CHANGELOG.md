@@ -5,6 +5,8 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 ## [Unreleased]
 
 ### Added
+- React: `@fydellys/inertia-static/react` (Inertia 3) and `@fydellys/inertia-static/inertia2/react` (Inertia 2), with
+  a React `useStaticIsland` hook.
 - Forms on static pages work on Laravel 12 with no code: the client fetches the CSRF cookie from `/__inertia/csrf`
   before the first submission (`csrf_cookie`, automatic on Laravel 12).
 - `ssrRender()` (`@fydellys/inertia-static/inertia2`): Inertia 2 SSR on every Vue 3.5 release (3.5.44 renders

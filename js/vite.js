@@ -27,7 +27,7 @@ export default function inertiaStatic(options = {}) {
         resolve: {
           alias: [{ find: /^@fydellys\/inertia-static(?=\/|$)/, replacement: dist }],
           // axios: Inertia 2 and the app must share the instance the adapter is installed on.
-          dedupe: ['@inertiajs/core', 'vue', 'axios'],
+          dedupe: ['@inertiajs/core', 'vue', 'react', 'react-dom', 'axios'],
         },
       }
     },

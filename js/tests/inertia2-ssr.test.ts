@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { createSSRApp, h, version } from 'vue'
 import { renderToString } from 'vue/server-renderer'
-import { ssrRender } from '../src/inertia2'
+import { ssrRender } from '../src/inertia2/adapter'
 
 // What @inertiajs/vue3 2.x does in SSR: the page app is rendered inside the root
 // element's innerHTML (not awaited), then the root is rendered and awaited.

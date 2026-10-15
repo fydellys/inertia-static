@@ -1,4 +1,6 @@
-# Client (Vue)
+# Client
+
+Vue and React work the same way (see [Installation](./installation.md#client) for every import).
 
 ```ts
 import { createInertiaApp } from '@inertiajs/vue3'

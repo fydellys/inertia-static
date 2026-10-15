@@ -1,5 +1,5 @@
-import { MISSING_STATUSES, StaticRouting, type StaticRoutingOptions, type VisitRequest } from './core'
-import { getHeader, type HeaderBag } from './headers'
+import { MISSING_STATUSES, StaticRouting, type StaticRoutingOptions, type VisitRequest } from '../core'
+import { getHeader, type HeaderBag } from '../headers'
 
 /**
  * Inertia 2: visits go through the shared axios instance (there is no `http`
@@ -10,10 +10,7 @@ import { getHeader, type HeaderBag } from './headers'
  *   createInertiaApp({ ... })
  */
 
-export type { StaticRoutingOptions as InertiaStaticOptions } from './core'
-export { ensureCsrfCookie } from './csrf'
-export { useStaticIsland } from './vue/useStaticIsland'
-export type { StaticIsland, StaticIslandOptions } from './vue/useStaticIsland'
+export type { StaticRoutingOptions as InertiaStaticOptions } from '../core'
 
 interface AxiosConfigLike {
   method?: string

@@ -1,0 +1,54 @@
+// Inertia 2 + React: visits go through axios; the static client is an axios adapter.
+import axios from 'axios'
+import { installInertiaStatic, type InertiaStaticOptions } from '@fydellys/inertia-static/inertia2/react'
+import { useState } from 'react'
+import { recordResponse } from '../devtools/recorder'
+
+export { useStaticIsland } from '@fydellys/inertia-static/inertia2/react'
+
+export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['manifest']>) {
+  // The recorder goes first, so it sits below the static adapter and sees the CDN's response.
+  const network = axios.getAdapter(axios.defaults.adapter)
+  axios.defaults.adapter = async (config) => {
+    const started = performance.now()
+    const url = new URL(config.url ?? '', location.href).href
+
+    try {
+      const response = await network(config)
+      recordResponse(config.method ?? 'get', url, response, started)
+      return response
+    } catch (error) {
+      const response = (error as { response?: { status: number; headers: object } }).response
+      if (response) recordResponse(config.method ?? 'get', url, response, started)
+      throw error
+    }
+  }
+
+  installInertiaStatic(axios, { manifest })
+
+  return {}
+}
+
+/** Same shape as Inertia 3's useHttp() for the demo form (Inertia 2 has no useHttp). */
+export function useJsonForm<T extends Record<string, unknown>>(initial: T) {
+  const [data, setDataState] = useState(initial)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  return {
+    data,
+    errors,
+    setData: (key: keyof T, value: unknown) => setDataState((current) => ({ ...current, [key]: value })),
+    async post(url: string, options: { onSuccess?: (data: never) => void; onError?: () => void } = {}) {
+      setErrors({})
+      try {
+        const response = await axios.post(url, data, { headers: { Accept: 'application/json' } })
+        options.onSuccess?.(response.data as never)
+      } catch (error) {
+        const response = (error as { response?: { status: number; data: { errors?: Record<string, string[]> } } }).response
+        if (response?.status !== 422) throw error
+        setErrors(Object.fromEntries(Object.entries(response.data.errors ?? {}).map(([key, value]) => [key, value[0] ?? ''])))
+        options.onError?.()
+      }
+    },
+  }
+}

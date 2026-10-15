@@ -15,7 +15,39 @@ var __exportAll = (all, no_symbols) => {
 	return target;
 };
 //#endregion
-//#region ../../js/dist/shared-G4Y2JLCZ.js
+//#region ../../js/dist/shared-6RC5UHRP.js
+async function fetchIsland(url, init) {
+	const response = await fetch(url, {
+		credentials: "same-origin",
+		...init,
+		headers: {
+			Accept: "application/json",
+			"X-Requested-With": "XMLHttpRequest",
+			...init?.headers
+		}
+	});
+	if (!response.ok) throw new Error(`[inertia-static] Island ${url} failed with status ${response.status}.`);
+	return await response.json();
+}
+function refreshAfterMutations(callback) {
+	const pending = /* @__PURE__ */ new Set();
+	const onStart = (event) => {
+		const visit = event.detail?.visit;
+		if (visit?.method && visit.method.toLowerCase() !== "get") pending.add(visit.id ?? visit);
+	};
+	const onFinish = (event) => {
+		const visit = event.detail?.visit;
+		if (visit && pending.delete(visit.id ?? visit)) callback();
+	};
+	document.addEventListener("inertia:start", onStart);
+	document.addEventListener("inertia:finish", onFinish);
+	return () => {
+		document.removeEventListener("inertia:start", onStart);
+		document.removeEventListener("inertia:finish", onFinish);
+	};
+}
+//#endregion
+//#region ../../js/dist/shared-N4T7YWF5.js
 function useStaticIsland(url, options = {}) {
 	const data = shallowRef(options.initial ?? null);
 	const loading = ref(false);
@@ -25,17 +57,7 @@ function useStaticIsland(url, options = {}) {
 		loading.value = true;
 		error.value = null;
 		try {
-			const response = await fetch(url, {
-				credentials: "same-origin",
-				...options.init,
-				headers: {
-					Accept: "application/json",
-					"X-Requested-With": "XMLHttpRequest",
-					...options.init?.headers
-				}
-			});
-			if (!response.ok) throw new Error(`[inertia-static] Island ${url} failed with status ${response.status}.`);
-			data.value = await response.json();
+			data.value = await fetchIsland(url, options.init);
 		} catch (e) {
 			error.value = e;
 		} finally {
@@ -58,23 +80,6 @@ function useStaticIsland(url, options = {}) {
 		load
 	};
 }
-function refreshAfterMutations(callback) {
-	const pending = /* @__PURE__ */ new Set();
-	const onStart = (event) => {
-		const visit = event.detail?.visit;
-		if (visit?.method && visit.method.toLowerCase() !== "get") pending.add(visit.id ?? visit);
-	};
-	const onFinish = (event) => {
-		const visit = event.detail?.visit;
-		if (visit && pending.delete(visit.id ?? visit)) callback();
-	};
-	document.addEventListener("inertia:start", onStart);
-	document.addEventListener("inertia:finish", onFinish);
-	return () => {
-		document.removeEventListener("inertia:start", onStart);
-		document.removeEventListener("inertia:finish", onFinish);
-	};
-}
 //#endregion
 //#region resources/js/devtools/recorder.ts
 var network = reactive({
@@ -87,6 +92,8 @@ if (typeof document !== "undefined") for (const name of ["httpException", "netwo
 });
 //#endregion
 //#region resources/js/inertia/v3.ts
+/** Inertia 3 awaits its SSR render: nothing to adapt. */
+var ssrRender = (renderToString) => renderToString;
 var useJsonForm = useHttp;
 //#endregion
 //#region resources/js/Components/NetworkPanel.vue?vue&type=script&setup=true&lang.ts
@@ -536,7 +543,7 @@ var Login_default = Login_vue_vue_type_script_setup_true_lang_default;
 //#region resources/js/ssr.ts
 createServer((page) => createInertiaApp({
 	page,
-	render: renderToString,
+	render: ssrRender(renderToString),
 	resolve: (name) => {
 		return (/* @__PURE__ */ Object.assign({
 			"./Pages/About.vue": About_exports,

@@ -1,7 +1,4 @@
 import { H as HeaderBag, S as StaticRoutingOptions } from './csrf-BrRGbcsv.js';
-export { e as ensureCsrfCookie } from './csrf-BrRGbcsv.js';
-export { S as StaticIsland, a as StaticIslandOptions, u as useStaticIsland } from './useStaticIsland-C4VvsoyC.js';
-import 'vue';
 
 interface AxiosConfigLike {
     method?: string;
@@ -42,4 +39,4 @@ declare function ssrRender(renderToString: RenderToString): (app: never) => Prom
  */
 declare function installInertiaStatic(axios: AxiosLike, options?: StaticRoutingOptions): () => void;
 
-export { type AxiosLike, StaticRoutingOptions as InertiaStaticOptions, installInertiaStatic, ssrRender };
+export { type AxiosLike as A, installInertiaStatic as i, ssrRender as s };

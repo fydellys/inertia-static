@@ -1,25 +1,3 @@
-// js/src/headers.ts
-function getHeader(headers, name) {
-  if (!headers) {
-    return void 0;
-  }
-  const key = Object.keys(headers).find((header) => header.toLowerCase() === name.toLowerCase());
-  return key === void 0 ? void 0 : headers[key];
-}
-function hasHeader(headers, name) {
-  const value = getHeader(headers, name);
-  return value !== void 0 && value !== null && value !== false && value !== "";
-}
-var BYPASS_HEADERS = [
-  "X-Inertia-Partial-Component",
-  "X-Inertia-Partial-Data",
-  "X-Inertia-Partial-Except",
-  "X-Inertia-Reset",
-  "X-Inertia-Infinite-Scroll-Merge-Intent",
-  "X-Inertia-Static-Bypass",
-  "Precognition"
-];
-
 // js/src/manifest.ts
 var DEFAULT_PREFIX = "/__inertia";
 var DEFAULT_PREVIEW_COOKIE = "inertia_static_preview";
@@ -66,6 +44,28 @@ function normalizePath(pathname, policy) {
   }
   return policy === "always" ? pathname.replace(/\/?$/, "/") : pathname.replace(/\/+$/, "");
 }
+
+// js/src/headers.ts
+function getHeader(headers, name) {
+  if (!headers) {
+    return void 0;
+  }
+  const key = Object.keys(headers).find((header) => header.toLowerCase() === name.toLowerCase());
+  return key === void 0 ? void 0 : headers[key];
+}
+function hasHeader(headers, name) {
+  const value = getHeader(headers, name);
+  return value !== void 0 && value !== null && value !== false && value !== "";
+}
+var BYPASS_HEADERS = [
+  "X-Inertia-Partial-Component",
+  "X-Inertia-Partial-Data",
+  "X-Inertia-Partial-Except",
+  "X-Inertia-Reset",
+  "X-Inertia-Infinite-Scroll-Merge-Intent",
+  "X-Inertia-Static-Bypass",
+  "Precognition"
+];
 
 // js/src/core.ts
 var MISSING_STATUSES = [403, 404, 410];
@@ -237,4 +237,4 @@ export {
   StaticRouting,
   ensureCsrfCookie
 };
-//# sourceMappingURL=shared-5JITDH6X.js.map
+//# sourceMappingURL=shared-OVSV4ENE.js.map

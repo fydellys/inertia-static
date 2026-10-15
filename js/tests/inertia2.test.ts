@@ -2,7 +2,7 @@
 import { router } from '@inertiajs/core-v2'
 import axios from 'axios'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { installInertiaStatic } from '../src/inertia2'
+import { installInertiaStatic } from '../src/inertia2/adapter'
 import { manifest, page } from './helpers'
 
 type Reply = { status: number; data: string; headers: Record<string, string> }

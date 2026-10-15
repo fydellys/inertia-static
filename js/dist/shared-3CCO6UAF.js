@@ -1,14 +1,10 @@
 import {
-  useStaticIsland
-} from "./shared-G4Y2JLCZ.js";
-import {
   MISSING_STATUSES,
   StaticRouting,
-  ensureCsrfCookie,
   getHeader
-} from "./shared-5JITDH6X.js";
+} from "./shared-OVSV4ENE.js";
 
-// js/src/inertia2.ts
+// js/src/inertia2/adapter.ts
 var INSTALLED = /* @__PURE__ */ Symbol.for("fydellys.inertia-static");
 function ssrRender(renderToString) {
   const nested = [];
@@ -90,10 +86,9 @@ function withInertiaHeader(response) {
   }
   return response;
 }
+
 export {
-  ensureCsrfCookie,
-  installInertiaStatic,
   ssrRender,
-  useStaticIsland
+  installInertiaStatic
 };
-//# sourceMappingURL=inertia2.js.map
+//# sourceMappingURL=shared-3CCO6UAF.js.map

@@ -1,7 +1,7 @@
 import {
   StaticHttpClient,
   createStaticHttpClient
-} from "./shared-5EY2TXNA.js";
+} from "./shared-23IYIAAY.js";
 import {
   StaticRouting,
   canonicalQuery,
@@ -9,7 +9,7 @@ import {
   ensureCsrfCookie,
   jsonPath,
   matchRoute
-} from "./shared-5JITDH6X.js";
+} from "./shared-OVSV4ENE.js";
 export {
   StaticHttpClient,
   StaticRouting,

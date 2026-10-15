@@ -41,6 +41,6 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
 | PHP | 8.3+ |
 | Laravel | 12.x, 13.x |
 | inertiajs/inertia-laravel | ^2.0.16 or ^3.0 |
-| @inertiajs/vue3 | ^2.3 or ^3.0 (Vue 3.5+) |
+| @inertiajs/vue3 or @inertiajs/react | ^2.3 or ^3.0 (Vue 3.5+, React 18+) |
 | Inertia SSR | optional, supported |
 

@@ -68,9 +68,12 @@ cd demo-docker && docker compose up -d --build
 HEADED= ./e2e.sh     # headless
 ./pw open http://localhost:8088/ --headed --browser=chromium   # ad-hoc commands
 
-# the same suite on Inertia 2 (inertia-laravel 2.x + @inertiajs/vue3 2.x, copy in examples/.demo-inertia2)
-../inertia2.sh
-docker compose -f compose.yml -f compose.inertia2.yml up -d --force-recreate app
+# the same suite on other versions (a copy of the demo in examples/.demo-<name>)
+INERTIA=2 ../variant.sh inertia2               # inertia-laravel 2.x + @inertiajs/vue3 2.x
+FRONTEND=react ../variant.sh react             # React (resources/react), Inertia 3
+FRONTEND=react INERTIA=2 ../variant.sh react-inertia2
+LARAVEL=^12.0 ../variant.sh laravel12
+DEMO=.demo-react docker compose -f compose.yml -f compose.variant.yml up -d --force-recreate app
 ./e2e.sh
 
 # the same suite through Varnish (docs/varnish.vcl, http://localhost:8089)

@@ -40,13 +40,13 @@ export default defineConfig({
 
 The plugin:
 
-- aliases `@fydellys/inertia-static` (and `/vue`, `/inertia2`) to the built client in `vendor/`;
-- **dedupes** `@inertiajs/core`, `vue` and `axios`, so the client and your app share one copy;
+- aliases `@fydellys/inertia-static` (and `/vue`, `/react`, `/inertia2`, `/inertia2/react`) to the built client in `vendor/`;
+- **dedupes** `@inertiajs/core`, `vue`, `react`, `react-dom` and `axios`, so the client and your app share one copy;
 - runs `php artisan inertia-static:manifest` when the build starts. Options: `manifest: false`, `php`, `artisan`.
 
 ::: code-group
 
-```ts [Inertia 3]
+```ts [Vue · Inertia 3]
 // resources/js/app.ts
 import { createInertiaApp } from '@inertiajs/vue3'
 import { inertiaStatic } from '@fydellys/inertia-static/vue'
@@ -58,7 +58,19 @@ createInertiaApp({
 })
 ```
 
-```ts [Inertia 2]
+```tsx [React · Inertia 3]
+// resources/js/app.tsx
+import { createInertiaApp } from '@inertiajs/react'
+import { inertiaStatic } from '@fydellys/inertia-static/react'
+import manifest from './inertia-static.json'
+
+createInertiaApp({
+  http: inertiaStatic({ manifest }),
+  // resolve, setup, ...
+})
+```
+
+```ts [Vue · Inertia 2]
 // resources/js/app.ts
 import { createInertiaApp } from '@inertiajs/vue3'
 import axios from 'axios'
@@ -72,10 +84,33 @@ createInertiaApp({
 })
 ```
 
+```tsx [React · Inertia 2]
+// resources/js/app.tsx
+import { createInertiaApp } from '@inertiajs/react'
+import axios from 'axios'
+import { installInertiaStatic } from '@fydellys/inertia-static/inertia2/react'
+import manifest from './inertia-static.json'
+
+installInertiaStatic(axios, { manifest })
+
+createInertiaApp({
+  // resolve, setup, ...
+})
+```
+
 :::
 
-On Inertia 2, import `useStaticIsland` and `ensureCsrfCookie` from `@fydellys/inertia-static/inertia2` too. With SSR,
-wrap `renderToString` with `ssrRender` (Vue 3.5.44+ renders `[object Promise]` otherwise):
+| | Import from |
+|---|---|
+| Vue · Inertia 3 | `@fydellys/inertia-static/vue` |
+| React · Inertia 3 | `@fydellys/inertia-static/react` |
+| Vue · Inertia 2 | `@fydellys/inertia-static/inertia2` |
+| React · Inertia 2 | `@fydellys/inertia-static/inertia2/react` |
+
+`useStaticIsland` and `ensureCsrfCookie` come from the same import.
+
+**Vue · Inertia 2 with SSR**: wrap `renderToString` with `ssrRender` (Vue 3.5.44+ renders `[object Promise]`
+otherwise):
 
 ```ts
 // resources/js/ssr.ts (Inertia 2)
