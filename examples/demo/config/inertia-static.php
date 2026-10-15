@@ -139,7 +139,7 @@ return [
     */
 
     'ssr' => [
-        'required' => env('INERTIA_STATIC_SSR_REQUIRED', true),
+        'required' => env('INERTIA_STATIC_SSR_REQUIRED', false),
     ],
 
     /*

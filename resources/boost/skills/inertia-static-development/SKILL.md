@@ -164,8 +164,8 @@ They override the route for this request only; `tags()` adds to the route tags. 
 
 200 HTML and page JSON (`revalidate`), 404 (`defaults.not_found_ttl`, 60s), canonical 301s
 (`defaults.redirect_ttl`, 300s). Never: 5xx and other statuses, redirects from your code (unless
-`defaults.cache_redirects`), requests with `Authorization`, preview mode, partial reloads, leaks, and HTML
-rendered without SSR while SSR is enabled (unless `INERTIA_STATIC_SSR_REQUIRED=false`).
+`defaults.cache_redirects`), requests with `Authorization`, preview mode, partial reloads and leaks. HTML rendered
+while the SSR server is down is cached like any page; with `INERTIA_STATIC_SSR_REQUIRED=true` it is sent `no-store`.
 
 ## Static paths and warmup
 

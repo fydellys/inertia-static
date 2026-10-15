@@ -58,8 +58,8 @@ does a full page load of the new version.
 ## When the SSR server is down
 
 If your app uses SSR and the SSR server is down, Inertia sends the HTML without its server-rendered content (it
-only appears once JavaScript runs). That copy is sent with `no-store`, so the CDN never stores it and keeps the last
-good page it has. Apps without SSR are cached normally; set `ssr.required` to `false` to cache the page anyway.
+only appears once JavaScript runs). That copy is cached like any other page. Set `ssr.required` to `true` to send it
+with `no-store` instead, so the CDN keeps the last good page it has.
 
 ## Check a response
 

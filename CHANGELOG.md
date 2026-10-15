@@ -3,6 +3,12 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [0.3.0] - 2026-10-15
+
+### Changed
+- `ssr.required` (`INERTIA_STATIC_SSR_REQUIRED`) defaults to `false`: pages are cached with or without SSR, also
+  when the SSR server is down. Set it to `true` for the previous behaviour (`no-store` when SSR is unavailable).
+
 ## [0.2.1] - 2026-10-15
 
 ### Security

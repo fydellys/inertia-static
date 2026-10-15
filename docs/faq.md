@@ -72,9 +72,14 @@ run `php artisan inertia-static:routes --reset-downgrades`.
 
 ## Pages are never cached and `X-Inertia-Static-Reason: ssr-unavailable`
 
-SSR is enabled in `config/inertia.php`, but the SSR server is down (`php artisan inertia:check-ssr`), so pages are
-sent without their server-rendered content and not cached. Start the SSR server, or disable SSR if the app does not
-use it.
+`INERTIA_STATIC_SSR_REQUIRED=true` and SSR is enabled in `config/inertia.php`, but the SSR server is down
+(`php artisan inertia:check-ssr`), so pages are sent without their server-rendered content and not cached. Start
+the SSR server, disable SSR if the app does not use it, or set `INERTIA_STATIC_SSR_REQUIRED=false`.
+
+## Cached pages without server-rendered content
+
+The SSR server was down when they rendered (`php artisan inertia:check-ssr`). Start it, then
+`php artisan inertia-static:purge --all`. To never cache those pages, set `INERTIA_STATIC_SSR_REQUIRED=true`.
 
 ## Old visitors after a deploy
 

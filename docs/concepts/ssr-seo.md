@@ -5,8 +5,8 @@ With [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering)
 rendered page, which is what search engines and social previews read.
 
 If your app uses SSR and the SSR server is down, Inertia sends the HTML without its server-rendered content (it only
-appears once JavaScript runs). That copy is sent with `no-store` and logged, so the CDN never stores it and keeps
-the last good page. Set `ssr.required` to `false` to cache it anyway.
+appears once JavaScript runs). That copy is cached like any other until it expires or is purged. Set
+`ssr.required` to `true` to send it with `no-store` instead (logged), so the CDN keeps the last good page.
 
 ## Head tags
 

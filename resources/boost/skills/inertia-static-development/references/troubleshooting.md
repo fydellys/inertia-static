@@ -32,7 +32,7 @@ Non-cacheable responses of static routes get `Cache-Control: no-store, private` 
 | `redirect` | redirect from your code (`defaults.cache_redirects` off), or any redirect on the page JSON URL | expected, or enable `defaults.cache_redirects` |
 | `status:404-json` | a 404 asked as JSON on the HTML URL | expected |
 | `status:<code>` | any other status (e.g. `status:409` after a deploy) | expected for version mismatch |
-| `ssr-unavailable` | SSR enabled but HTML rendered without it | start the SSR server (`php artisan inertia:check-ssr`), disable SSR, or `INERTIA_STATIC_SSR_REQUIRED=false` |
+| `ssr-unavailable` | `INERTIA_STATIC_SSR_REQUIRED=true`, SSR enabled but HTML rendered without it | start the SSR server (`php artisan inertia:check-ssr`), disable SSR, or `INERTIA_STATIC_SSR_REQUIRED=false` |
 | `not-static` | page JSON URL of an unknown or dynamic route (404) | declare the route `isr`/`static`, rebuild the manifest |
 
 ## Symptom table

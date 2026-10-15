@@ -153,7 +153,7 @@ return [
     'csrf_cookie' => env('INERTIA_STATIC_CSRF_COOKIE'),
 
     'ssr' => [
-        'required' => env('INERTIA_STATIC_SSR_REQUIRED', true),
+        'required' => env('INERTIA_STATIC_SSR_REQUIRED', false),
     ],
 
     /*
