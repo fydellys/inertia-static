@@ -70,5 +70,5 @@ React returns plain values; Vue returns refs.
   <Layout>{page}</Layout>`), so it is fetched once, not on every navigation.
 - It reloads after sign in, sign out and form submissions (non-GET visits). A `visible` island that has not
   loaded yet waits until it is visible.
-- A failed request sets `error` and keeps the previous `data`.
+- A failed request sets `error` and puts `data` back to `initial`. When calls overlap, the latest one wins.
 - The endpoint is a regular dynamic route: Laravel's default `Cache-Control: private` keeps it out of the CDN.
