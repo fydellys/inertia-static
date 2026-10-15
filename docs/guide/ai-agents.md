@@ -25,7 +25,19 @@ Without Boost, install the plugin:
 
 The skill loads when a task needs it, or run it with `/inertia-static:inertia-static-development`.
 
+Only the skill, without the guidelines:
+
+```bash
+php artisan boost:add-skill fydellys/inertia-static
+```
+
 ## Other agents
 
-Copy `vendor/fydellys/inertia-static/resources/boost/skills/inertia-static-development` (the folder, with
+With the [skills](https://skills.sh) CLI (Cursor, Codex, Copilot, Gemini CLI and others):
+
+```bash
+npx skills add fydellys/inertia-static
+```
+
+Or copy `vendor/fydellys/inertia-static/resources/boost/skills/inertia-static-development` (the folder, with
 `references/`) into your agent's skills folder, e.g. `.claude/skills/` or `.agents/skills/`.
