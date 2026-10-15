@@ -12,19 +12,29 @@ function useStaticIsland(url, options = {}) {
   const error = shallowRef(null);
   const target = ref(null);
   let loaded = false;
+  let generation = 0;
   const load = async () => {
     if (typeof window === "undefined") {
       return data.value;
     }
+    const current = ++generation;
     loaded = true;
     loading.value = true;
     error.value = null;
     try {
-      data.value = await fetchIsland(url, options.init);
+      const result = await fetchIsland(url, options.init);
+      if (current === generation) {
+        data.value = result;
+      }
     } catch (e) {
-      error.value = e;
+      if (current === generation) {
+        data.value = options.initial ?? null;
+        error.value = e;
+      }
     } finally {
-      loading.value = false;
+      if (current === generation) {
+        loading.value = false;
+      }
     }
     return data.value;
   };
@@ -98,4 +108,4 @@ export {
   useStaticIsland,
   StaticIsland
 };
-//# sourceMappingURL=shared-5RLIIBHG.js.map
+//# sourceMappingURL=shared-WBXXF2V2.js.map

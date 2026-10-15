@@ -21,11 +21,36 @@ export function versionSegment(version: unknown): string {
   return typeof version === 'string' && version !== '' ? encodeURIComponent(version) : '_'
 }
 
+const PLAIN: Record<string, string> = { '%24': '$', '%26': '&', '%2B': '+', '%2C': ',', '%3B': ';', '%3D': '=', '%3A': ':', '%40': '@' }
+
+/**
+ * The server's canonical spelling of a path: decoded once, then every segment percent-encoded with only
+ * letters, digits, `-._~` and `!$&'()+,;=:@` left plain ("/blog/a b" => "/blog/a%20b").
+ */
+export function encodePath(pathname: string): string {
+  const decoded = pathname.replace(/(%[0-9a-f]{2})+/gi, (escapes) => {
+    try {
+      return decodeURIComponent(escapes)
+    } catch {
+      return escapes
+    }
+  })
+
+  return decoded
+    .split('/')
+    .map((segment) =>
+      encodeURIComponent(segment)
+        .replace(/\*/g, '%2A')
+        .replace(/%(?:24|26|2B|2C|3B|3D|3A|40)/g, (escape) => PLAIN[escape] ?? escape),
+    )
+    .join('/')
+}
+
 /**
  * /blog/post => {prefix}/{version}/blog/post.json   /  => {prefix}/{version}/index.json
  */
 export function jsonPath(pathname: string, prefix: string, version: unknown, index = 'index'): string {
-  const path = pathname.replace(/^\/+|\/+$/g, '') || index
+  const path = encodePath(pathname).replace(/^\/+|\/+$/g, '') || index
 
   return `${prefix}/${versionSegment(version)}/${path}.json`
 }

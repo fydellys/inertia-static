@@ -34,8 +34,21 @@ function canonicalQuery(url, whitelist) {
 function versionSegment(version) {
   return typeof version === "string" && version !== "" ? encodeURIComponent(version) : "_";
 }
+var PLAIN = { "%24": "$", "%26": "&", "%2B": "+", "%2C": ",", "%3B": ";", "%3D": "=", "%3A": ":", "%40": "@" };
+function encodePath(pathname) {
+  const decoded = pathname.replace(/(%[0-9a-f]{2})+/gi, (escapes) => {
+    try {
+      return decodeURIComponent(escapes);
+    } catch {
+      return escapes;
+    }
+  });
+  return decoded.split("/").map(
+    (segment) => encodeURIComponent(segment).replace(/\*/g, "%2A").replace(/%(?:24|26|2B|2C|3B|3D|3A|40)/g, (escape) => PLAIN[escape] ?? escape)
+  ).join("/");
+}
 function jsonPath(pathname, prefix, version, index = "index") {
-  const path = pathname.replace(/^\/+|\/+$/g, "") || index;
+  const path = encodePath(pathname).replace(/^\/+|\/+$/g, "") || index;
   return `${prefix}/${versionSegment(version)}/${path}.json`;
 }
 function normalizePath(pathname, policy) {
@@ -237,4 +250,4 @@ export {
   StaticRouting,
   ensureCsrfCookie
 };
-//# sourceMappingURL=shared-OVSV4ENE.js.map
+//# sourceMappingURL=shared-JKP2DSHM.js.map

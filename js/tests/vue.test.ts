@@ -146,3 +146,42 @@ describe('useStaticIsland after mutations', () => {
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('useStaticIsland stale data', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('drops the previous visitor data when a reload fails (401 after logout)', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response('{"user":"alice"}', { status: 200 }))
+      .mockResolvedValueOnce(new Response('', { status: 401 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const island = inScope(() => useStaticIsland<{ user: string | null }>('/api/me', { initial: { user: null } }))
+    await flushPromises()
+    expect(island.data.value).toEqual({ user: 'alice' })
+
+    await island.load()
+
+    expect(island.data.value).toEqual({ user: null })
+    expect(island.error.value).toBeInstanceOf(Error)
+  })
+
+  it('keeps the newest response when an older one arrives last', async () => {
+    let resolveOld: (response: Response) => void = () => {}
+    const fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(new Promise<Response>((resolve) => (resolveOld = resolve)))
+      .mockResolvedValueOnce(new Response('{"user":null}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    const island = inScope(() => useStaticIsland<{ user: string | null }>('/api/me', { immediate: false }))
+    const old = island.load()
+    await island.load()
+    resolveOld(new Response('{"user":"alice"}', { status: 200 }))
+    await old
+
+    expect(island.data.value).toEqual({ user: null })
+    expect(island.loading.value).toBe(false)
+  })
+})

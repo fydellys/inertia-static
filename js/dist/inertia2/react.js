@@ -1,14 +1,14 @@
 import {
   StaticIsland,
   useStaticIsland
-} from "../shared-CAKRSQPB.js";
+} from "../shared-FLAYOD6R.js";
 import {
   installInertiaStatic
-} from "../shared-YYCU7CCX.js";
+} from "../shared-PEXP5CXU.js";
 import "../shared-6NJEPP6G.js";
 import {
   ensureCsrfCookie
-} from "../shared-OVSV4ENE.js";
+} from "../shared-JKP2DSHM.js";
 
 // js/src/inertia2/react.ts
 import axios from "axios";
