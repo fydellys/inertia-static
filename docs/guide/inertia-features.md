@@ -49,7 +49,7 @@ return Inertia::render('Pricing', [
 ```
 
 ::: warning Vue with SSR
-Use `@inertiajs/vue3` 2.3.20+ (or 3.0.1+). Older versions crash the SSR server when they render `<WhenVisible>`.
+Use `@inertiajs/vue3` 2.3.21+ (or 3.0.1+). Older versions crash the SSR server when they render `<WhenVisible>`.
 :::
 
 ## Infinite scroll
