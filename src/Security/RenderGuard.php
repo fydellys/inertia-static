@@ -7,12 +7,14 @@ use Fydellys\InertiaStatic\Events\StaticRenderViolated;
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Log;
+use Inertia\Support\Header;
 
 /**
  * Leak detector: while a static page renders, the session, the auth layer,
@@ -130,6 +132,12 @@ class RenderGuard
      */
     public function violation(string $type, string $detail): mixed
     {
+        // Laravel's exception reporting (a handled exception reported with rescue() or report())
+        // reads Auth::id() for the log context: it reaches the log, never the page.
+        if ($this->isExceptionReporting()) {
+            return null;
+        }
+
         $violation = new StaticRenderViolation($type, $detail, $this->request?->getRequestUri());
 
         $this->context->recordViolation($violation);
@@ -144,7 +152,9 @@ class RenderGuard
         // "auto": the route stops being static (it becomes a regular dynamic route). Persisted by
         // RenderStatically only when the render succeeds: Laravel's exception reporting reads
         // Auth::id(), and a failed request must not turn a route dynamic for good.
-        if ($this->mode() === 'auto' && ($route = $this->request?->route()) instanceof Route) {
+        // Not for a partial reload: it resolves props (optional, deferred, scroll) the cached
+        // render never resolves, and it is never cached, so the cached page is still safe.
+        if ($this->mode() === 'auto' && ! $this->isPartialReload() && ($route = $this->request?->route()) instanceof Route) {
             $this->context->pendingDowngrade ??= ['route' => $route, 'reason' => "{$type}: {$detail}"];
         }
 
@@ -154,6 +164,31 @@ class RenderGuard
             ->warning($violation->getMessage(), $violation->context());
 
         return null;
+    }
+
+    /**
+     * Whether the access comes from Laravel's exception handler building its report context.
+     */
+    protected function isExceptionReporting(): bool
+    {
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 40) as $frame) {
+            if (isset($frame['class']) && is_a($frame['class'], ExceptionHandler::class, true)
+                && in_array($frame['function'], ['report', 'reportThrowable', 'context', 'exceptionContext', 'buildExceptionContext'], true)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function isPartialReload(): bool
+    {
+        $headers = $this->request?->headers;
+
+        return $headers !== null && ($headers->has(Header::PARTIAL_COMPONENT)
+            || $headers->has(Header::PARTIAL_ONLY)
+            || $headers->has(Header::PARTIAL_EXCEPT)
+            || $headers->has(Header::RESET));
     }
 
     public function shouldThrow(): bool

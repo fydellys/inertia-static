@@ -33,6 +33,8 @@ Route::middleware('web')->group(function () {
     // Pages misbehaving on purpose (leak detector).
     Route::get('/leak/session', fn () => Inertia::render('Leak', ['value' => session('key')]))->isr();
     Route::get('/leak/auth', fn () => Inertia::render('Leak', ['value' => auth()->check()]))->isr();
+    // The user read only by a prop a partial reload asks for (<WhenVisible>), never by the cached render.
+    Route::get('/leak/optional', fn () => Inertia::render('Leak', ['value' => 'public', 'me' => Inertia::optional(fn () => auth()->user()?->name ?? 'guest')]))->isr();
     Route::get('/leak/auth-facade', fn () => Inertia::render('Leak', ['value' => Auth::id()]))->isr();
     Route::get('/leak/request-user', fn (Request $request) => Inertia::render('Leak', ['value' => $request->user()]))->isr();
     Route::get('/leak/cookie', function () {
@@ -51,5 +53,13 @@ Route::middleware('web')->group(function () {
     Route::get('/absolute', fn () => Inertia::render('Home', ['asset' => url('/build/app.js')]))->isr();
     Route::get('/missing', fn () => abort(404))->isr();
     Route::get('/moved', fn () => redirect('/'))->isr();
+    // A handled failure reported with rescue(): the exception handler reads Auth::id() for its context.
+    Route::get('/rescued', fn () => Inertia::render('Home', ['value' => rescue(fn () => throw new RuntimeException('handled'), 'fallback')]))->isr();
+    Route::get('/client-ip', fn (Request $request) => Inertia::render('Home', ['ip' => $request->ip()]))
+        ->middleware('throttle:2,1')->isr();
+    Route::get('/inertia-headers', fn (Request $request) => Inertia::render('Home', [
+        'once' => $request->header('X-Inertia-Except-Once-Props'),
+        'scheme' => $request->getScheme(),
+    ]))->isr();
     Route::get('/deferred', fn () => Inertia::render('Deferred', ['slow' => Inertia::defer(fn () => 'x')]))->isr();
 });

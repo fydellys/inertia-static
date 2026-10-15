@@ -347,6 +347,9 @@ return [
 
     'registry' => [
         'driver' => env('INERTIA_STATIC_REGISTRY'),
+        // URLs recorded per tag. Beyond it the tag is marked as overflowing and a tag purge
+        // on a CDN without tag purges purges everything instead. null: no limit.
+        'max_urls_per_tag' => env('INERTIA_STATIC_REGISTRY_MAX_URLS', 1000),
         'table' => 'inertia_static_tags',
         'connection' => null,
         'store' => null,

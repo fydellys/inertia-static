@@ -2,7 +2,7 @@ import {
   MISSING_STATUSES,
   StaticRouting,
   getHeader
-} from "./shared-OVSV4ENE.js";
+} from "./shared-JKP2DSHM.js";
 
 // js/src/inertia2/adapter.ts
 var INSTALLED = /* @__PURE__ */ Symbol.for("fydellys.inertia-static");
@@ -92,4 +92,4 @@ export {
   ssrRender,
   installInertiaStatic
 };
-//# sourceMappingURL=shared-YYCU7CCX.js.map
+//# sourceMappingURL=shared-PEXP5CXU.js.map

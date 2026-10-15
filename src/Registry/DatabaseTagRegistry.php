@@ -16,6 +16,7 @@ class DatabaseTagRegistry implements TagRegistry
     public function __construct(
         protected ConnectionInterface $connection,
         protected string $table = 'inertia_static_tags',
+        protected ?int $maxUrlsPerTag = null,
     ) {}
 
     public function record(array $tags, array $urls): void
@@ -24,7 +25,20 @@ class DatabaseTagRegistry implements TagRegistry
         $now = now();
 
         foreach (array_unique($tags) as $tag) {
-            foreach (array_unique($urls) as $url) {
+            $tagUrls = array_unique($urls);
+
+            // Bounded: past the limit, one overflow marker stands for every further URL.
+            if ($this->maxUrlsPerTag !== null) {
+                $count = $this->query()->where('tag_hash', $this->hash($tag))->count();
+                $known = $this->query()->where('tag_hash', $this->hash($tag))->whereIn('url_hash', $this->hashes($tagUrls))->pluck('url')->all();
+                $new = array_values(array_diff($tagUrls, $known));
+
+                if ($count + count($new) > $this->maxUrlsPerTag) {
+                    $tagUrls = [...$known, ...array_slice($new, 0, max(0, $this->maxUrlsPerTag - $count)), self::OVERFLOW];
+                }
+            }
+
+            foreach ($tagUrls as $url) {
                 $rows[] = [
                     'tag' => $tag,
                     'tag_hash' => $this->hash($tag),

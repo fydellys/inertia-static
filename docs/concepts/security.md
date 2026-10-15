@@ -14,7 +14,8 @@ On `isr` and `static` routes:
   listed in `public_shared_props`; `errors` is always `{}`.
 - **No cookies in responses.** Every `Set-Cookie` is removed, and `Cookie` is removed from `Vary`.
 - **No forwarded host headers.** `X-Forwarded-Host`, `X-Forwarded-Port`, `X-Forwarded-Prefix` and `Forwarded` are
-  removed, so a client cannot change the URLs built by `url()`, `route()`, `asset()` or `@vite` in a cached page.
+  removed and `X-Forwarded-Proto` is set to the scheme of the base URL, so a client cannot change the URLs built by
+  `url()`, `route()`, `asset()` or `@vite` in a cached page.
 - **One URL per page.** Unknown query parameters, a trailing slash or a different percent-encoding
   (`/blog/%68ello`) redirect to the canonical URL ([Cache key](./cache-key.md)).
 - **GET only.** A static route must be a `GET` route (`Route::get`): declaring `isr` / `static` on a route that
@@ -54,7 +55,9 @@ The mode is set by `leak_detector.mode` (`INERTIA_STATIC_LEAK_DETECTOR`):
 
 - `throw` (default in `local` and `testing`): throws `StaticRenderViolation`, naming the accessor;
 - `auto` (default elsewhere): the response is sent with `no-store`, the violation is logged and, if the page
-  rendered successfully, the route **becomes dynamic** from the next request on (session restored);
+  rendered successfully, the route **becomes dynamic** from the next request on (session restored). A leak in a
+  partial reload only (a `<WhenVisible>`, deferred or scroll prop reading the user) is logged and served with
+  `no-store`, but the page stays static: the cached render never runs that code;
 - `log`: logs and sends `no-store`, but the route stays static.
 
 ### When a route was turned dynamic

@@ -25,6 +25,7 @@ class RegistryManager extends Manager
         return new DatabaseTagRegistry(
             $this->container->make('db')->connection($this->config->get('inertia-static.registry.connection')),
             (string) $this->config->get('inertia-static.registry.table', 'inertia_static_tags'),
+            $this->maxUrlsPerTag(),
         );
     }
 
@@ -32,6 +33,14 @@ class RegistryManager extends Manager
     {
         return new CacheTagRegistry(
             $this->container->make('cache')->store($this->config->get('inertia-static.registry.store')),
+            $this->maxUrlsPerTag(),
         );
+    }
+
+    protected function maxUrlsPerTag(): ?int
+    {
+        $max = $this->config->get('inertia-static.registry.max_urls_per_tag', 1000);
+
+        return $max === null || $max === '' ? null : max(1, (int) $max);
     }
 }

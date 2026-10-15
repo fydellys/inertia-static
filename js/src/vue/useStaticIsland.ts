@@ -24,22 +24,34 @@ export function useStaticIsland<T = unknown>(url: string, options: StaticIslandO
   const error = shallowRef<unknown>(null)
   const target = ref<Element | null>(null)
   let loaded = false
+  let generation = 0
 
   const load = async (): Promise<T | null> => {
     if (typeof window === 'undefined') {
       return data.value
     }
 
+    const current = ++generation
     loaded = true
     loading.value = true
     error.value = null
 
     try {
-      data.value = await fetchIsland<T>(url, options.init)
+      const result = await fetchIsland<T>(url, options.init)
+
+      if (current === generation) {
+        data.value = result
+      }
     } catch (e) {
-      error.value = e
+      if (current === generation) {
+        // Never keep the previous visitor's data (e.g. a 401 after logout).
+        data.value = options.initial ?? null
+        error.value = e
+      }
     } finally {
-      loading.value = false
+      if (current === generation) {
+        loading.value = false
+      }
     }
 
     return data.value

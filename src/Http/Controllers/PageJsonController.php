@@ -160,7 +160,8 @@ class PageJsonController
 
             return redirect($this->urls->absolute($canonical), 301);
         }
-        $this->context()->pagePath = $pagePath.($page->getQueryString() ? '?'.$page->getQueryString() : '');
+        // The canonical spelling, the same the HTML URL is cached under (tags and registry).
+        $this->context()->pagePath = UrlNormalizer::encodeSegments($pagePath).($page->getQueryString() ? '?'.$page->getQueryString() : '');
 
         return $this->dispatch($request, $page);
     }
@@ -168,7 +169,7 @@ class PageJsonController
     protected function canonicalJsonUrl(Request $request, string $version, string $pagePath, RouteOptions $options): ?string
     {
         $raw = (string) $request->server->get('QUERY_STRING', '');
-        $encoded = implode('/', array_map('rawurlencode', explode('/', $pagePath)));
+        $encoded = UrlNormalizer::encodeSegments($pagePath);
         $canonical = $this->urls->json($encoded, $version).$this->normalizer->canonicalQuery($raw, $options->query);
 
         return $canonical === $request->getPathInfo().($raw === '' ? '' : '?'.$raw) ? null : $canonical;
@@ -176,13 +177,25 @@ class PageJsonController
 
     protected function pageRequest(Request $request, string $pagePath, string $version, bool $live = false): Request
     {
+        $server = array_intersect_key($request->server->all(), array_flip(['HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS']));
+        // The client the trusted proxies resolved, not the proxy (per-client route middleware, e.g. throttle).
+        $server['REMOTE_ADDR'] = (string) $request->ip();
+
+        // The scheme of the site, not of the hop: behind a TLS-terminating proxy the
+        // page's absolute URLs (url(), asset()) stay https.
+        if ($scheme = parse_url((string) $this->container->make('config')->get('inertia-static.base_url'), PHP_URL_SCHEME)) {
+            $server['HTTPS'] = $scheme === 'https' ? 'on' : 'off';
+        }
+
+        // The router already decoded {path} once: re-encode it, so route matching decodes it
+        // exactly once and a double-encoded spelling (%2562log) never reaches the page route.
         $page = Request::create(
-            $pagePath,
+            UrlNormalizer::encodeSegments($pagePath),
             'GET',
             $request->query->all(),
             [],
             [],
-            array_intersect_key($request->server->all(), array_flip(['HTTP_HOST', 'SERVER_NAME', 'SERVER_PORT', 'HTTPS', 'REMOTE_ADDR'])),
+            $server,
         );
 
         $page->headers->set(Header::INERTIA, 'true');

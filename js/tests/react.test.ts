@@ -76,3 +76,52 @@ describe('useStaticIsland (React)', () => {
     view.root.unmount()
   })
 })
+
+describe('useStaticIsland stale data (React)', () => {
+  it('drops the previous visitor data when a reload fails (401 after logout)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(new Response('{"name":"Alice"}', { status: 200 }))
+        .mockResolvedValueOnce(new Response('', { status: 401 })),
+    )
+    const view = mount('/api/me')
+
+    await view.render()
+    await act(async () => {})
+    expect(view.element.textContent).toBe('Alice')
+
+    await act(async () => {
+      await view.island().load()
+    })
+
+    expect(view.element.textContent).toBe('guest')
+    expect(view.island().error).toBeInstanceOf(Error)
+    view.root.unmount()
+  })
+
+  it('keeps the newest response when an older one arrives last', async () => {
+    let resolveOld: (response: Response) => void = () => {}
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockReturnValueOnce(new Promise<Response>((resolve) => (resolveOld = resolve)))
+        .mockResolvedValueOnce(new Response('{"name":"Bob"}', { status: 200 })),
+    )
+    const view = mount('/api/me', { immediate: false })
+    await view.render()
+
+    await act(async () => {
+      const old = view.island().load()
+      await view.island().load()
+      resolveOld(new Response('{"name":"Alice"}', { status: 200 }))
+      await old
+    })
+
+    expect(view.element.textContent).toBe('Bob')
+    expect(view.island().loading).toBe(false)
+    view.root.unmount()
+  })
+})

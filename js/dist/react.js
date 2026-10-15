@@ -1,14 +1,14 @@
 import {
   createStaticHttpClient
-} from "./shared-23IYIAAY.js";
+} from "./shared-4JYTRPWR.js";
 import {
   StaticIsland,
   useStaticIsland
-} from "./shared-CAKRSQPB.js";
+} from "./shared-FLAYOD6R.js";
 import "./shared-6NJEPP6G.js";
 import {
   ensureCsrfCookie
-} from "./shared-OVSV4ENE.js";
+} from "./shared-JKP2DSHM.js";
 
 // js/src/react/index.ts
 function inertiaStatic(options = {}) {

@@ -95,6 +95,7 @@ Drivers: `null`, `cloudflare`, `fastly`, `bunny`, `cloudfront`, `varnish`, `ngin
 | `registry.table` | — | `inertia_static_tags` | |
 | `registry.connection` | — | default | Database connection. |
 | `registry.store` | — | default | Cache store (e.g. `redis`). |
+| `registry.max_urls_per_tag` | `INERTIA_STATIC_REGISTRY_MAX_URLS` | `1000` | URLs kept per tag. Past it, a tag purge on a CDN without tag purges purges the whole cache. `null`: no limit. |
 
 ## Purging
 

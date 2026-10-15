@@ -3,7 +3,35 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
-## [Unreleased]
+## [0.2.1] - 2026-10-15
+
+### Security
+- The page path of the page JSON URL is no longer decoded twice (`/__inertia/v1/%2562log.json` is not `/blog`).
+- Paths are percent-encoded one canonical way on every URL, purge and registry entry (`/blog/%21` redirects to
+  `/blog/!`), so the registry and the CDN keep one entry per page.
+- The page JSON render keeps the client IP, so per-client rate limits (`throttle`) work on static routes.
+- Static renders use the scheme of the base URL, never `X-Forwarded-Proto`.
+- Inertia protocol headers (`X-Inertia-Except-Once-Props`, `X-Inertia-Infinite-Scroll-Merge-Intent`, partial
+  reload headers, …) are ignored on static HTML requests, which the CDN does not key on them.
+- Redirects on the page JSON URL and JSON `404` responses are never cached.
+- Leak detector: `Auth::id()` read by Laravel's exception reporting (`rescue()`, `report()`) is not a leak.
+- Tag registry: at most `registry.max_urls_per_tag` URLs per tag (default `1000`); past it, a tag purge on a CDN
+  without tag purges purges the whole cache. A page rendered during a purge stays known, and a failed purge keeps
+  the pages known for the retry. A registry failure no longer fails the page.
+- Islands: a failed reload puts `data` back to `initial` (no previous user after a `401`), and an older response
+  never overwrites a newer one.
+
+### Added
+- Agent skill `inertia-static-development` and guidelines for Laravel Boost (`php artisan boost:install`), also
+  installable as a Claude Code plugin (`/plugin marketplace add fydellys/inertia-static`).
+
+### Fixed
+- Leak detector, `auto` mode: a leak that only happens in a partial reload (a `<WhenVisible>`, deferred or scroll
+  prop reading the user) no longer turns the whole route dynamic. It is still logged and served with `no-store`;
+  the cached page never runs that code.
+
+### Changed
+- GitHub Actions pinned by commit SHA, kept up to date by Dependabot.
 
 ## [0.2.0] - 2026-10-15
 

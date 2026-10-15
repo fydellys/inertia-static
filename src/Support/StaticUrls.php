@@ -59,7 +59,8 @@ class StaticUrls
         $path = trim(Str::before($relative, '?'), '/');
         $query = Str::contains($relative, '?') ? '?'.Str::after($relative, '?') : '';
 
-        $path = $path === '' ? $this->config->get('inertia-static.json.index', 'index') : $path;
+        // Same spelling as the JSON endpoint's canonical URL, so purges reach the cached copy.
+        $path = $path === '' ? $this->config->get('inertia-static.json.index', 'index') : UrlNormalizer::encodePath($path);
 
         return '/'.$this->prefix().'/'.$this->version->segment($version).'/'.$path.'.json'.$query;
     }
@@ -79,7 +80,7 @@ class StaticUrls
      */
     public function jsonPrefix(string $prefix, ?string $version = null): string
     {
-        $path = trim(Str::before($this->relative($prefix), '?'), '/');
+        $path = UrlNormalizer::encodePath(trim(Str::before($this->relative($prefix), '?'), '/'));
 
         return '/'.$this->prefix().'/'.$this->version->segment($version).'/'.$path;
     }
@@ -99,6 +100,21 @@ class StaticUrls
     }
 
     /**
+     * The canonical spelling of a relative page URL (absolute URLs are kept as given).
+     */
+    public function canonical(string $pathOrUrl): string
+    {
+        if (Str::startsWith($pathOrUrl, ['http://', 'https://'])) {
+            return $pathOrUrl;
+        }
+
+        $relative = $this->relative($pathOrUrl);
+        $query = Str::contains($relative, '?') ? '?'.Str::after($relative, '?') : '';
+
+        return UrlNormalizer::encodePath(Str::before($relative, '?')).$query;
+    }
+
+    /**
      * Every absolute URL a page is cached under (HTML + JSON).
      *
      * @param  array<int, string>  $pathsOrUrls
@@ -111,7 +127,7 @@ class StaticUrls
         return collect($pathsOrUrls)
             ->flatMap(fn (string $url) => Str::contains($url, '/'.$this->prefix().'/')
                 ? [$this->absolute($url)]
-                : [$this->absolute($url), $this->absolute($this->json($url, $version))])
+                : [$this->absolute($this->canonical($url)), $this->absolute($this->json($url, $version))])
             ->unique()
             ->values()
             ->all();

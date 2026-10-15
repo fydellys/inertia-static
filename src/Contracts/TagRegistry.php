@@ -5,6 +5,12 @@ namespace Fydellys\InertiaStatic\Contracts;
 interface TagRegistry
 {
     /**
+     * Recorded for a tag in place of new URLs once it holds max_urls_per_tag of them:
+     * the registry no longer knows every URL of that tag (pages are relative, never "*").
+     */
+    public const OVERFLOW = '*';
+
+    /**
      * Associate the given URLs with the tags.
      *
      * @param  array<int, string>  $tags

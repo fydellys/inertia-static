@@ -25,21 +25,36 @@ export function useStaticIsland<T = unknown>(url: string, options: StaticIslandO
   const [element, setElement] = useState<Element | null>(null)
   const current = useRef<T | null>(data)
   const loaded = useRef(false)
+  const generation = useRef(0)
   const init = useRef(options.init)
   init.current = options.init
+  const initial = useRef(options.initial ?? null)
+  initial.current = options.initial ?? null
 
   const load = useCallback(async (): Promise<T | null> => {
+    const run = ++generation.current
     loaded.current = true
     setLoading(true)
     setError(null)
 
     try {
-      current.current = await fetchIsland<T>(url, init.current)
-      setData(current.current)
+      const result = await fetchIsland<T>(url, init.current)
+
+      if (run === generation.current) {
+        current.current = result
+        setData(result)
+      }
     } catch (e) {
-      setError(e)
+      if (run === generation.current) {
+        // Never keep the previous visitor's data (e.g. a 401 after logout).
+        current.current = initial.current
+        setData(initial.current)
+        setError(e)
+      }
     } finally {
-      setLoading(false)
+      if (run === generation.current) {
+        setLoading(false)
+      }
     }
 
     return current.current

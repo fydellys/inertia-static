@@ -47,6 +47,8 @@ Route::get('/api/me/orders', fn (Request $request) => ['orders' => $request->use
 | `as` | `'div'` | element that wraps the content (and is watched for visibility) |
 | `init` | — | extra `fetch` options (cookies are always sent) |
 | `refreshAfterMutations` | `true` | reload after sign in, sign out and form submissions, once loaded |
+| `fallback` | — | React: shown until the data is loaded (Vue: the `fallback` slot) |
+| `children` | — | React: a node, or a function of `{ data, loading, error, load }` (Vue: the default slot) |
 
 Slots (Vue) / render props (React): `{ data, loading, error, load }`. The fallback shows until the data arrives.
 

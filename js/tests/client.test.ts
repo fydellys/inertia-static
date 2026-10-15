@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createStaticHttpClient } from '../src'
 import { fakeClient, json, manifest, page, visit } from './helpers'
+import { encodePath, jsonPath } from '../src/urls'
 
 const origin = 'https://example.com'
 
@@ -296,5 +297,19 @@ describe('CSRF cookie for static pages (Laravel 12)', () => {
     expect(fetch).not.toHaveBeenCalled()
     expect(calls).toHaveLength(2)
     vi.unstubAllGlobals()
+  })
+})
+
+describe('encodePath', () => {
+  it('spells paths the way the server canonicalizes them (no extra 301)', () => {
+    expect(encodePath('/blog/a b')).toBe('/blog/a%20b')
+    expect(encodePath('/blog/a%20b')).toBe('/blog/a%20b')
+    expect(encodePath('/blog/%68ello')).toBe('/blog/hello')
+    expect(encodePath("/@user/x!$&'()+,;=:")).toBe("/@user/x!$&'()+,;=:")
+    expect(encodePath('/x*|^')).toBe('/x%2A%7C%5E')
+    expect(encodePath('/%e3%81%82')).toBe('/%E3%81%82')
+    expect(encodePath('/%2562log')).toBe('/%2562log')
+    expect(encodePath('/a%zz')).toBe('/a%25zz')
+    expect(jsonPath('/blog/a b', '/__inertia', 'v1')).toBe('/__inertia/v1/blog/a%20b.json')
   })
 })

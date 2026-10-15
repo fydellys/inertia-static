@@ -13,19 +13,32 @@ function useStaticIsland(url, options = {}) {
   const [element, setElement] = useState(null);
   const current = useRef(data);
   const loaded = useRef(false);
+  const generation = useRef(0);
   const init = useRef(options.init);
   init.current = options.init;
+  const initial = useRef(options.initial ?? null);
+  initial.current = options.initial ?? null;
   const load = useCallback(async () => {
+    const run = ++generation.current;
     loaded.current = true;
     setLoading(true);
     setError(null);
     try {
-      current.current = await fetchIsland(url, init.current);
-      setData(current.current);
+      const result = await fetchIsland(url, init.current);
+      if (run === generation.current) {
+        current.current = result;
+        setData(result);
+      }
     } catch (e) {
-      setError(e);
+      if (run === generation.current) {
+        current.current = initial.current;
+        setData(initial.current);
+        setError(e);
+      }
     } finally {
-      setLoading(false);
+      if (run === generation.current) {
+        setLoading(false);
+      }
     }
     return current.current;
   }, [url]);
@@ -61,4 +74,4 @@ export {
   useStaticIsland,
   StaticIsland
 };
-//# sourceMappingURL=shared-CAKRSQPB.js.map
+//# sourceMappingURL=shared-FLAYOD6R.js.map
