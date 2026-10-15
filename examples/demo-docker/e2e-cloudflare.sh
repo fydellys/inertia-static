@@ -308,6 +308,30 @@ get "$J" -H "X-Inertia: true" -H "X-Inertia-Except-Once-Props: plans"
 get "$J"
 has "visit with X-Inertia-Except-Once-Props never caches a page without the once prop" "$B" "plans at"
 
+# ---------------------------------------------------------------- 10 preview mode
+section "10. preview mode through Cloudflare"
+J="$TMP/preview-jar"
+curl -s -c "$J" -b "$J" "$BASE/login" >/dev/null
+XSRF=$(grep XSRF "$J" | awk '{print $7}' | python3 -c 'import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read().strip()))')
+curl -s -c "$J" -b "$J" -o /dev/null -X POST "$BASE/login" -H "Origin: $BASE" -H "Sec-Fetch-Site: same-origin" -H "X-XSRF-TOKEN: $XSRF" -d email=alice@example.com -d password=password
+curl -s -c "$J" -b "$J" -o /dev/null "$BASE/preview/enable"
+has "editor turned preview on (signed cookie)" "$(cat "$J")" "inertia_static_preview"
+get "/__inertia/live/$VERSION/index.json" -b "$J" -H "X-Inertia: true" -H "X-Inertia-Version: $VERSION"
+match "preview, SPA visit: never served from the cache" "$(hdr cf-cache-status)" "^(BYPASS|DYNAMIC)$"
+eq "  origin marked it preview" "$(hdr x-inertia-static-reason)" "preview"
+has "  fresh content flagged as preview" "$B" '"preview":true'
+get / -b "$J"
+if [[ "$(hdr cf-cache-status)" =~ ^(BYPASS|DYNAMIC)$ ]]; then
+  ok "preview, opening the page: not served from the cache (Cache Rule on the preview cookie)"
+  has "  preview banner rendered" "$B" "preview-banner"
+elif [ -n "${CF_PREVIEW_RULE:-}" ]; then
+  ko "preview, opening the page: served from the cache" "cf-cache-status: $(hdr cf-cache-status)"
+else
+  printf '  \033[33m- preview, opening the page: served from the cache (%s). Needs the Cache Rule on the preview cookie (docs/guide/preview.md); set CF_PREVIEW_RULE=1 once it exists\033[0m\n' "$(hdr cf-cache-status)"
+fi
+get /
+eq "anonymous visitor: no preview banner" "$(echo "$B" | grep -c preview-banner)" "0"
+
 # ---------------------------------------------------------------- summary
 rm -rf "$TMP"
 echo
