@@ -290,6 +290,24 @@ match "careless dynamic route with 'Cache-Control: public' is NOT stored" "$(hdr
 [ "$(hdr cf-cache-status)" = "HIT" ] && echo "    hint: create the Cloudflare Cache Response Rule (docs/cdn/cloudflare.md)"
 match "  while static pages are still served from the cache" "$(cf /blog/post-9)" "^(HIT|UPDATING|STALE)$"
 
+# ---------------------------------------------------------------- 9 inertia features
+section "9. Inertia features on a static page through Cloudflare (/features)"
+artisan inertia-static:purge --url=/features --url=/features/two --hard
+sleep 2
+get /features; get /features
+match "/features HTML cached by Cloudflare" "$(hdr cf-cache-status)" "^(HIT|UPDATING|STALE|REVALIDATED)$"
+eq "  without the deferred value" "$(echo "$B" | grep -c 'deferred at')" "0"
+get "/__inertia/live/$VERSION/features.json" -H "X-Inertia: true" -H "X-Inertia-Version: $VERSION" -H "X-Inertia-Partial-Component: Features" -H "X-Inertia-Partial-Data: deferred"
+match "Deferred / WhenVisible request (live URL) never cached" "$(hdr cf-cache-status)" "^(BYPASS|DYNAMIC)$"
+has "  returns the deferred value" "$B" "deferred at"
+get "/__inertia/live/$VERSION/features.json?page=2" -H "X-Inertia: true" -H "X-Inertia-Version: $VERSION" -H "X-Inertia-Partial-Component: Features" -H "X-Inertia-Partial-Data: posts" -H "X-Inertia-Infinite-Scroll-Merge-Intent: append"
+match "InfiniteScroll next page (live URL) never cached" "$(hdr cf-cache-status)" "^(BYPASS|DYNAMIC)$"
+has "  returns page 2" "$B" "Post number 5"
+J=$(json_url /features/two)
+get "$J" -H "X-Inertia: true" -H "X-Inertia-Except-Once-Props: plans"
+get "$J"
+has "visit with X-Inertia-Except-Once-Props never caches a page without the once prop" "$B" "plans at"
+
 # ---------------------------------------------------------------- summary
 rm -rf "$TMP"
 echo
