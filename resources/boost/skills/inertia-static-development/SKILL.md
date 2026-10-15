@@ -1,6 +1,18 @@
 ---
 name: inertia-static-development
 description: Use when making Laravel/Inertia pages static or ISR with fydellys/inertia-static, configuring CDN caching, purging or revalidating cached pages, loading user data with islands, writing static paths providers, fixing leak detector errors (StaticRenderViolation, downgraded routes), or setting up deploy and CDN config.
+compatible_agents:
+  - Claude Code
+  - Cursor
+  - Codex
+  - GitHub Copilot
+tags:
+  - laravel
+  - php
+  - inertia
+  - ssg
+  - isr
+  - cdn
 ---
 
 # inertia-static development
