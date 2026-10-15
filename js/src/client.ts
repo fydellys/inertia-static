@@ -30,6 +30,8 @@ export class StaticHttpClient implements HttpClient {
   }
 
   async request(config: HttpRequestConfig): Promise<HttpResponse> {
+    await this.routing.ensureCsrfCookie(config)
+
     const decision = this.routing.decide(config, await this.routing.loadManifest())
 
     this.routing.log(config.url, decision)

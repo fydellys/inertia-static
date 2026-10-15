@@ -130,3 +130,12 @@ it('keeps no request state between requests handled by the same app', function (
     $this->get('/__inertia/v1/blog.json')->assertHeader('X-Inertia-Static', 'MISS');
     $this->get('/__inertia/v1/blog/hello-world.json')->assertHeader('X-Inertia-Static', 'MISS');
 });
+
+it('hands the CSRF cookie to static pages when the manifest asks for it', function () {
+    expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBeNull(); // Laravel 13: not needed
+
+    config(['inertia-static.csrf_cookie' => true]);
+    expect($this->get('/__inertia/manifest.json')->json('csrfCookieUrl'))->toBe('/__inertia/csrf');
+
+    $this->get('/__inertia/csrf')->assertNoContent()->assertCookie('XSRF-TOKEN')->assertHeader('Cache-Control', 'no-store, private');
+});

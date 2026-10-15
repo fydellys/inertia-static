@@ -1,6 +1,6 @@
 import { HttpClient, HttpRequestConfig, HttpResponse } from '@inertiajs/core';
-import { S as StaticRoutingOptions, b as StaticRouting, C as CompiledManifest, R as RewriteDecision } from './csrf-l1dPRhIJ.js';
-export { a as StaticManifest, c as StaticManifestRoute, d as canonicalQuery, f as compileManifest, e as ensureCsrfCookie, j as jsonPath, m as matchRoute } from './csrf-l1dPRhIJ.js';
+import { S as StaticRoutingOptions, b as StaticRouting, C as CompiledManifest, R as RewriteDecision } from './csrf-BrRGbcsv.js';
+export { a as StaticManifest, c as StaticManifestRoute, d as canonicalQuery, f as compileManifest, e as ensureCsrfCookie, j as jsonPath, m as matchRoute } from './csrf-BrRGbcsv.js';
 
 interface InertiaStaticOptions extends StaticRoutingOptions {
     /** The HTTP client being decorated (default: Inertia's built-in XHR client). */

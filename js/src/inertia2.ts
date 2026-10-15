@@ -40,6 +40,39 @@ export interface AxiosLike {
 
 const INSTALLED = Symbol.for('fydellys.inertia-static')
 
+type RenderToString = (app: never) => Promise<string>
+
+/**
+ * Inertia 2 SSR on every Vue 3.5 release. Inertia 2 renders the page app inside
+ * the root element's `innerHTML` without awaiting it, and Vue 3.5.44+ turns that
+ * pending promise into "[object Promise]". The nested render gets a placeholder,
+ * replaced once it resolves: the HTML is the same as before.
+ *
+ *   createServer((page) => createInertiaApp({ page, render: ssrRender(renderToString), ... }))
+ *
+ * Create it per page (inside the createServer callback): it holds that render's state.
+ */
+export function ssrRender(renderToString: RenderToString): (app: never) => Promise<string> {
+  const nested: Promise<string>[] = []
+  let rendering = false
+
+  return ((app: never) => {
+    if (rendering) {
+      nested.push(renderToString(app))
+
+      return `<!--inertia-static-ssr:${nested.length - 1}-->`
+    }
+
+    rendering = true
+
+    return renderToString(app).then(async (html) => {
+      const parts = await Promise.all(nested)
+
+      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${index}-->`, () => part), html)
+    })
+  }) as (app: never) => Promise<string>
+}
+
 /**
  * Installs the static rewrite on the axios instance Inertia 2 uses (the default
  * `axios` import). Call it before `createInertiaApp`. Returns an uninstall function.
@@ -60,6 +93,11 @@ export function installInertiaStatic(axios: AxiosLike, options: StaticRoutingOpt
   const routing = new StaticRouting(options)
 
   const adapter = async (config: AxiosConfigLike): Promise<AxiosResponseLike> => {
+    await routing.ensureCsrfCookie({
+      method: config.method ?? 'get',
+      url: new URL(config.url ?? '', config.baseURL ?? window.location.href).href,
+    })
+
     const request: VisitRequest = {
       method: config.method ?? 'get',
       url: new URL(config.url ?? '', config.baseURL ?? window.location.href).href,

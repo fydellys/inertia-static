@@ -1,5 +1,5 @@
 import { InertiaStaticOptions, StaticHttpClient } from './index.js';
-export { a as StaticManifest, e as ensureCsrfCookie } from './csrf-l1dPRhIJ.js';
+export { a as StaticManifest, e as ensureCsrfCookie } from './csrf-BrRGbcsv.js';
 export { S as StaticIsland, a as StaticIslandOptions, u as useStaticIsland } from './useStaticIsland-C4VvsoyC.js';
 import '@inertiajs/core';
 import 'vue';

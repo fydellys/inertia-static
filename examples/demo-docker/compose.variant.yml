@@ -1,0 +1,8 @@
+# A copy of the demo built by ../variant.sh:
+#
+#   ../variant.sh laravel12
+#   DEMO=.demo-laravel12 docker compose -f compose.yml -f compose.variant.yml up -d --force-recreate app
+#   ./e2e.sh
+services:
+  app:
+    working_dir: /repo/examples/${DEMO:?set DEMO, e.g. .demo-laravel12}

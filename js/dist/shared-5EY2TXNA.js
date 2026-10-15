@@ -1,7 +1,7 @@
 import {
   MISSING_STATUSES,
   StaticRouting
-} from "./shared-4NC3HMDQ.js";
+} from "./shared-5JITDH6X.js";
 
 // js/src/client.ts
 import {
@@ -16,6 +16,7 @@ var StaticHttpClient = class {
     this.routing = new StaticRouting(options);
   }
   async request(config) {
+    await this.routing.ensureCsrfCookie(config);
     const decision = this.routing.decide(config, await this.routing.loadManifest());
     this.routing.log(config.url, decision);
     if (!decision.rewrite || !decision.url) {
@@ -54,4 +55,4 @@ export {
   StaticHttpClient,
   createStaticHttpClient
 };
-//# sourceMappingURL=shared-BRXWFM27.js.map
+//# sourceMappingURL=shared-5EY2TXNA.js.map

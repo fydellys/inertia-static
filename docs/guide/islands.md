@@ -110,14 +110,10 @@ shared prop, so it does not reach static pages: use `Inertia::flash()`.
 
 ### CSRF
 
-- **Laravel 13**: `PreventRequestForgery` accepts same-origin requests through the `Sec-Fetch-Site` header that
-  browsers send. No token and no helper needed.
-- **Laravel 12** (`ValidateCsrfToken`) needs the token. Call [`ensureCsrfCookie()`](../api/ensure-csrf-cookie.md)
-  before submitting:
+Nothing to do: Inertia forms (`useForm`, `router.post`, `useHttp`) work on static pages on Laravel 12 and 13.
 
-  ```ts
-  import { ensureCsrfCookie } from '@fydellys/inertia-static/vue'
+- **Laravel 13** accepts same-origin requests without a token.
+- **Laravel 12** needs the token, but static pages carry no CSRF cookie: the client gets it from `/__inertia/csrf`
+  before the first submission, and Inertia sends it.
 
-  await ensureCsrfCookie()     // GET /sanctum/csrf-cookie once
-  form.post('/newsletter')
-  ```
+For your own `fetch()` calls, use [`ensureCsrfCookie()`](../api/ensure-csrf-cookie.md).

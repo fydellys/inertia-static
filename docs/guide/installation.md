@@ -74,7 +74,15 @@ createInertiaApp({
 
 :::
 
-On Inertia 2, import `useStaticIsland` and `ensureCsrfCookie` from `@fydellys/inertia-static/inertia2` too.
+On Inertia 2, import `useStaticIsland` and `ensureCsrfCookie` from `@fydellys/inertia-static/inertia2` too. With SSR,
+wrap `renderToString` with `ssrRender` (Vue 3.5.44+ renders `[object Promise]` otherwise):
+
+```ts
+// resources/js/ssr.ts (Inertia 2)
+import { ssrRender } from '@fydellys/inertia-static/inertia2'
+
+createServer((page) => createInertiaApp({ page, render: ssrRender(renderToString), /* ... */ }))
+```
 
 TypeScript: point the alias at the bundled types in `tsconfig.json`:
 

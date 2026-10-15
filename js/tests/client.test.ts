@@ -256,3 +256,45 @@ describe('manifest loading', () => {
     vi.unstubAllGlobals()
   })
 })
+
+describe('CSRF cookie for static pages (Laravel 12)', () => {
+  const clearCookie = () => (document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT')
+
+  it('fetches the cookie once before a form submission and sends the token', async () => {
+    clearCookie()
+    const fetch = vi.fn(async () => {
+      document.cookie = 'XSRF-TOKEN=abc%3D'
+      return new Response(null, { status: 204 })
+    })
+    vi.stubGlobal('fetch', fetch)
+    const cookieAtRequest: boolean[] = []
+    const { client } = fakeClient(() => {
+      cookieAtRequest.push(document.cookie.includes('XSRF-TOKEN=abc'))
+      return json(page('Home', '/'), { 'x-inertia': 'true' })
+    })
+    const http = createStaticHttpClient({ manifest: { ...manifest, csrfCookieUrl: '/__inertia/csrf' }, client })
+
+    await http.request(visit(origin + '/newsletter', {}, 'post'))
+    await http.request(visit(origin + '/newsletter', {}, 'post'))
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(fetch.mock.calls[0]).toEqual(['/__inertia/csrf', { credentials: 'same-origin' }])
+    expect(cookieAtRequest).toEqual([true, true]) // Inertia sends the token from the cookie itself
+    vi.unstubAllGlobals()
+    clearCookie()
+  })
+
+  it('does nothing for GET visits or when the manifest does not ask for it (Laravel 13)', async () => {
+    clearCookie()
+    const fetch = vi.fn()
+    vi.stubGlobal('fetch', fetch)
+    const { client, calls } = fakeClient(() => json(page('Home', '/'), { 'x-inertia': 'true' }))
+
+    await createStaticHttpClient({ manifest, client }).request(visit(origin + '/newsletter', {}, 'post'))
+    await createStaticHttpClient({ manifest: { ...manifest, csrfCookieUrl: '/__inertia/csrf' }, client }).request(visit(origin + '/dashboard'))
+
+    expect(fetch).not.toHaveBeenCalled()
+    expect(calls).toHaveLength(2)
+    vi.unstubAllGlobals()
+  })
+})

@@ -139,6 +139,19 @@ return [
     |
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | CSRF Cookie
+    |--------------------------------------------------------------------------
+    |
+    | Static pages carry no CSRF cookie. When true, the client fetches it from
+    | /__inertia/csrf before the first form submission. Null: only on Laravel
+    | versions without PreventRequestForgery (Laravel 12).
+    |
+    */
+
+    'csrf_cookie' => env('INERTIA_STATIC_CSRF_COOKIE'),
+
     'ssr' => [
         'required' => env('INERTIA_STATIC_SSR_REQUIRED', true),
     ],

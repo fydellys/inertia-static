@@ -6,6 +6,9 @@ import { recordResponse } from '../devtools/recorder'
 
 export { useStaticIsland } from '@fydellys/inertia-static/vue'
 
+/** Inertia 3 awaits its SSR render: nothing to adapt. */
+export const ssrRender = <T>(renderToString: T): T => renderToString
+
 export function staticAppOptions(manifest: StaticManifest) {
   return { http: inertiaStatic({ manifest, client: recordingClient() }) }
 }

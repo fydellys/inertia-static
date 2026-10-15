@@ -109,6 +109,25 @@ describe('Inertia 2 (axios adapter)', () => {
     expect(response.headers['x-inertia']).toBe('true')
   })
 
+  it('fetches the CSRF cookie before a form submission when the manifest asks for it (Laravel 12)', async () => {
+    document.cookie = 'XSRF-TOKEN=; expires=Thu, 01 Jan 1970 00:00:00 GMT'
+    const fetch = vi.fn(async () => {
+      document.cookie = 'XSRF-TOKEN=tok'
+      return new Response(null, { status: 204 })
+    })
+    vi.stubGlobal('fetch', fetch)
+    const local = axios.create()
+    local.defaults.adapter = network as never
+    installInertiaStatic(local as never, { manifest: { ...manifest, csrfCookieUrl: '/__inertia/csrf' } })
+    reply = () => pageJson('Home', '/', {}, { 'x-inertia': 'true' })
+
+    await local.post('/newsletter', { email: 'a@b.co' }, { headers: { 'X-Inertia': true } })
+
+    expect(fetch).toHaveBeenCalledTimes(1)
+    expect(requests).toHaveLength(1) // axios then sends X-XSRF-TOKEN from the cookie itself
+    vi.unstubAllGlobals()
+  })
+
   it('does not install twice', () => {
     const adapter = axios.defaults.adapter
 

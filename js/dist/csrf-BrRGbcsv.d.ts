@@ -9,6 +9,8 @@ interface StaticManifest {
     prefix: string;
     /** Preview mode cookie: while present, static pages skip the cache. */
     previewCookie?: string;
+    /** Where to get the XSRF-TOKEN cookie before a form submission (Laravel 12). */
+    csrfCookieUrl?: string;
     routes: StaticManifestRoute[];
 }
 interface StaticManifestRoute {
@@ -25,6 +27,7 @@ interface CompiledRoute extends StaticManifestRoute {
 interface CompiledManifest {
     prefix: string;
     previewCookie: string;
+    csrfCookieUrl: string | null;
     routes: CompiledRoute[];
 }
 declare function compileManifest(manifest: StaticManifest): CompiledManifest;
@@ -100,6 +103,12 @@ declare class StaticRouting {
      *   deferred props, non canonical query) go to /{prefix}/live/{version}/{path}.json
      */
     decide(request: VisitRequest, manifest?: CompiledManifest | null): RewriteDecision;
+    /**
+     * Static pages carry no CSRF cookie. When the manifest asks for it (Laravel 12),
+     * fetch the XSRF-TOKEN cookie before a same-origin request that changes data:
+     * Inertia (and axios) then send the token from the cookie themselves.
+     */
+    ensureCsrfCookie(request: VisitRequest): Promise<void>;
     /** A 409 + X-Inertia-Location makes Inertia perform a full page load of the original URL. */
     reloadLocation(request: VisitRequest): string;
     /**

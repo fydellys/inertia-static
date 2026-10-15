@@ -56,6 +56,10 @@ export interface VisitResponse {
 
 export const MISSING_STATUSES = [403, 404, 410]
 
+const XSRF_COOKIE = 'XSRF-TOKEN'
+
+let csrfCookieRequest: Promise<unknown> | null = null
+
 export class StaticRouting {
   protected manifest: CompiledManifest | null
   protected loading: Promise<CompiledManifest> | null = null
@@ -149,6 +153,32 @@ export class StaticRouting {
       reason: route.name ?? route.pattern,
       url: url.origin + jsonPath(path, manifest.prefix, version, this.options.index) + query,
     }
+  }
+
+  /**
+   * Static pages carry no CSRF cookie. When the manifest asks for it (Laravel 12),
+   * fetch the XSRF-TOKEN cookie before a same-origin request that changes data:
+   * Inertia (and axios) then send the token from the cookie themselves.
+   */
+  async ensureCsrfCookie(request: VisitRequest): Promise<void> {
+    const manifest = await this.loadManifest()
+
+    if (
+      !manifest?.csrfCookieUrl ||
+      ['get', 'head', 'options'].includes(request.method.toLowerCase()) ||
+      hasCookie(XSRF_COOKIE) ||
+      new URL(request.url, window.location.href).origin !== window.location.origin
+    ) {
+      return
+    }
+
+    csrfCookieRequest ??= fetch(manifest.csrfCookieUrl, { credentials: 'same-origin' })
+      .catch(() => undefined)
+      .finally(() => {
+        csrfCookieRequest = null
+      })
+
+    await csrfCookieRequest
   }
 
   /** A 409 + X-Inertia-Location makes Inertia perform a full page load of the original URL. */

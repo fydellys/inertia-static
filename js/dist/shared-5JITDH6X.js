@@ -23,11 +23,12 @@ var BYPASS_HEADERS = [
 // js/src/manifest.ts
 var DEFAULT_PREFIX = "/__inertia";
 var DEFAULT_PREVIEW_COOKIE = "inertia_static_preview";
-var emptyManifest = () => ({ prefix: DEFAULT_PREFIX, previewCookie: DEFAULT_PREVIEW_COOKIE, routes: [] });
+var emptyManifest = () => ({ prefix: DEFAULT_PREFIX, previewCookie: DEFAULT_PREVIEW_COOKIE, csrfCookieUrl: null, routes: [] });
 function compileManifest(manifest) {
   return {
     prefix: "/" + (manifest.prefix || DEFAULT_PREFIX).replace(/^\/+|\/+$/g, ""),
     previewCookie: manifest.previewCookie || DEFAULT_PREVIEW_COOKIE,
+    csrfCookieUrl: manifest.csrfCookieUrl || null,
     routes: (manifest.routes ?? []).flatMap((route) => {
       try {
         return [{ ...route, query: route.query ?? [], regex: new RegExp(route.pattern) }];
@@ -68,6 +69,8 @@ function normalizePath(pathname, policy) {
 
 // js/src/core.ts
 var MISSING_STATUSES = [403, 404, 410];
+var XSRF_COOKIE = "XSRF-TOKEN";
+var csrfCookieRequest = null;
 var StaticRouting = class {
   manifest;
   loading = null;
@@ -140,6 +143,21 @@ var StaticRouting = class {
       reason: route.name ?? route.pattern,
       url: url.origin + jsonPath(path, manifest.prefix, version, this.options.index) + query
     };
+  }
+  /**
+   * Static pages carry no CSRF cookie. When the manifest asks for it (Laravel 12),
+   * fetch the XSRF-TOKEN cookie before a same-origin request that changes data:
+   * Inertia (and axios) then send the token from the cookie themselves.
+   */
+  async ensureCsrfCookie(request) {
+    const manifest = await this.loadManifest();
+    if (!manifest?.csrfCookieUrl || ["get", "head", "options"].includes(request.method.toLowerCase()) || hasCookie(XSRF_COOKIE) || new URL(request.url, window.location.href).origin !== window.location.origin) {
+      return;
+    }
+    csrfCookieRequest ??= fetch(manifest.csrfCookieUrl, { credentials: "same-origin" }).catch(() => void 0).finally(() => {
+      csrfCookieRequest = null;
+    });
+    await csrfCookieRequest;
   }
   /** A 409 + X-Inertia-Location makes Inertia perform a full page load of the original URL. */
   reloadLocation(request) {
@@ -219,4 +237,4 @@ export {
   StaticRouting,
   ensureCsrfCookie
 };
-//# sourceMappingURL=shared-4NC3HMDQ.js.map
+//# sourceMappingURL=shared-5JITDH6X.js.map

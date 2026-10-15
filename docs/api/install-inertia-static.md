@@ -37,4 +37,6 @@ installInertiaStatic(
 - Call it **before** `createInertiaApp`. Calling it twice does nothing.
 - Pass the default `axios` import: that is the instance Inertia 2 sends visits with. The Vite plugin dedupes
   `axios`, so your app and Inertia share it.
-- `useStaticIsland` and `ensureCsrfCookie` are exported from `@fydellys/inertia-static/inertia2` as well.
+- `useStaticIsland`, `ensureCsrfCookie` and `ssrRender` are exported from `@fydellys/inertia-static/inertia2` as well.
+  `ssrRender(renderToString)` keeps Inertia 2 SSR working on Vue 3.5.44+: create it inside the `createServer`
+  callback, once per page.

@@ -4,7 +4,7 @@ import { installInertiaStatic, type InertiaStaticOptions } from '@fydellys/inert
 import { reactive } from 'vue'
 import { recordResponse } from '../devtools/recorder'
 
-export { useStaticIsland } from '@fydellys/inertia-static/inertia2'
+export { ssrRender, useStaticIsland } from '@fydellys/inertia-static/inertia2'
 
 export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['manifest']>) {
   // The recorder goes first, so it sits below the static adapter and sees the CDN's response.

@@ -9,6 +9,11 @@ $prefix = trim((string) config('inertia-static.json.prefix', '__inertia'), '/');
 Route::get("{$prefix}/manifest.json", ManifestController::class)
     ->name('inertia-static.manifest');
 
+// Hands the XSRF-TOKEN cookie to forms submitted from static pages (Laravel 12, see the manifest).
+Route::get("{$prefix}/csrf", fn () => response()->noContent()->header('Cache-Control', 'no-store, private'))
+    ->middleware('web')
+    ->name('inertia-static.csrf');
+
 // Never cached: reloads, polling, partial reloads and deferred props of static pages.
 // Registered before the cacheable route, whose {version} would also match "live".
 Route::get("{$prefix}/live/{version}/{path}", [PageJsonController::class, 'live'])

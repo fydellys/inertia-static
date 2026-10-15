@@ -5,6 +5,10 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 ## [Unreleased]
 
 ### Added
+- Forms on static pages work on Laravel 12 with no code: the client fetches the CSRF cookie from `/__inertia/csrf`
+  before the first submission (`csrf_cookie`, automatic on Laravel 12).
+- `ssrRender()` (`@fydellys/inertia-static/inertia2`): Inertia 2 SSR on every Vue 3.5 release (3.5.44 renders
+  `[object Promise]` with plain `renderToString`).
 - Inertia 2 support: `inertiajs/inertia-laravel` ^2.0.16, and `installInertiaStatic(axios, { manifest })` from
   `@fydellys/inertia-static/inertia2` for `@inertiajs/vue3` 2.x.
 - CloudFront driver: `s-maxage` headers, purges through invalidations (signed with AWS SigV4, no SDK needed).

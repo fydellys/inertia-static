@@ -6,10 +6,25 @@ import {
   StaticRouting,
   ensureCsrfCookie,
   getHeader
-} from "./shared-4NC3HMDQ.js";
+} from "./shared-5JITDH6X.js";
 
 // js/src/inertia2.ts
 var INSTALLED = /* @__PURE__ */ Symbol.for("fydellys.inertia-static");
+function ssrRender(renderToString) {
+  const nested = [];
+  let rendering = false;
+  return ((app) => {
+    if (rendering) {
+      nested.push(renderToString(app));
+      return `<!--inertia-static-ssr:${nested.length - 1}-->`;
+    }
+    rendering = true;
+    return renderToString(app).then(async (html) => {
+      const parts = await Promise.all(nested);
+      return parts.reduce((out, part, index) => out.replace(`<!--inertia-static-ssr:${index}-->`, () => part), html);
+    });
+  });
+}
 function installInertiaStatic(axios, options = {}) {
   const previous = axios.defaults.adapter;
   if (typeof previous === "function" && INSTALLED in previous) {
@@ -22,6 +37,10 @@ function installInertiaStatic(axios, options = {}) {
   const base = typeof previous === "function" ? previous : axios.getAdapter(previous);
   const routing = new StaticRouting(options);
   const adapter = async (config) => {
+    await routing.ensureCsrfCookie({
+      method: config.method ?? "get",
+      url: new URL(config.url ?? "", config.baseURL ?? window.location.href).href
+    });
     const request = {
       method: config.method ?? "get",
       url: new URL(config.url ?? "", config.baseURL ?? window.location.href).href,
@@ -74,6 +93,7 @@ function withInertiaHeader(response) {
 export {
   ensureCsrfCookie,
   installInertiaStatic,
+  ssrRender,
   useStaticIsland
 };
 //# sourceMappingURL=inertia2.js.map
