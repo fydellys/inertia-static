@@ -65,10 +65,16 @@ class SignatureV4
         $key = hash_hmac('sha256', 'aws4_request', $key, true);
 
         unset($headers['host']);
+        $headers['authorization'] = "AWS4-HMAC-SHA256 Credential={$this->accessKey}/{$scope}, SignedHeaders={$signedHeaders}, Signature=".hash_hmac('sha256', $stringToSign, $key);
 
-        return $headers + [
-            'authorization' => "AWS4-HMAC-SHA256 Credential={$this->accessKey}/{$scope}, SignedHeaders={$signedHeaders}, Signature=".hash_hmac('sha256', $stringToSign, $key),
-        ];
+        // Usual casing (X-Amz-Date, Authorization): names are signed in lowercase only.
+        $named = [];
+
+        foreach ($headers as $name => $value) {
+            $named[implode('-', array_map('ucfirst', explode('-', $name)))] = $value;
+        }
+
+        return $named;
     }
 
     protected function canonicalPath(string $path): string
