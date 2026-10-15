@@ -39,8 +39,11 @@ First release.
 
 ### Client
 - Shipped inside the Composer package with a Vite plugin: no npm install.
-- Vue and React, on Inertia 3 (`createInertiaApp({ http: inertiaStatic({ manifest }) })`) and Inertia 2
-  (`installInertiaStatic(axios, { manifest })`, plus `ssrRender` for Vue SSR).
+- Vue and React, on Inertia 2 and 3 with the same code: `createInertiaApp({ ...withInertiaStatic({ manifest }) })`.
+  The Vite plugin detects the Inertia version and loads the matching client (`inertiaStatic()` for Inertia 3,
+  `installInertiaStatic(axios)` for Inertia 2, both also usable directly); `ssrRender` for Vue SSR.
+- Islands: `useStaticIsland()` and `<StaticIsland>` load user data in the browser, on mount or when they become
+  visible (`when: 'visible'`).
 - Forms on static pages work on Laravel 12 and 13 without CSRF code.
 - Inertia features on static pages: deferred props, `<WhenVisible>`, `<InfiniteScroll>`, polling, partial reloads,
   merge and once props, prefetch, `useRemember`, history encryption, `<Form>`, and on Inertia 3 instant visits and

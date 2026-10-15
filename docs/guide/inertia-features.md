@@ -16,6 +16,7 @@ is the same for every visitor; anything that loads data after the page goes to t
 | `Inertia::encryptHistory()` | works (the page needs HTTPS or `localhost`) |
 | `<Form>`, `useForm`, `useHttp` | sent to the origin; see [User data, forms & CSRF](./islands.md) |
 | Instant visits, optimistic updates (Inertia 3) | work; the visit then loads the cached page JSON |
+| User data when visible | [`<StaticIsland when="visible">`](./islands.md#load-when-visible), not `<WhenVisible>` |
 
 ## Deferred props
 
@@ -77,4 +78,5 @@ return Inertia::render('Blog', [
 ## Keep user data out of these props
 
 Deferred, optional and scroll props are rendered by the origin for the visitor who asks, but **with the static
-page's rules**: no session, no user. Load user data with an [island](./islands.md).
+page's rules**: no session, no user. Load user data with an [island](./islands.md), also
+[when it becomes visible](./islands.md#load-when-visible).

@@ -4,24 +4,15 @@ Install the client in your app entry (see [Installation](./installation.md#clien
 version):
 
 ```ts
-// Inertia 3 (Vue; React: '@fydellys/inertia-static/react')
+// Inertia 2 and 3 (Vue; React: '@fydellys/inertia-static/react')
 import { createInertiaApp } from '@inertiajs/vue3'
-import { inertiaStatic } from '@fydellys/inertia-static/vue'
+import { withInertiaStatic } from '@fydellys/inertia-static/vue'
 import manifest from './inertia-static.json'
 
 createInertiaApp({
-  http: inertiaStatic({ manifest }),
+  ...withInertiaStatic({ manifest }),
   // ...
 })
-```
-
-```ts
-// Inertia 2 (Vue; React: '@fydellys/inertia-static/inertia2/react')
-import axios from 'axios'
-import { installInertiaStatic } from '@fydellys/inertia-static/inertia2'
-import manifest from './inertia-static.json'
-
-installInertiaStatic(axios, { manifest })   // before createInertiaApp
 ```
 
 ## Which visits are rewritten
@@ -62,7 +53,7 @@ router.visit('/blog', { headers: { 'X-Inertia-Static-Bypass': '1' } })
 
 ## Options
 
-`inertiaStatic()` and `installInertiaStatic(axios, options)` take the same options (except `client`, Inertia 3 only):
+`withInertiaStatic()`, `inertiaStatic()` and `installInertiaStatic(axios, options)` take the same options (`client`: Inertia 3 only):
 
 | Option | Default | |
 |---|---|---|

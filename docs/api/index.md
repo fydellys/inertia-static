@@ -29,8 +29,10 @@ Every public function: what it does, an example, its signature and what is good 
 
 ## Client
 
+- [`withInertiaStatic()`](./with-inertia-static) (Inertia 2 and 3)
 - [`inertiaStatic()`](./inertia-static) (Inertia 3)
 - [`installInertiaStatic()`](./install-inertia-static) (Inertia 2)
 - [`useStaticIsland()`](./use-static-island)
+- [`<StaticIsland>`](./static-island)
 - [`ensureCsrfCookie()`](./ensure-csrf-cookie)
 - [Vite plugin](./vite-plugin)

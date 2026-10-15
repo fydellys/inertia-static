@@ -2,7 +2,9 @@ import { createInertiaApp } from '@inertiajs/react'
 import { hydrateRoot } from 'react-dom/client'
 import manifest from '../js/inertia-static.json'
 // resources/react/inertia/v2.ts or v3.ts, depending on the installed Inertia (vite.config.js).
-import { staticAppOptions } from '@inertia-version'
+import { withInertiaStatic } from '@fydellys/inertia-static/react'
+// Demo only: the network panel's recorder (resources/react/inertia/v2.ts or v3.ts).
+import { demoClient } from '@inertia-version'
 
 createInertiaApp({
   resolve: (name) => {
@@ -12,5 +14,6 @@ createInertiaApp({
   setup({ el, App, props }) {
     hydrateRoot(el!, <App {...props} />)
   },
-  ...staticAppOptions(manifest),
+  // Inertia 2 and 3: the Vite plugin resolves the import to the adapter of the installed Inertia.
+  ...withInertiaStatic({ manifest, client: demoClient() }),
 })

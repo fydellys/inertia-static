@@ -1,4 +1,4 @@
-import { Fragment, computed, createBlock, createCommentVNode, createSSRApp, createTextVNode, createVNode, defineComponent, getCurrentInstance, getCurrentScope, h, mergeProps, onMounted, onScopeDispose, onUnmounted, openBlock, reactive, ref, renderList, resolveDynamicComponent, shallowRef, toDisplayString, unref, useSSRContext, withCtx } from "vue";
+import { Fragment, computed, createBlock, createCommentVNode, createSSRApp, createTextVNode, createVNode, defineComponent, getCurrentInstance, getCurrentScope, h, mergeProps, onMounted, onScopeDispose, onUnmounted, openBlock, reactive, ref, renderList, resolveDynamicComponent, shallowRef, toDisplayString, unref, useSSRContext, watch, withCtx } from "vue";
 import { renderToString, ssrIncludeBooleanAttr, ssrInterpolate, ssrRenderAttr, ssrRenderAttrs, ssrRenderClass, ssrRenderComponent, ssrRenderList, ssrRenderSlot, ssrRenderStyle, ssrRenderVNode } from "vue/server-renderer";
 import { Deferred, Form, Head, InfiniteScroll, Link, WhenVisible, createInertiaApp, useForm, useHttp, usePage, usePoll, useRemember } from "@inertiajs/vue3";
 import "@inertiajs/core";
@@ -15,7 +15,21 @@ var __exportAll = (all, no_symbols) => {
 	return target;
 };
 //#endregion
-//#region ../../js/dist/shared-6RC5UHRP.js
+//#region ../../js/dist/shared-6NJEPP6G.js
+function onceVisible(element, buffer, callback) {
+	if (typeof IntersectionObserver === "undefined") {
+		callback();
+		return () => void 0;
+	}
+	const observer = new IntersectionObserver((entries) => {
+		if (entries.some((entry) => entry.isIntersecting)) {
+			observer.disconnect();
+			callback();
+		}
+	}, { rootMargin: `${buffer}px` });
+	observer.observe(element);
+	return () => observer.disconnect();
+}
 async function fetchIsland(url, init) {
 	const response = await fetch(url, {
 		credentials: "same-origin",
@@ -47,13 +61,16 @@ function refreshAfterMutations(callback) {
 	};
 }
 //#endregion
-//#region ../../js/dist/shared-N4T7YWF5.js
+//#region ../../js/dist/shared-5RLIIBHG.js
 function useStaticIsland(url, options = {}) {
 	const data = shallowRef(options.initial ?? null);
 	const loading = ref(false);
 	const error = shallowRef(null);
+	const target = ref(null);
+	let loaded = false;
 	const load = async () => {
 		if (typeof window === "undefined") return data.value;
+		loaded = true;
 		loading.value = true;
 		error.value = null;
 		try {
@@ -65,20 +82,86 @@ function useStaticIsland(url, options = {}) {
 		}
 		return data.value;
 	};
-	if (options.immediate !== false) {
+	const visible = options.when === "visible";
+	if (options.immediate !== false && !visible) {
 		if (getCurrentInstance()) onMounted(load);
 		else load();
 	}
+	if (options.immediate !== false && visible && typeof window !== "undefined") {
+		let stopObserving = () => {};
+		const stopWatching = watch(target, (element) => {
+			stopObserving();
+			stopObserving = element && !loaded ? onceVisible(element, options.buffer ?? 0, load) : () => {};
+		}, {
+			immediate: true,
+			flush: "post"
+		});
+		if (getCurrentScope()) onScopeDispose(() => (stopWatching(), stopObserving()));
+	}
 	if (options.refreshAfterMutations !== false && typeof document !== "undefined") {
-		const stop = refreshAfterMutations(load);
+		const stop = refreshAfterMutations(() => loaded ? load() : void 0);
 		if (getCurrentScope()) onScopeDispose(stop);
 	}
 	return {
 		data,
 		loading,
 		error,
-		load
+		load,
+		target
 	};
+}
+var StaticIsland = defineComponent({
+	name: "StaticIsland",
+	props: {
+		url: {
+			type: String,
+			required: true
+		},
+		when: {
+			type: String,
+			default: "mount"
+		},
+		buffer: {
+			type: Number,
+			default: 0
+		},
+		as: {
+			type: String,
+			default: "div"
+		},
+		init: {
+			type: Object,
+			default: void 0
+		},
+		refreshAfterMutations: {
+			type: Boolean,
+			default: true
+		}
+	},
+	slots: Object,
+	setup(props, { slots }) {
+		const island = useStaticIsland(props.url, {
+			when: props.when,
+			buffer: props.buffer,
+			init: props.init,
+			refreshAfterMutations: props.refreshAfterMutations
+		});
+		return () => {
+			const scope = {
+				data: island.data.value,
+				loading: island.loading.value,
+				error: island.error.value,
+				load: island.load
+			};
+			const content = island.data.value === null && slots.fallback ? slots.fallback(scope) : slots.default?.(scope);
+			return h(props.as, { ref: island.target }, content);
+		};
+	}
+});
+//#endregion
+//#region ../../js/dist/vue.js
+function ssrRender(renderToString) {
+	return renderToString;
 }
 //#endregion
 //#region resources/js/devtools/recorder.ts
@@ -90,44 +173,6 @@ if (typeof document !== "undefined") for (const name of ["httpException", "netwo
 	const detail = event.detail;
 	network.errors.unshift(`${name}: ${detail?.response?.status ?? detail?.error?.message ?? "?"}`);
 });
-//#endregion
-//#region resources/js/Components/V3Features.vue?vue&type=script&setup=true&lang.ts
-var V3Features_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
-	__name: "V3Features",
-	__ssrInlineRender: true,
-	props: { likes: {} },
-	setup(__props) {
-		return (_ctx, _push, _parent, _attrs) => {
-			_push(`<div${ssrRenderAttrs(_attrs)}><b>Inertia 3:</b>`);
-			_push(ssrRenderComponent(unref(Link), {
-				href: "/about",
-				component: "About",
-				"data-testid": "instant-about"
-			}, {
-				default: withCtx((_, _push, _parent, _scopeId) => {
-					if (_push) _push(`instant visit to About`);
-					else return [createTextVNode("instant visit to About")];
-				}),
-				_: 1
-			}, _parent));
-			_push(` · likes <span data-testid="likes">${ssrInterpolate(__props.likes)}</span><button class="ml-1 rounded border px-1" data-testid="like">like (optimistic)</button></div>`);
-		};
-	}
-});
-//#endregion
-//#region resources/js/Components/V3Features.vue
-var _sfc_setup$10 = V3Features_vue_vue_type_script_setup_true_lang_default.setup;
-V3Features_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
-	const ssrContext = useSSRContext();
-	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/V3Features.vue");
-	return _sfc_setup$10 ? _sfc_setup$10(props, ctx) : void 0;
-};
-var V3Features_default = V3Features_vue_vue_type_script_setup_true_lang_default;
-//#endregion
-//#region resources/js/inertia/v3.ts
-/** Inertia 3 awaits its SSR render: nothing to adapt. */
-var ssrRender = (renderToString) => renderToString;
-var useJsonForm = useHttp;
 //#endregion
 //#region resources/js/Components/NetworkPanel.vue?vue&type=script&setup=true&lang.ts
 var NetworkPanel_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -179,11 +224,11 @@ var NetworkPanel_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ def
 });
 //#endregion
 //#region resources/js/Components/NetworkPanel.vue
-var _sfc_setup$9 = NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$10 = NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup;
 NetworkPanel_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/NetworkPanel.vue");
-	return _sfc_setup$9 ? _sfc_setup$9(props, ctx) : void 0;
+	return _sfc_setup$10 ? _sfc_setup$10(props, ctx) : void 0;
 };
 var NetworkPanel_default = NetworkPanel_vue_vue_type_script_setup_true_lang_default;
 //#endregion
@@ -280,13 +325,49 @@ var Layout_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineCom
 });
 //#endregion
 //#region resources/js/Layouts/Layout.vue
-var _sfc_setup$8 = Layout_vue_vue_type_script_setup_true_lang_default.setup;
+var _sfc_setup$9 = Layout_vue_vue_type_script_setup_true_lang_default.setup;
 Layout_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
 	const ssrContext = useSSRContext();
 	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Layouts/Layout.vue");
-	return _sfc_setup$8 ? _sfc_setup$8(props, ctx) : void 0;
+	return _sfc_setup$9 ? _sfc_setup$9(props, ctx) : void 0;
 };
 var Layout_default = Layout_vue_vue_type_script_setup_true_lang_default;
+//#endregion
+//#region resources/js/Components/V3Features.vue?vue&type=script&setup=true&lang.ts
+var V3Features_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
+	__name: "V3Features",
+	__ssrInlineRender: true,
+	props: { likes: {} },
+	setup(__props) {
+		return (_ctx, _push, _parent, _attrs) => {
+			_push(`<div${ssrRenderAttrs(_attrs)}><b>Inertia 3:</b>`);
+			_push(ssrRenderComponent(unref(Link), {
+				href: "/about",
+				component: "About",
+				"data-testid": "instant-about"
+			}, {
+				default: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`instant visit to About`);
+					else return [createTextVNode("instant visit to About")];
+				}),
+				_: 1
+			}, _parent));
+			_push(` · likes <span data-testid="likes">${ssrInterpolate(__props.likes)}</span><button class="ml-1 rounded border px-1" data-testid="like">like (optimistic)</button></div>`);
+		};
+	}
+});
+//#endregion
+//#region resources/js/Components/V3Features.vue
+var _sfc_setup$8 = V3Features_vue_vue_type_script_setup_true_lang_default.setup;
+V3Features_vue_vue_type_script_setup_true_lang_default.setup = (props, ctx) => {
+	const ssrContext = useSSRContext();
+	(ssrContext.modules || (ssrContext.modules = /* @__PURE__ */ new Set())).add("resources/js/Components/V3Features.vue");
+	return _sfc_setup$8 ? _sfc_setup$8(props, ctx) : void 0;
+};
+var V3Features_default = V3Features_vue_vue_type_script_setup_true_lang_default;
+//#endregion
+//#region resources/js/inertia/v3.ts
+var useJsonForm = useHttp;
 //#endregion
 //#region resources/js/Components/NewsletterForms.vue?vue&type=script&setup=true&lang.ts
 var NewsletterForms_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineComponent({
@@ -629,7 +710,23 @@ var Features_vue_vue_type_script_setup_true_lang_default = /*@__PURE__*/ defineC
 				}),
 				_: 1
 			}, _parent));
-			_push(`</div><div style="${ssrRenderStyle({ "height": "1600px" })}" class="border-l-2 border-dashed pl-2 text-xs text-slate-400">scroll down for WhenVisible</div><div><b>WhenVisible:</b>`);
+			_push(`</div><div style="${ssrRenderStyle({ "height": "1600px" })}" class="border-l-2 border-dashed pl-2 text-xs text-slate-400">scroll down for WhenVisible</div><div><b>Visible island (user data):</b>`);
+			_push(ssrRenderComponent(unref(StaticIsland), {
+				url: "/api/me/orders",
+				when: "visible",
+				as: "span"
+			}, {
+				fallback: withCtx((_, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="visible-island"${_scopeId}>waiting…</span>`);
+					else return [createVNode("span", { "data-testid": "visible-island" }, "waiting…")];
+				}),
+				default: withCtx(({ data }, _push, _parent, _scopeId) => {
+					if (_push) _push(`<span data-testid="visible-island"${_scopeId}>${ssrInterpolate(data.name)}, ${ssrInterpolate(data.orders)} orders</span>`);
+					else return [createVNode("span", { "data-testid": "visible-island" }, toDisplayString(data.name) + ", " + toDisplayString(data.orders) + " orders", 1)];
+				}),
+				_: 1
+			}, _parent));
+			_push(`</div><div><b>WhenVisible:</b>`);
 			_push(ssrRenderComponent(unref(WhenVisible), { data: "visible" }, {
 				fallback: withCtx((_, _push, _parent, _scopeId) => {
 					if (_push) _push(`<span data-testid="visible"${_scopeId}>waiting…</span>`);

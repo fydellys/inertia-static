@@ -1,16 +1,14 @@
-// Inertia 3 + React: the static client decorates Inertia's HTTP client.
+// Demo only, Inertia 3 + React: the network panel records what Inertia's HTTP client receives.
 import { HttpResponseError, xhrHttpClient, type HttpClient } from '@inertiajs/core'
 import { useHttp } from '@inertiajs/react'
-import { inertiaStatic, type StaticManifest } from '@fydellys/inertia-static/react'
 import { recordResponse } from '../devtools/recorder'
-
-export { useStaticIsland } from '@fydellys/inertia-static/react'
 
 /** Inertia 3 only features (Pages/Features.tsx). */
 export { default as V3Features } from '../Components/V3Features'
 
-export function staticAppOptions(manifest: StaticManifest) {
-  return { http: inertiaStatic({ manifest, client: recordingClient() }) }
+/** Inertia's XHR client with the network panel's recorder. */
+export function demoClient(): HttpClient {
+  return recordingClient()
 }
 
 export const useJsonForm = useHttp

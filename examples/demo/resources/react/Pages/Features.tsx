@@ -1,4 +1,5 @@
 import { Deferred, Form, Head, InfiniteScroll, Link, router, useRemember, WhenVisible } from '@inertiajs/react'
+import { StaticIsland } from '@fydellys/inertia-static/react'
 import { V3Features } from '@inertia-version'
 import { layout } from '../Layouts/Layout'
 
@@ -87,6 +88,18 @@ export default function Features({ title, renderedAt, deferred, visible, posts, 
         </div>
 
         <div style={{ height: 1600 }} className="border-l-2 border-dashed pl-2 text-xs text-slate-400">scroll down for WhenVisible</div>
+
+        <div>
+          <b>Visible island (user data):</b>{' '}
+          <StaticIsland<{ name: string; orders: number }>
+            url="/api/me/orders"
+            when="visible"
+            as="span"
+            fallback={<span data-testid="visible-island">waiting…</span>}
+          >
+            {({ data }) => <span data-testid="visible-island">{data?.name}, {data?.orders} orders</span>}
+          </StaticIsland>
+        </div>
 
         <div>
           <b>WhenVisible:</b>{' '}

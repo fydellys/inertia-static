@@ -216,7 +216,7 @@ eq "  no deferred value in the cached HTML (loaded later, from the live URL)" "$
 eq "  no WhenVisible value in the cached HTML" "$(echo "$B" | grep -c 'visible at')" "0"
 has "  the once prop is in the cached HTML" "$B" "plans at"
 
-FT() { result "$1" eval "() => Object.fromEntries(['features-title','deferred','plans','log-count','posts-count','visible','form-error','form-ok','likes'].map(id => [id, document.querySelector('[data-testid='+id+']')?.textContent?.trim() ?? null]).concat([['url', location.pathname + location.search], ['note', document.querySelector('[data-testid=remember-input]')?.value ?? null], ['errors', document.querySelector('[data-testid=inertia-errors]')?.textContent], ['modal', document.querySelectorAll('dialog, iframe').length]]))"; }
+FT() { result "$1" eval "() => Object.fromEntries(['features-title','deferred','plans','log-count','posts-count','visible','visible-island','form-error','form-ok','likes'].map(id => [id, document.querySelector('[data-testid='+id+']')?.textContent?.trim() ?? null]).concat([['url', location.pathname + location.search], ['note', document.querySelector('[data-testid=remember-input]')?.value ?? null], ['errors', document.querySelector('[data-testid=inertia-errors]')?.textContent], ['modal', document.querySelectorAll('dialog, iframe').length]]))"; }
 live_req() { # session, path fragment: the last request to it went to the live URL, uncached
   check "$3" "$(requests "$1")" "any(r[2].startswith('/__inertia/live/') and '$2' in r[2] and r[3] == '200' and 'BYPASS' in r[5] and r[4] not in ('HIT','STALE') for r in d)"
 }
@@ -226,8 +226,21 @@ F=$(FT -s=feat)
 check "Deferred: value loaded after the page" "$F" "(d['deferred'] or '').startswith('deferred at')"
 live_req -s=feat features.json "  through the live URL, never cached"
 check "WhenVisible: not loaded before it is visible" "$F" "d['visible'] == 'waiting…'"
+check "visible island: not loaded before it is visible" "$F" "d['visible-island'] == 'waiting…'"
+check "  no request to its endpoint yet" "$(origin)" "not any('/api/me/orders' in l['uri'] for l in d['log'])"
 pw -s=feat eval "() => window.scrollTo(0, document.body.scrollHeight)" >/dev/null; sleep 1.5
 check "WhenVisible: loaded when scrolled into view" "$(FT -s=feat)" "(d['visible'] or '').startswith('visible at')"
+check "visible island: loaded when scrolled into view (anonymous: guest)" "$(FT -s=feat)" "d['visible-island'] == 'guest, 0 orders'"
+check "  fetched once, from the origin (never cached)" "$(origin)" "sum(1 for l in d['log'] if l['uri'] == '/api/me/orders') == 1"
+pw -s=island open "$BASE/login" $HEADED --browser=chromium >/dev/null; ready -s=island
+click -s=island submit; sleep 1.5
+pw -s=island goto "$BASE/features" >/dev/null; ready -s=island
+check "visible island, signed in: waiting until visible" "$(FT -s=island)" "d['visible-island'] == 'waiting…'"
+pw -s=island eval "() => window.scrollTo(0, document.body.scrollHeight)" >/dev/null; sleep 1.5
+check "  then Alice's data, on the cached static page" "$(FT -s=island)" "d['visible-island'] == 'Alice Secret, 3 orders'"
+pw -s=island close >/dev/null 2>&1
+get /features
+eq "  the cached /features HTML has no Alice" "$(echo "$B" | grep -c Alice)" "0"
 live_req -s=feat features.json "  through the live URL, never cached"
 pw -s=feat eval "() => window.scrollTo(0, 0)" >/dev/null
 

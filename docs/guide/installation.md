@@ -39,7 +39,8 @@ export default defineConfig({
 
 The plugin:
 
-- makes `@fydellys/inertia-static` (and `/vue`, `/react`, `/inertia2`, `/inertia2/react`) importable;
+- makes `@fydellys/inertia-static/vue` and `/react` importable, pointing to the client of the Inertia version you
+  have installed (2 or 3);
 - dedupes `@inertiajs/core`, `vue`, `react`, `react-dom` and `axios`, so the client and your app share one copy;
 - writes `resources/js/inertia-static.json` (`php artisan inertia-static:manifest`) when the build starts.
 
@@ -48,81 +49,49 @@ The plugin:
 | `manifest` | `true` | Set `false` to skip writing the manifest |
 | `php` | `'php'` | PHP binary |
 | `artisan` | `'artisan'` | Path to `artisan` |
+| `inertia` | detected | `2` or `3`: the Inertia version, when it cannot be detected from `node_modules` |
+
+Then add the client to `createInertiaApp`. The code is the same on Inertia 2 and 3:
 
 ::: code-group
 
-```ts [Vue · Inertia 3]
+```ts [Vue]
 // resources/js/app.ts
 import { createInertiaApp } from '@inertiajs/vue3'
-import { inertiaStatic } from '@fydellys/inertia-static/vue'
+import { withInertiaStatic } from '@fydellys/inertia-static/vue'
 import manifest from './inertia-static.json'
 
 createInertiaApp({
-  http: inertiaStatic({ manifest }),
+  ...withInertiaStatic({ manifest }),
   // resolve, setup, ...
 })
 ```
 
-```tsx [React · Inertia 3]
+```tsx [React]
 // resources/js/app.tsx
 import { createInertiaApp } from '@inertiajs/react'
-import { inertiaStatic } from '@fydellys/inertia-static/react'
+import { withInertiaStatic } from '@fydellys/inertia-static/react'
 import manifest from './inertia-static.json'
 
 createInertiaApp({
-  http: inertiaStatic({ manifest }),
-  // resolve, setup, ...
-})
-```
-
-```ts [Vue · Inertia 2]
-// resources/js/app.ts
-import { createInertiaApp } from '@inertiajs/vue3'
-import axios from 'axios'
-import { installInertiaStatic } from '@fydellys/inertia-static/inertia2'
-import manifest from './inertia-static.json'
-
-installInertiaStatic(axios, { manifest })
-
-createInertiaApp({
-  // resolve, setup, ...
-})
-```
-
-```tsx [React · Inertia 2]
-// resources/js/app.tsx
-import { createInertiaApp } from '@inertiajs/react'
-import axios from 'axios'
-import { installInertiaStatic } from '@fydellys/inertia-static/inertia2/react'
-import manifest from './inertia-static.json'
-
-installInertiaStatic(axios, { manifest })
-
-createInertiaApp({
+  ...withInertiaStatic({ manifest }),
   // resolve, setup, ...
 })
 ```
 
 :::
 
-| | Import from |
-|---|---|
-| Vue · Inertia 3 | `@fydellys/inertia-static/vue` |
-| React · Inertia 3 | `@fydellys/inertia-static/react` |
-| Vue · Inertia 2 | `@fydellys/inertia-static/inertia2` |
-| React · Inertia 2 | `@fydellys/inertia-static/inertia2/react` |
+`useStaticIsland`, `<StaticIsland>` and `ensureCsrfCookie` come from the same import.
 
-`useStaticIsland` and `ensureCsrfCookie` come from the same import.
-
-**Vue · Inertia 2 with SSR**: wrap `renderToString` with `ssrRender`, created inside the `createServer` callback
-(without it, Vue 3.5.44+ renders `[object Promise]`):
+**Vue with SSR**: wrap `renderToString` with `ssrRender`, created inside the `createServer` callback. On Inertia 3
+it changes nothing; on Inertia 2 it is required (Vue 3.5.44+ would render `[object Promise]`):
 
 ```ts
-// resources/js/ssr.ts (Inertia 2)
+// resources/js/ssr.ts
 import { createInertiaApp } from '@inertiajs/vue3'
 import createServer from '@inertiajs/vue3/server'
 import { renderToString } from 'vue/server-renderer'
-import { ssrRender } from '@fydellys/inertia-static/inertia2'
+import { ssrRender } from '@fydellys/inertia-static/vue'
 
 createServer((page) => createInertiaApp({ page, render: ssrRender(renderToString), /* ... */ }))
 ```
@@ -139,6 +108,10 @@ TypeScript: point the alias at the bundled types in `tsconfig.json`:
   }
 }
 ```
+
+Without the Vite plugin, import the client of your Inertia version directly:
+[`inertiaStatic()`](../api/inertia-static.md) (Inertia 3) or
+[`installInertiaStatic()`](../api/install-inertia-static.md) (Inertia 2).
 
 ::: tip
 Without an imported manifest, the client fetches `/__inertia/manifest.json` once. If that fails, every visit

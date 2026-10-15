@@ -51,6 +51,8 @@ Route::get('/preview/disable', fn () => redirect('/')->withCookie(StaticCache::d
 
 // Dynamic "island" consumed by static pages in the browser.
 Route::get('/api/me', [PageController::class, 'me'])->name('me');
+// Loaded by <StaticIsland when="visible"> on /features (only when scrolled into view).
+Route::get('/api/me/orders', fn (Request $request) => ['name' => $request->user()?->name ?? 'guest', 'orders' => $request->user() ? 3 : 0])->name('me.orders');
 
 // Demo only: origin hit counter (never cached).
 Route::get('/__origin/stats', fn () => cache('origin-hits', ['static' => 0, 'dynamic' => 0, 'log' => []]));

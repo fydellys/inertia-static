@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Deferred, Form, Head, InfiniteScroll, Link, router, useRemember, WhenVisible } from '@inertiajs/vue3'
+import { StaticIsland } from '@fydellys/inertia-static/vue'
 import { V3Features } from '@inertia-version'
 import Layout from '../Layouts/Layout.vue'
 
@@ -77,6 +78,16 @@ const resetLog = () => router.reload({ only: ['log'], reset: ['log'] })
     </div>
 
     <div style="height: 1600px" class="border-l-2 border-dashed pl-2 text-xs text-slate-400">scroll down for WhenVisible</div>
+
+    <div>
+      <b>Visible island (user data):</b>
+      <StaticIsland url="/api/me/orders" when="visible" as="span">
+        <template #fallback><span data-testid="visible-island">waiting…</span></template>
+        <template #default="{ data }">
+          <span data-testid="visible-island">{{ (data as { name: string; orders: number }).name }}, {{ (data as { orders: number }).orders }} orders</span>
+        </template>
+      </StaticIsland>
+    </div>
 
     <div>
       <b>WhenVisible:</b>

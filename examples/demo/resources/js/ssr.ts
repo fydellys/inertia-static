@@ -2,7 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3'
 import createServer from '@inertiajs/vue3/server'
 import { renderToString } from 'vue/server-renderer'
 import { createSSRApp, h, type DefineComponent } from 'vue'
-import { ssrRender } from '@inertia-version'
+import { ssrRender } from '@fydellys/inertia-static/vue'
 
 createServer((page) =>
   createInertiaApp({

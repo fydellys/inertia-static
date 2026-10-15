@@ -1,16 +1,13 @@
-// Inertia 2: visits go through axios; the static client is an axios adapter.
+// Demo only, Inertia 2: the network panel records what axios receives.
 import axios from 'axios'
-import { installInertiaStatic, type InertiaStaticOptions } from '@fydellys/inertia-static/inertia2'
 import { reactive } from 'vue'
 import { recordResponse } from '../devtools/recorder'
-
-export { ssrRender, useStaticIsland } from '@fydellys/inertia-static/inertia2'
 
 /** Instant visits and optimistic updates are Inertia 3 only. */
 export const V3Features = null
 
-export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['manifest']>) {
-  // The recorder goes first, so it sits below the static adapter and sees the CDN's response.
+/** Installs the recorder on axios. Called before withInertiaStatic(): it sits below the static adapter and sees the CDN's response. */
+export function demoClient(): undefined {
   const network = axios.getAdapter(axios.defaults.adapter)
   axios.defaults.adapter = async (config) => {
     const started = performance.now()
@@ -27,9 +24,7 @@ export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['man
     }
   }
 
-  installInertiaStatic(axios, { manifest })
-
-  return {}
+  return undefined
 }
 
 /** Same shape as Inertia 3's useHttp(), for the demo form (Inertia 2 has no useHttp). */

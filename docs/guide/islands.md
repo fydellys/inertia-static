@@ -35,13 +35,12 @@ export function Greeting() {
 
 :::
 
-On Inertia 2, import it from `@fydellys/inertia-static/inertia2` (Vue) or `@fydellys/inertia-static/inertia2/react`.
-
 - Fetches on mount with the visitor's cookies, never during SSR, so the cached HTML is identical for everyone.
 - **Reloads after every non-GET Inertia visit** (sign in, sign out, forms), even when the page component is
   reused. Disable it with `refreshAfterMutations: false`.
 - A failed request (non-2xx) sets `error`. Call `load()` to fetch again.
-- Options: `immediate` (default `true`), `initial`, `init` (extra `fetch` options), `refreshAfterMutations`.
+- Options: `when` (`'mount'` or `'visible'`), `buffer`, `immediate` (default `true`), `initial`, `init` (extra `fetch`
+  options), `refreshAfterMutations`.
   See [`useStaticIsland()`](../api/use-static-island.md).
 
 The endpoint is a regular dynamic route. Nothing else is needed: Laravel already answers with
@@ -52,6 +51,38 @@ Route::get('/api/me', fn (Request $request) => [
     'user' => $request->user()?->only('id', 'name'),
 ]);
 ```
+
+## Load when visible
+
+User data further down the page, loaded when it scrolls into view: the island version of Inertia's
+`<WhenVisible>`. `<WhenVisible>` itself reloads the static page, which never sees the signed-in user.
+
+::: code-group
+
+```vue [Vue]
+<script setup lang="ts">
+import { StaticIsland } from '@fydellys/inertia-static/vue'
+</script>
+
+<template>
+  <StaticIsland url="/api/me/orders" when="visible" :buffer="200">
+    <template #fallback>Loading…</template>
+    <template #default="{ data }">{{ data.orders.length }} orders</template>
+  </StaticIsland>
+</template>
+```
+
+```tsx [React]
+import { StaticIsland } from '@fydellys/inertia-static/react'
+
+<StaticIsland<{ orders: Order[] }> url="/api/me/orders" when="visible" buffer={200} fallback={<span>Loading…</span>}>
+  {({ data }) => <span>{data?.orders.length} orders</span>}
+</StaticIsland>
+```
+
+:::
+
+See [`<StaticIsland>`](../api/static-island.md), or `useStaticIsland(url, { when: 'visible' })` with its `target`.
 
 ## Put islands in a persistent layout
 

@@ -1,6 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react'
 import type { ReactNode } from 'react'
-import { useStaticIsland } from '@inertia-version'
+import { useStaticIsland } from '@fydellys/inertia-static/react'
 import NetworkPanel from '../Components/NetworkPanel'
 
 export default function Layout({ children }: { children: ReactNode }) {

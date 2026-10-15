@@ -14,7 +14,7 @@ something that is not an Inertia response. Usually it is the **cached HTML**, be
 
 With the client plugin, visits to static pages never use the HTML URL: they go to the cacheable JSON URL or to the
 never-cached live endpoint, and `x-inertia` is injected. If you still see it, check that `createInertiaApp` uses
-`http: inertiaStatic({ manifest })` (Inertia 2: that `installInertiaStatic(axios, { manifest })` runs before it),
+`...withInertiaStatic({ manifest })` and that the Vite plugin is loaded,
 and that the manifest is up to date (it is written on every Vite build).
 
 Extra protection for clients without the plugin (or with a stale manifest): a Cloudflare **Cache Rule** that bypasses

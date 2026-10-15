@@ -28,13 +28,27 @@ export function Greeting() {
 
 :::
 
-On Inertia 2, import it from `@fydellys/inertia-static/inertia2` (Vue) or `@fydellys/inertia-static/inertia2/react`.
+## Load when visible
+
+```vue
+<script setup lang="ts">
+const { data, target } = useStaticIsland<{ orders: Order[] }>('/api/me/orders', { when: 'visible' })
+</script>
+
+<template>
+  <div ref="target">{{ data ? `${data.orders.length} orders` : 'Loading…' }}</div>
+</template>
+```
+
+Or use the [`<StaticIsland>`](./static-island.md) component.
 
 ## Reference
 
 ```ts
 useStaticIsland<T>(url: string, options?: {
-  immediate?: boolean              // fetch on mount, default true
+  when?: 'mount' | 'visible'       // fetch on mount (default) or when `target` scrolls into view
+  buffer?: number                  // with 'visible': start this many pixels before, default 0
+  immediate?: boolean              // false: only when you call load(), default true
   initial?: T | null               // value before loading and during SSR, default null
   init?: RequestInit               // extra fetch options (cookies are always sent)
   refreshAfterMutations?: boolean  // reload after non-GET Inertia visits, default true
@@ -43,6 +57,7 @@ useStaticIsland<T>(url: string, options?: {
   loading: boolean                 // Vue: Ref<boolean>
   error: unknown                   // Vue: ShallowRef<unknown>
   load(): Promise<T | null>        // fetch again
+  target                           // with 'visible': Vue: <div ref="target">; React: <div ref={island.target}>
 }
 ```
 
@@ -53,6 +68,7 @@ React returns plain values; Vue returns refs.
 - It never runs during SSR, so the cached HTML is the same for every visitor.
 - Put it in a **persistent layout** (Vue: `defineOptions({ layout: Layout })`; React: `Page.layout = (page) =>
   <Layout>{page}</Layout>`), so it is fetched once, not on every navigation.
-- It reloads after sign in, sign out and form submissions (non-GET visits).
+- It reloads after sign in, sign out and form submissions (non-GET visits). A `visible` island that has not
+  loaded yet waits until it is visible.
 - A failed request sets `error` and keeps the previous `data`.
 - The endpoint is a regular dynamic route: Laravel's default `Cache-Control: private` keeps it out of the CDN.
