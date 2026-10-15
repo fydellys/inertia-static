@@ -42,6 +42,9 @@ First release.
 - Vue and React, on Inertia 3 (`createInertiaApp({ http: inertiaStatic({ manifest }) })`) and Inertia 2
   (`installInertiaStatic(axios, { manifest })`, plus `ssrRender` for Vue SSR).
 - Forms on static pages work on Laravel 12 and 13 without CSRF code.
+- Inertia features on static pages: deferred props, `<WhenVisible>`, `<InfiniteScroll>`, polling, partial reloads,
+  merge and once props, prefetch, `useRemember`, history encryption, `<Form>`, and on Inertia 3 instant visits and
+  optimistic updates.
 
 ### Tooling
 - Artisan commands: `inertia-static:routes`, `manifest`, `purge`, `warm`, `doctor`.

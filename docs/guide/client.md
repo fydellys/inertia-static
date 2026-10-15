@@ -35,6 +35,9 @@ A `GET` Inertia visit to a path of the manifest goes to one of two URLs:
 | partial reload, **deferred props**, `X-Inertia-Reset`, infinite scroll, `Precognition` | live | never |
 | query outside the whitelist, `X-Inertia-Static-Bypass` header, [preview mode](./preview.md) | live (query kept) | never |
 
+Deferred props, `<WhenVisible>`, infinite scroll, once props and the other Inertia features work on static pages: see
+[Inertia features](./inertia-features.md).
+
 Sent unchanged: non-GET requests, requests that are not Inertia visits (`useHttp()`, your own `axios`/`fetch`
 calls), other origins, GET visits with `data`, and paths that are not in the manifest (dynamic routes).
 

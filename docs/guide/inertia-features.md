@@ -9,10 +9,10 @@ is the same for every visitor; anything that loads data after the page goes to t
 | `<Deferred>` / `Inertia::defer()` | loaded from the origin after the page, never cached. Needs `deferred_props = allow` |
 | `<WhenVisible>` / `Inertia::optional()` | loaded from the origin when it becomes visible, never cached |
 | `<InfiniteScroll>` / `Inertia::scroll()` | next pages loaded from the origin, never cached |
-| Partial reloads (`only`, `except`, `reset`), `router.reload()`, `usePoll` | from the origin, never cached |
-| `Inertia::merge()`, `deepMerge()` | merged in the browser, as usual |
+| Partial reloads (`only`, `reset`), `router.reload()`, `usePoll` | from the origin, never cached |
+| `Inertia::merge()` (append, `reset`) | merged in the browser, as usual |
 | `Inertia::once()` | works; a cached page always contains the once prop |
-| `useRemember`, `useForm` remember key | stored in the browser history, as usual |
+| `useRemember` | restored on back/forward, as usual |
 | `Inertia::encryptHistory()` | works (the page needs HTTPS or `localhost`) |
 | `<Form>`, `useForm`, `useHttp` | sent to the origin; see [User data, forms & CSRF](./islands.md) |
 | Instant visits, optimistic updates (Inertia 3) | work; the visit then loads the cached page JSON |

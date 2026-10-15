@@ -47,6 +47,7 @@ export default defineConfig({
           { text: 'Static paths', link: '/guide/static-paths' },
           { text: 'Responses & tags', link: '/guide/responses' },
           { text: 'Client', link: '/guide/client' },
+          { text: 'Inertia features', link: '/guide/inertia-features' },
           { text: 'User data, forms & CSRF', link: '/guide/islands' },
         ],
       },
