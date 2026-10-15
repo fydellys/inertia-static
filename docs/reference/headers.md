@@ -47,7 +47,8 @@ The CDN headers (`*-Cache-Control`, `Surrogate-*`, tag headers, `X-Accel-Expires
 | `server-error` | status ≥ 500 |
 | `partial-reload` | partial reload, deferred props or `X-Inertia-Reset` |
 | `inertia-json-on-html-url` | an Inertia visit (`X-Inertia`) on the HTML URL |
-| `redirect` | a redirect from your code, with `defaults.cache_redirects` off |
+| `redirect` | a redirect from your code, with `defaults.cache_redirects` off, or any redirect on the page JSON URL |
+| `status:404-json` | a `404` asked as JSON (`Accept: application/json`) on the HTML URL |
 | `status:<code>` | any status other than 200, 404 or a redirect (e.g. `status:409` after a deploy) |
 | `ssr-unavailable` | SSR is enabled but the HTML was rendered without it (`ssr.required`) |
 | `not-static` | the page JSON URL of an unknown or dynamic route (404) |
@@ -70,8 +71,10 @@ The header names follow `cache_header` and `debug_header` (`{debug_header}-Reaso
 | `Authorization` | never cached (`authorization`) |
 | `Cookie` | removed before routing on static routes (except the live URL) |
 | `X-Forwarded-Host`, `X-Forwarded-Port`, `X-Forwarded-Prefix`, `Forwarded` | removed on static routes |
+| `X-Forwarded-Proto` | set to the scheme of the base URL on static routes |
 | `If-None-Match` | `304` when it matches |
 | `X-Inertia` on the HTML URL | not cached (`inertia-json-on-html-url`) |
 | `X-Inertia-Partial-*`, `X-Inertia-Reset` | partial reload: not cached; the client sends these visits to the live URL |
+| Other `X-Inertia-*` request headers (`Except-Once-Props`, `Infinite-Scroll-Merge-Intent`, …) | ignored on a page load (no `X-Inertia`) of the HTML URL |
 | `X-Inertia-Static-Bypass` | set on a visit, it makes the client plugin send it to the live URL |
 | `Cache-Control: no-cache` (`router.reload()`, polling) | the client plugin sends the visit to the live URL |

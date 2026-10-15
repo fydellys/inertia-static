@@ -38,7 +38,8 @@ export function Greeting() {
 - Fetches on mount with the visitor's cookies, never during SSR, so the cached HTML is identical for everyone.
 - **Reloads after every non-GET Inertia visit** (sign in, sign out, forms), even when the page component is
   reused. Disable it with `refreshAfterMutations: false`.
-- A failed request (non-2xx) sets `error`. Call `load()` to fetch again.
+- A failed request (non-2xx) sets `error` and puts `data` back to `initial` (e.g. a `401` after logout never
+  leaves the previous user on screen). Call `load()` to fetch again; the latest call always wins.
 - Options: `when` (`'mount'` or `'visible'`), `buffer`, `immediate` (default `true`), `initial`, `init` (extra `fetch`
   options), `refreshAfterMutations`.
   See [`useStaticIsland()`](../api/use-static-island.md).

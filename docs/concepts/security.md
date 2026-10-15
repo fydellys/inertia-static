@@ -14,7 +14,8 @@ On `isr` and `static` routes:
   listed in `public_shared_props`; `errors` is always `{}`.
 - **No cookies in responses.** Every `Set-Cookie` is removed, and `Cookie` is removed from `Vary`.
 - **No forwarded host headers.** `X-Forwarded-Host`, `X-Forwarded-Port`, `X-Forwarded-Prefix` and `Forwarded` are
-  removed, so a client cannot change the URLs built by `url()`, `route()`, `asset()` or `@vite` in a cached page.
+  removed and `X-Forwarded-Proto` is set to the scheme of the base URL, so a client cannot change the URLs built by
+  `url()`, `route()`, `asset()` or `@vite` in a cached page.
 - **One URL per page.** Unknown query parameters, a trailing slash or a different percent-encoding
   (`/blog/%68ello`) redirect to the canonical URL ([Cache key](./cache-key.md)).
 - **GET only.** A static route must be a `GET` route (`Route::get`): declaring `isr` / `static` on a route that

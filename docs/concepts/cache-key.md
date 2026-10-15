@@ -26,7 +26,9 @@ other parameters to the never-cached live URL.
 
 ## Percent-encoding
 
-Escapes of plain characters are decoded and the others are uppercased: `/blog/%68ello` redirects to `/blog/hello`.
+Paths are percent-encoded one way, as browsers send them: letters, digits, `-._~` and `!$&'()+,;=:@` stay plain,
+every other character is encoded with uppercase escapes. `/blog/%68ello` redirects to `/blog/hello`, `/blog/a b`
+to `/blog/a%20b`. Purges use the same spelling, so pass page paths decoded or encoded, as you prefer.
 
 ## Locale
 
