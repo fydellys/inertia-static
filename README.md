@@ -16,7 +16,7 @@ It is based on the rendering model of [Next.js](https://nextjs.org/docs/app/guid
 
 Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cache.
 
-![An ISR page: MISS on the first visit, then HIT from the CDN; a tag purge and it is rendered again](.github/art/demo.gif)
+![A visitor browsing the demo through Cloudflare: every page comes from the CDN (HIT), none reaches the origin](.github/art/demo.gif)
 
 **Documentation:** https://fydellys.github.io/inertia-static/
 
