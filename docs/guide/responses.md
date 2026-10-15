@@ -10,7 +10,11 @@ return Inertia::render('Post/Show', ['post' => $post])
     ->tags(['posts', "post:{$post->id}"]);
 ```
 
-They override the route options for the current request only. On dynamic routes they are ignored.
+`->expire($seconds)` sets the total lifetime instead of `staleWhileRevalidate` (stale-while-revalidate is
+`expire - revalidate`).
+
+These macros override the route options for the current request only. `tags()` adds to the route's tags. On dynamic
+routes they are ignored.
 
 ## Tags
 
@@ -30,15 +34,16 @@ Good tag design:
 
 ## What is cached
 
-The [policy resolver](../concepts/how-it-works.md#fail-safe-cache-policy) decides. In short:
+Only responses of `isr` and `static` routes are cached, and only when it is safe
+([Fail-safe cache policy](../concepts/how-it-works.md#fail-safe-cache-policy)):
 
 | Response | Cached? |
 |---|---|
 | `200` HTML rendered with SSR | yes, `revalidate` |
 | `200` page JSON (`/__inertia/...`) | yes, `revalidate` |
 | `404` | yes, `defaults.not_found_ttl` (60s) |
-| canonical `301` (query / trailing slash) | yes, `defaults.redirect_ttl` |
+| canonical `301` (query / trailing slash) | yes, `defaults.redirect_ttl` (300s) |
 | other redirects | only with `defaults.cache_redirects` |
-| `5xx`, `409`, anything else | never |
+| `5xx` and any other status | never |
 | HTML rendered without SSR while SSR is enabled (SSR server down) | never (unless `ssr.required` is false) |
-| requests with `Authorization`, partial reloads, leaks | never |
+| requests with `Authorization`, preview mode, partial reloads, leaks | never |

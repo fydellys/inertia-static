@@ -39,6 +39,9 @@ All notable changes to this project follow [Semantic Versioning](https://semver.
 - Purge all falls back to a `/` prefix purge on drivers without purge all (nginx).
 
 ### Changed
+- `inertia-static:purge --all --warm` warms every static page (it warmed nothing before).
+- Varnish prefix purges match the path literally (the VCL bans with a regex).
+- `docs/nginx.conf` purges by the raw request path, so pages with percent-encoded paths are purged too.
 - SSR is optional: apps without Inertia SSR get their HTML cached. `ssr.required` only applies when SSR is enabled
   (a page rendered while the SSR server is down is sent with `no-store`).
 - Varnish: edge TTL and stale time moved to `Surrogate-Control` (read and removed by the VCL); browsers only get

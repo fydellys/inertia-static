@@ -12,49 +12,30 @@ StaticCache::purgeTags(['post:42', 'author:7']);
 ## Reference
 
 ```php
-StaticCache::purgeTags(array|string $tags, ?PurgeMode $mode = null): void   // Soft (default) | Hard
+StaticCache::purgeTags(array|string $tags, ?PurgeMode $mode = null): void
 ```
 
-### Behaviour
+| `$mode` | Effect |
+|---|---|
+| `null` | `purge.mode` from the config (`soft` by default) |
+| `PurgeMode::Soft` | pages are marked stale and served while they refresh |
+| `PurgeMode::Hard` | pages are removed now; the next request renders them at the origin |
 
-1. A `PurgeStaticCache` job is queued after the current database transaction commits, delayed by
-   `purge.debounce` seconds and unique for that window (identical purges collapse into one).
-2. The job purges the tags through the driver, in batches (Cloudflare 100, Fastly 256).
-3. CDNs without tag purges use the [tag registry](../guide/revalidation.md#tag-registry): every page recorded
-   with the tag is purged on both of its URLs (HTML + page JSON).
-4. The next request is a cache miss: rendered at the origin, cached again.
+`PurgeMode` is `Fydellys\InertiaStatic\Enums\PurgeMode`. CDNs without soft purges always purge hard.
 
-## Examples
-
-### In a controller
-
-```php
-public function update(UpdatePostRequest $request, Post $post)
-{
-    $post->update($request->validated());
-
-    StaticCache::purgeTags(["post:{$post->id}", 'posts']);
-
-    return to_route('admin.posts.edit', $post);
-}
-```
-
-### From the command line
+From the command line:
 
 ```bash
-php artisan inertia-static:purge --tags=posts,post:42          # synchronous
-php artisan inertia-static:purge --tags=posts --queue          # queued
+php artisan inertia-static:purge --tags=posts,post:42           # now
+php artisan inertia-static:purge --tags=posts --queue --hard    # queued, hard
 ```
-
-### Mode
-
-| `PurgeMode` | Effect |
-|---|---|
-| `Soft` (default) | marked stale, served while refreshed |
-| `Hard` | removed now |
 
 ## Good to know
 
-- Usually you do not call it: [`HasStaticTags`](./has-static-tags) does it when models change.
+- The purge is queued: it runs after the current database transaction commits, `purge.debounce` seconds later
+  (5 by default), and identical purges in that window run once. Use [`purgeNow()`](./purge-now) to purge
+  synchronously.
+- Usually you do not call it yourself: [`HasStaticTags`](./has-static-tags) does it when models change.
+- CDNs without tag purges (Bunny, CloudFront, nginx) need the [tag registry](../guide/revalidation.md#tag-registry).
 - It does nothing in [headers-only mode](../guide/headers-only.md) (no CDN credentials); a notice is logged.
-- On Cloudflare Free, tag purges are limited to 5 requests per minute: set `INERTIA_STATIC_PURGE_RATE_LIMIT=5`.
+- On Cloudflare Free, purges are limited to 5 requests per minute: set `INERTIA_STATIC_PURGE_RATE_LIMIT=5`.

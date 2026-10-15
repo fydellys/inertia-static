@@ -1,6 +1,6 @@
 # `#[StaticPage]`
 
-The attribute version of [`->isr()` / `->static()`](./route-isr), for controller methods or classes.
+The attribute version of [`->isr()` / `->static()` / `->dynamic()`](./route-isr), for controller methods or classes.
 
 ```php
 use Fydellys\InertiaStatic\Attributes\StaticPage;
@@ -16,20 +16,22 @@ class PostController
 
 ```php
 #[StaticPage(
-    RenderMode|string $mode = 'isr',     // 'isr' | 'static' | 'dynamic'
+    RenderMode|string $mode = RenderMode::Isr,   // 'isr' | 'static' | 'dynamic'
     ?int $revalidate = null,
     ?string $paths = null,
     array $tags = [],
     array $query = [],
     ?int $staleWhileRevalidate = null,
     ?int $staleIfError = null,
+    ?int $expire = null,
 )]
 ```
 
-The parameters are the same as [`->isr()`](./route-isr#parameters).
+The other parameters are the same as in [`->isr()`](./route-isr#parameters).
+`RenderMode` is `Fydellys\InertiaStatic\Enums\RenderMode`.
 
 ## Good to know
 
 - On the class, it applies to every action of the controller. On a method, it overrides the class.
-- A route that already uses a macro keeps the macro: the macro wins.
-- Attributes are read once the application has booted, so they also work with `route:cache`.
+- A route macro wins over the attribute: use `->dynamic()` to exclude one route of a class marked `#[StaticPage]`.
+- It works with `php artisan route:cache`.

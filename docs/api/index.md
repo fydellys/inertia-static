@@ -1,6 +1,6 @@
 # API Reference
 
-Every public function: signature, parameters, return value, examples and what is good to know.
+Every public function: what it does, an example, its signature and what is good to know.
 
 ## Route configuration
 
@@ -10,7 +10,7 @@ Every public function: signature, parameters, return value, examples and what is
 
 ## Responses
 
-- [`->revalidate()`, `->staleWhileRevalidate()`, `->staleIfError()`](./response-revalidate)
+- [`->revalidate()`, `->staleWhileRevalidate()`, `->staleIfError()`, `->expire()`](./response-revalidate)
 - [`->tags()`](./response-tags)
 
 ## On-demand revalidation
@@ -22,6 +22,10 @@ Every public function: signature, parameters, return value, examples and what is
 - [`StaticCache::purgeNow()`](./purge-now)
 - [`StaticCache::canPurge()`](./can-purge)
 - [`HasStaticTags`](./has-static-tags)
+
+## Preview
+
+- [`StaticCache::enablePreview()` / `disablePreview()` / `isPreview()`](./preview)
 
 ## Client
 

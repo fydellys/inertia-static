@@ -13,16 +13,13 @@ StaticCache::purgePrefix(['/docs', '/changelog']);
 StaticCache::purgePrefix(array|string $prefixes, ?PurgeMode $mode = null): void
 ```
 
-The JSON prefix (`/__inertia/<version>/blog`) is purged with the HTML prefix.
-
-| Driver | How |
-|---|---|
-| Cloudflare | native prefix purge (`example.com/blog`) |
-| Varnish | `BAN` on the URL prefix |
-| nginx / Bunny | wildcard purge (`/blog*`) |
-| Fastly | no prefix purge: [implicit path tag](../guide/revalidation.md#implicit-path-tags) `_IST_/blog/` |
+`$mode` works as in [`purgeTags()`](./purge-tags#reference).
 
 ## Good to know
 
-- When neither prefix purge nor the registry can resolve the pages, the purge **escalates to purge all**: stale
-  content is worse than a cold cache.
+- The page JSON of those pages is purged too.
+- Fastly has no prefix purge: it is done through [implicit path tags](../guide/revalidation.md#implicit-path-tags),
+  so keep `implicit_tags` enabled.
+- When the CDN can neither purge the prefix nor find the pages under it, it purges everything instead.
+- Queued and debounced like [`purgeTags()`](./purge-tags#good-to-know). From the command line:
+  `php artisan inertia-static:purge --prefix=/blog`.

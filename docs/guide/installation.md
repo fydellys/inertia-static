@@ -7,10 +7,9 @@ composer require fydellys/inertia-static
 php artisan vendor:publish --tag=inertia-static-config
 ```
 
-The service provider and the `StaticCache` facade are auto-discovered. The global middleware
-(`ApplyStaticCache`) is registered automatically.
+The service provider, its middleware and the `StaticCache` facade are registered automatically.
 
-Optional, for CDNs **without tag purging** (nginx, Bunny, or when you want purges by tag to become URL purges):
+For CDNs **without tag purging** (nginx, CloudFront, Bunny), enable a tag registry so purges by tag become URL purges:
 
 ```bash
 php artisan vendor:publish --tag=inertia-static-migrations
@@ -40,9 +39,15 @@ export default defineConfig({
 
 The plugin:
 
-- aliases `@fydellys/inertia-static` (and `/vue`, `/react`, `/inertia2`, `/inertia2/react`) to the built client in `vendor/`;
-- **dedupes** `@inertiajs/core`, `vue`, `react`, `react-dom` and `axios`, so the client and your app share one copy;
-- runs `php artisan inertia-static:manifest` when the build starts. Options: `manifest: false`, `php`, `artisan`.
+- makes `@fydellys/inertia-static` (and `/vue`, `/react`, `/inertia2`, `/inertia2/react`) importable;
+- dedupes `@inertiajs/core`, `vue`, `react`, `react-dom` and `axios`, so the client and your app share one copy;
+- writes `resources/js/inertia-static.json` (`php artisan inertia-static:manifest`) when the build starts.
+
+| Option | Default | |
+|---|---|---|
+| `manifest` | `true` | Set `false` to skip writing the manifest |
+| `php` | `'php'` | PHP binary |
+| `artisan` | `'artisan'` | Path to `artisan` |
 
 ::: code-group
 
@@ -109,11 +114,14 @@ createInertiaApp({
 
 `useStaticIsland` and `ensureCsrfCookie` come from the same import.
 
-**Vue · Inertia 2 with SSR**: wrap `renderToString` with `ssrRender` (Vue 3.5.44+ renders `[object Promise]`
-otherwise):
+**Vue · Inertia 2 with SSR**: wrap `renderToString` with `ssrRender`, created inside the `createServer` callback
+(without it, Vue 3.5.44+ renders `[object Promise]`):
 
 ```ts
 // resources/js/ssr.ts (Inertia 2)
+import { createInertiaApp } from '@inertiajs/vue3'
+import createServer from '@inertiajs/vue3/server'
+import { renderToString } from 'vue/server-renderer'
 import { ssrRender } from '@fydellys/inertia-static/inertia2'
 
 createServer((page) => createInertiaApp({ page, render: ssrRender(renderToString), /* ... */ }))
@@ -132,25 +140,25 @@ TypeScript: point the alias at the bundled types in `tsconfig.json`:
 }
 ```
 
-
 ::: tip
-Without an imported manifest, the plugin fetches `/__inertia/manifest.json` once. If that fails, every visit
+Without an imported manifest, the client fetches `/__inertia/manifest.json` once. If that fails, every visit
 keeps the normal Inertia flow (fail-open).
 :::
 
 ## SSR
 
 The package works with or without [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering).
-With SSR enabled, a page that renders without it (SSR server down) is not cached, so the CDN never stores a
-degraded copy.
+With SSR enabled, a page that renders without it (SSR server down) is sent with `no-store`, so the CDN never
+stores a degraded copy. Set `INERTIA_STATIC_SSR_REQUIRED=false` to cache those pages anyway.
 
 ## Configure the CDN
 
-Pick a driver in `.env` and follow its page ([Choosing a driver](../cdn/overview.md)):
+Pick a driver in `.env` (`cloudflare`, `fastly`, `bunny`, `cloudfront`, `varnish`, `nginx`, `multi` or `null`, the
+default) and follow its page ([Choosing a driver](../cdn/overview.md)):
 
 ```ini
 INERTIA_STATIC_CDN=cloudflare
-CLOUDFLARE_ZONE_ID=...
-CLOUDFLARE_API_TOKEN=...     # optional: without it the driver runs in headers-only mode
 INERTIA_STATIC_BASE_URL=https://example.com
+CLOUDFLARE_ZONE_ID=...       # zone ID and token are only needed to purge;
+CLOUDFLARE_API_TOKEN=...     # without them the driver runs in headers-only mode
 ```

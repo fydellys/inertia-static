@@ -5,7 +5,7 @@
 ```ini
 INERTIA_STATIC_CDN=bunny
 BUNNY_PULL_ZONE_ID=...
-BUNNY_API_KEY=...                  # optional (see Headers-only mode)
+BUNNY_API_KEY=...                  # account API key; optional (see Headers-only mode)
 INERTIA_STATIC_REGISTRY=database   # tag purges become URL purges
 ```
 
@@ -27,6 +27,6 @@ Check it with `curl -I https://example.com/` twice: the `CDN-Cache` header goes 
 | Method | Purges |
 |---|---|
 | `purgeUrls()` | the given pages (HTML and page JSON) |
-| `purgeTags()` | the pages recorded for the tags in the registry |
+| `purgeTags()` | every page with one of the tags (through the tag registry) |
 | `purgePrefix()` | every page under the path |
 | `purgeAll()` | the whole pull zone |

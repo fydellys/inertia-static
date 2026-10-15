@@ -70,8 +70,18 @@ class VarnishDriver extends Driver
         foreach ($prefixes as $prefix) {
             $parts = parse_url($prefix);
 
-            $this->each('BAN', ['X-Ban-Host' => $this->hostOf($parts), 'X-Ban-Prefix' => $parts['path'] ?? '/']);
+            $this->each('BAN', ['X-Ban-Host' => $this->hostOf($parts), 'X-Ban-Prefix' => $this->literal($parts['path'] ?? '/')]);
         }
+    }
+
+    /**
+     * The VCL bans with a regex ("x-url ~ ^prefix"): match the path literally. Bracket
+     * classes avoid backslashes in the VCL string; characters a URL path cannot hold
+     * unencoded ([ ] ^ \\ | { }) never reach here.
+     */
+    protected function literal(string $path): string
+    {
+        return (string) preg_replace('/[.+()*?$]/', '[$0]', $path);
     }
 
     public function purgeAll(): void

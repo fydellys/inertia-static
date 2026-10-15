@@ -5,7 +5,9 @@ endpoint: an *island*.
 
 ## `useStaticIsland()`
 
-```vue
+::: code-group
+
+```vue [Vue]
 <script setup lang="ts">
 import { useStaticIsland } from '@fydellys/inertia-static/vue'
 
@@ -19,12 +21,28 @@ const { data, loading, error, load } = useStaticIsland<{ user: { name: string } 
 </template>
 ```
 
-- Fetches on mount (never during SSR, so the cached HTML is identical for everyone) with cookies
-  (`credentials: 'same-origin'`).
-- **Reloads after every non-GET Inertia visit** (sign in, sign out, forms). A sign out that redirects to the same
-  page reuses the page component, so without this the island would keep showing the old user. Disable it
-  with `refreshAfterMutations: false`.
+```tsx [React]
+import { useStaticIsland } from '@fydellys/inertia-static/react'
+
+export function Greeting() {
+  const { data, loading } = useStaticIsland<{ user: { name: string } | null }>('/api/me')
+
+  if (loading) return <span>…</span>
+
+  return data?.user ? <span>Hello, {data.user.name}</span> : <a href="/login">Sign in</a>
+}
+```
+
+:::
+
+On Inertia 2, import it from `@fydellys/inertia-static/inertia2` (Vue) or `@fydellys/inertia-static/inertia2/react`.
+
+- Fetches on mount with the visitor's cookies, never during SSR, so the cached HTML is identical for everyone.
+- **Reloads after every non-GET Inertia visit** (sign in, sign out, forms), even when the page component is
+  reused. Disable it with `refreshAfterMutations: false`.
+- A failed request (non-2xx) sets `error`. Call `load()` to fetch again.
 - Options: `immediate` (default `true`), `initial`, `init` (extra `fetch` options), `refreshAfterMutations`.
+  See [`useStaticIsland()`](../api/use-static-island.md).
 
 The endpoint is a regular dynamic route. Nothing else is needed: Laravel already answers with
 `Cache-Control: private`, which CDNs never store.
@@ -37,11 +55,12 @@ Route::get('/api/me', fn (Request $request) => [
 
 ## Put islands in a persistent layout
 
-If the layout is rendered **inside** each page, Vue mounts it again on every visit and the island fetches
-again on every navigation. Make the layout the page's parent (an Inertia persistent layout): it is mounted once and
-the island loads once.
+If the layout is rendered **inside** each page, it is mounted again on every visit and the island fetches again on
+every navigation. Use an Inertia persistent layout: it is mounted once and the island loads once.
 
-```vue
+::: code-group
+
+```vue [Vue]
 <!-- Pages/About.vue -->
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3'
@@ -56,14 +75,33 @@ defineOptions({ layout: Layout })   // persistent: kept across visits
 </template>
 ```
 
+```tsx [React]
+// Pages/About.tsx
+import { Head } from '@inertiajs/react'
+import Layout from '../Layouts/Layout'
+
+export default function About() {
+  return (
+    <>
+      <Head title="About" />
+      <h1>About</h1>
+    </>
+  )
+}
+
+About.layout = (page: React.ReactNode) => <Layout>{page}</Layout>   // persistent: kept across visits
+```
+
+:::
+
 ## Forms on static pages
 
-Both Inertia ways of submitting a form work on a static page, with **no CSRF helper** on Laravel 13:
+Both Inertia ways of submitting a form work on a static page, with **no CSRF code** (see [CSRF](#csrf)):
 
-| | `useForm` / `<Form>` → `return back()` | `useHttp` → JSON |
+| | `useForm` / `<Form>` → `return back()` | `useHttp` (Inertia 3) → JSON |
 |---|---|---|
 | Request | Inertia visit (POST), redirect | plain JSON request |
-| Validation errors | from the session, through the live endpoint | `422` in the response |
+| Validation errors | `form.errors`, as on any page | `422` in the response |
 | Success message | `Inertia::flash()` (page `flash`) | the JSON you return |
 | Best for | forms that also exist on dynamic pages | static pages, newsletter, contact, search |
 
@@ -92,28 +130,19 @@ const http = useHttp({ email: '' })      // http.post('/api/newsletter')  → ht
 </script>
 ```
 
-### How `return back()` works on a static page
-
-`back()` redirects to the static page's **HTML URL**, and the browser follows that redirect inside the XHR,
-without the client plugin. A CDN ignoring `Vary: X-Inertia` would answer with the cached HTML
-([inertia#1923](https://github.com/inertiajs/inertia/issues/1923)), and the validation errors live in the session,
-which cached pages never read. The package handles both:
-
-1. **Redirect rewrite.** When an Inertia visit is redirected to a static page, `Location` points to the page's
-   **live** JSON URL (`/__inertia/live/{version}/{path}.json`). This also applies to `redirect()->route(...)`,
-   logout, and so on.
-2. **The live endpoint reads the session.** It is never cached, so it returns this visitor's validation `errors`
-   and Inertia `flash` data. The cached page stays identical for everyone.
+`return back()`, `redirect()->route(...)` and logout redirects to a static page all work: the visitor gets their
+own validation errors and Inertia flash data, while the cached page stays identical for everyone.
 
 Flash data shared through `HandleInertiaRequests::share()` (for example `->with('status', ...)`) is not a public
 shared prop, so it does not reach static pages: use `Inertia::flash()`.
 
 ### CSRF
 
-Nothing to do: Inertia forms (`useForm`, `router.post`, `useHttp`) work on static pages on Laravel 12 and 13.
+Nothing to do: Inertia forms (`useForm`, `<Form>`, `router.post`, `useHttp`) work on static pages on Laravel 12
+and 13.
 
 - **Laravel 13** accepts same-origin requests without a token.
-- **Laravel 12** needs the token, but static pages carry no CSRF cookie: the client gets it from `/__inertia/csrf`
-  before the first submission, and Inertia sends it.
+- **Laravel 12**: static pages carry no CSRF cookie, so the client fetches it from `/__inertia/csrf` before the
+  first submission, and Inertia sends it. Force this on or off with `INERTIA_STATIC_CSRF_COOKIE` (`csrf_cookie`).
 
 For your own `fetch()` calls, use [`ensureCsrfCookie()`](../api/ensure-csrf-cookie.md).

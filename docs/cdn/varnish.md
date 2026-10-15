@@ -4,7 +4,7 @@
 
 ```ini
 INERTIA_STATIC_CDN=varnish
-VARNISH_HOSTS=http://varnish-1:6081,http://varnish-2:6081   # optional (see Headers-only mode)
+VARNISH_HOSTS=http://varnish-1:6081,http://varnish-2:6081   # default http://127.0.0.1:6081; empty = headers-only
 ```
 
 ## VCL
@@ -26,7 +26,7 @@ Allow purges only from your app servers: edit `acl purge`.
 | `purgeUrls()` | the given pages (HTML and page JSON) |
 | `purgeTags()` | every page with one of the tags |
 | `purgePrefix()` | every page under the path |
-| `purgeAll()` | every page |
+| `purgeAll()` | everything in the cache (every hostname) |
 
-Tag purges are soft by default: the old page is served once while the new one is fetched. See
+Tag purges are soft by default: the old page is served while the new one is fetched. See
 [soft or hard purge](../guide/revalidation.md#soft-or-hard-purge).

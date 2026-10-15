@@ -88,4 +88,4 @@ third rule in the **Cache Rules** tab, placed **after** rule 1:
 | `purgeUrls()` | the given pages (HTML and page JSON) |
 | `purgeTags()` | every page with one of the tags |
 | `purgePrefix()` | every page under the path |
-| `purgeAll()` | every page of this app's hostname. Set `CLOUDFLARE_PURGE_EVERYTHING=true` to purge the whole zone instead |
+| `purgeAll()` | every page of this app's hostname (or the `hosts` listed in the driver config). Set `CLOUDFLARE_PURGE_EVERYTHING=true` to purge the whole zone instead |

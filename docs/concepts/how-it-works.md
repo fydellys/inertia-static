@@ -1,87 +1,76 @@
 # How it works
 
-```
-                 ┌──────────── global middleware: ApplyStaticCache ────────────────┐
-request ─► CDN ─►│ 1. match the route → RouteOptions (stored in the route action)  │
-                 │ 2. drop request cookies; Authorization ⇒ BYPASS                 │
-                 │ 3. canonical URL (query whitelist, trailing slash) ⇒ 301        │
-                 │   ┌── web group WITHOUT session / cookies / CSRF ─────────────┐ │
-                 │   │ HandleInertiaRequests::share()                            │ │
-                 │   │  └─ RenderStatically (route middleware)                   │ │
-                 │   │      • shared props ⇒ public whitelist                    │ │
-                 │   │      • leak detector armed (auth, session, cookie jar…)   │ │
-                 │   │      • controller → Inertia::render → SSR                 │ │
-                 │   └───────────────────────────────────────────────────────────┘ │
-                 │ 4. PolicyResolver (fail-safe) → CachePolicy                     │
-                 │ 5. ResponseFinalizer: strip Set-Cookie, driver headers, ETag,   │
-                 │    304, X-Inertia-Static-Cache, debug header                    │
-                 │ 6. TagRegistry::record(tags, page)                              │
-                 └─────────────────────────────────────────────────────────────────┘
-```
+A route declared `isr` or `static` is rendered at the origin like any Inertia page, but without a session, cookies
+or the user, so the response is the same for every visitor. The CDN stores it and serves it until it expires or
+is purged. Dynamic routes are not touched.
 
-## The page JSON endpoint
+## Two URLs per page
 
-Inertia answers HTML and JSON on the **same URL**, varying on `X-Inertia`. Most CDNs ignore `Vary` for arbitrary
-headers. The result is cache poisoning: a visitor gets the JSON of a page instead of its HTML, or the reverse
-([inertia#1923](https://github.com/inertiajs/inertia/issues/1923)).
-
-So the JSON of static pages lives on its own URL:
+Inertia answers the HTML and the JSON of a page on the same URL, varying on the `X-Inertia` header. Most CDNs
+ignore that, and would answer a visit with the cached HTML (or a page load with the JSON). So every static page
+has two cacheable URLs:
 
 ```
-GET /__inertia/{assetVersion}/{path}.json[?whitelisted-query]   # cacheable
-GET /__inertia/{assetVersion}/index.json                        # the root page
-GET /__inertia/live/{assetVersion}/{path}.json[?query]          # never cached
+GET /blog/hello                          # HTML (first page load)
+GET /__inertia/{version}/blog/hello.json # page JSON (SPA visits)
+GET /__inertia/{version}/index.json      # page JSON of the root page
 ```
 
-The **live** endpoint serves visits that need fresh data: `router.reload()`, polling, partial reloads,
-deferred props and non-canonical queries. It forwards the Inertia partial reload headers and always answers
-`Cache-Control: no-store, private` (`X-Inertia-Static-Reason: live`). Together they guarantee that an
-Inertia visit never reaches the HTML URL of a static page, where a CDN ignoring `Vary` would answer with the cached
-HTML.
+The [client plugin](../guide/client.md) sends Inertia visits to static routes to the JSON URL, using the route
+manifest (`/__inertia/manifest.json`, or the file written by `inertia-static:manifest`). Only `isr` and `static`
+routes answer there; any other path is a `404`.
 
-Because it is never cached, the live endpoint is the only static-page URL that reads the **session**
-(`json.live_middleware`: cookies + `StartSession`). It returns this visitor's validation `errors` and Inertia `flash`
-data, which is how `return back()` from a form on a static page works. Redirects of Inertia visits to static pages
-are rewritten to it by the `RewriteInertiaRedirects` global middleware.
+## The live URL
 
-- Only `isr` and `static` routes answer there; dynamic routes give **404**, so private pages can never be
-  exposed on a cacheable URL.
-- The endpoint dispatches an internal sub-request to the page route with Inertia headers. The JSON is therefore
-  exactly what Inertia would have produced (same middleware, same shared-props whitelist).
-- The asset version is part of the URL, so every deploy gets fresh URLs. A request with an old version is
-  answered by Inertia with `409` + `X-Inertia-Location` (never cached).
-- `Vary: X-Inertia` is removed from these responses: the URL already identifies the representation, and Vary-aware
-  caches would otherwise store duplicates.
+Visits that need fresh data go to a URL that is never cached:
 
-The client plugin rewrites visits to this URL ([Client](../guide/client.md)), using the manifest
-(`/__inertia/manifest.json` or `inertia-static:manifest`) to know which routes are static.
+```
+GET /__inertia/live/{version}/blog/hello.json
+```
+
+The client uses it for `router.reload()`, polling, partial reloads, deferred props, a query string that is not
+canonical, and preview mode. It is the only URL of a static page that reads the session: after a form submitted
+from a static page, `return back()` lands there and gets the visitor's validation `errors` and Inertia `flash`
+data. Redirects of Inertia visits to static pages are sent to it automatically.
 
 ## Fail-safe cache policy
 
-When in doubt, `no-store`. A response is cacheable only if **none** of these holds:
+When in doubt, `no-store`. A response of a static route is cached only when it is a `200`, a `404` (short TTL), or
+a redirect to the canonical URL. It is never cached when:
 
-| Condition | `X-Inertia-Static-Reason` |
+- the request has an `Authorization` header, or a valid preview cookie;
+- the page read private data during the render (see the [leak detector](./security.md#leak-detector));
+- the status is `5xx`, or any status other than 200 / 404 (redirects from your code only with
+  `defaults.cache_redirects`);
+- it is a partial reload, or an Inertia visit on the HTML URL;
+- your app uses SSR and the SSR server is down (see below).
+
+Non-cacheable responses get `Cache-Control: no-store, private` and no CDN headers. `Set-Cookie` is always removed.
+
+Every cacheable `200` gets a strong `ETag`, so browsers and CDNs revalidate with a cheap `304`.
+
+## After a deploy
+
+The asset version is part of the JSON URL, so a deploy gives every page new JSON URLs. A visitor still running the
+old build asks for the old version; when that JSON is not in the CDN cache, Inertia answers `409` and the browser
+does a full page load of the new version.
+
+## When the SSR server is down
+
+If your app uses SSR and the SSR server is down, Inertia sends the HTML without its server-rendered content (it
+only appears once JavaScript runs). That copy is sent with `no-store`, so the CDN never stores it and keeps the last
+good page it has. Apps without SSR are cached normally; set `ssr.required` to `false` to cache the page anyway.
+
+## Check a response
+
+```bash
+curl -sI https://example.com/blog/hello | grep -i -E 'x-inertia-static|cache-control'
+```
+
+| Header | Meaning |
 |---|---|
-| method is not GET/HEAD | `method` |
-| request has `Authorization` | `authorization` |
-| the leak detector fired | `leak:<type>` |
-| status ≥ 500 | `server-error` |
-| redirect (non canonical) without `cache_redirects` | `redirect` |
-| status other than 200 / 404 / canonical 301 | `status:<code>` |
-| partial reload / deferred props / reset | `partial-reload` |
-| Inertia JSON requested on the HTML URL | `inertia-json-on-html-url` |
-| SSR enabled but the page rendered without it (`ssr.required`) | `ssr-unavailable` |
+| `X-Inertia-Static: MISS` | the origin rendered a cacheable response |
+| `X-Inertia-Static-Reason: …` | not cacheable, and why (see [Headers](../reference/headers.md)) |
+| `X-Inertia-Static-Cache: cacheable` / `bypass` | the stable header to build CDN rules on |
 
-Non-cacheable responses get `Cache-Control: no-store, private`, no CDN headers, and
-`X-Inertia-Static-Cache: bypass`.
-
-## ETag and 304
-
-Every cacheable `200` gets a **strong** ETag (`xxh128` of the final body). `If-None-Match` is answered with an
-empty `304`, so the CDN revalidates cheaply. HEAD is handled like GET.
-
-## Request lifecycle state
-
-Per-request state (`StaticRequestContext`, the leak detector, the CDN manager) is bound as **scoped**: it is reset
-for every request and queued job, so the package is safe under Octane and in queue workers. There are no
-singletons.
+The CDN's own header (`CF-Cache-Status`, `X-Cache`…) tells whether it served a `HIT`.

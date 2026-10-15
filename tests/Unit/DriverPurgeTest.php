@@ -132,6 +132,14 @@ it('sends Varnish PURGE / xkey / BAN requests', function () {
     Http::assertSent(fn (Request $r) => $r->method() === 'BAN' && $r->hasHeader('X-Ban-Prefix', '/blog'));
 });
 
+it('matches Varnish prefix bans literally (the VCL bans with a regex)', function () {
+    Http::fake(['varnish:6081/*' => Http::response('', 200)]);
+
+    app(CdnManager::class)->driver('varnish')->purgePrefixes(['https://example.com/docs/v1.0+(beta)']);
+
+    Http::assertSent(fn (Request $r) => $r->hasHeader('X-Ban-Prefix', '/docs/v1[.]0[+][(]beta[)]'));
+});
+
 it('sends nginx cache purge requests', function () {
     Http::fake(['nginx/*' => Http::response('', 200)]);
 

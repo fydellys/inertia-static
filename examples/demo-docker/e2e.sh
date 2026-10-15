@@ -299,7 +299,7 @@ artisan inertia-static:purge --prefix=/blog
 eq "--prefix=/blog: /blog purged" "$(cdn /blog)" "MISS"
 eq "--prefix=/blog: /blog/post-2 purged" "$(cdn /blog/post-2)" "MISS"
 eq "--prefix=/blog: prefix JSON purged" "$(cdn "$(json_url /blog/post-2)")" "MISS"
-eq "--prefix=/blog: home untouched" "$(cdn /)" "HIT"
+S=$(cdn /); [[ "$S" == HIT || "$S" == STALE ]] && ok "--prefix=/blog: home untouched ($S: still cached, not purged)" || ko "--prefix=/blog: home untouched" "got [$S]"
 warmup / /blog
 artisan inertia-static:purge --all
 eq "--all: home purged" "$(cdn /)" "MISS"

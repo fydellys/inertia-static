@@ -5,7 +5,7 @@
 ```ini
 INERTIA_STATIC_CDN=fastly
 FASTLY_SERVICE_ID=...
-FASTLY_API_TOKEN=...      # optional (see Headers-only mode)
+FASTLY_API_TOKEN=...      # scopes purge_select + purge_all; optional (see Headers-only mode)
 ```
 
 ## Service setup
@@ -39,5 +39,5 @@ Activate the new version.
 | `purgePrefix()` | every page under the path |
 | `purgeAll()` | the whole service |
 
-Purges are soft by default: the old page is served while the new one is fetched. See
+Purges are soft by default (except `purgeAll()`): the old page is served while the new one is fetched. See
 [soft or hard purge](../guide/revalidation.md#soft-or-hard-purge).

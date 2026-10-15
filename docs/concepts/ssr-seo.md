@@ -4,14 +4,15 @@ SSR is optional. Without it, pages are cached as Inertia renders them (the page 
 With [Inertia SSR](https://inertiajs.com/docs/v3/advanced/server-side-rendering), the cached HTML contains the
 rendered page, which is what search engines and social previews read.
 
-When SSR is enabled and the SSR server is down, pages are sent with `no-store` and logged: the CDN keeps the
-previous copy until SSR is back.
+If your app uses SSR and the SSR server is down, Inertia sends the HTML without its server-rendered content (it only
+appears once JavaScript runs). That copy is sent with `no-store` and logged, so the CDN never stores it and keeps
+the last good page. Set `ssr.required` to `false` to cache it anyway.
 
 ## Head tags
 
 Use Inertia's `<Head>` for `<title>`, meta tags, canonical and Open Graph. SSR renders them into the cached HTML.
-Build absolute URLs on the **server**, from `APP_URL`, never from the request host: the same build serves every
-environment, and the Host header is not part of the cache key.
+Build absolute URLs on the **server**, from `APP_URL`, never from the request host: the cached page is served to
+every visitor.
 
 ```php
 return Inertia::render('Blog/Show', [
@@ -30,9 +31,9 @@ return Inertia::render('Blog/Show', [
 
 ## Deferred props
 
-Deferred props on a static page are fetched by a partial reload, which always goes to the origin, uncached. By
-default (`deferred_props = throw`) the package throws in that case, so you resolve them during the static render.
-Set it to `allow` to keep the page cacheable and fetch the deferred props from the origin.
+By default (`deferred_props = throw`) a static page that uses deferred props throws, so you resolve them during
+the static render. Set it to `allow` to keep the page cacheable: the client then fetches the deferred props from
+the never-cached live URL.
 
 ## Sitemap
 

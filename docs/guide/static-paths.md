@@ -11,8 +11,7 @@ provider** lists them.
 | `->isr()` with parameters | **optional**. Pages are rendered and cached on their first visit anyway; the provider lets `inertia-static:warm` pre-fill the CDN |
 | `->static()` with parameters | **required**: every page is known in advance, and `inertia-static:warm` pre-renders all of them |
 
-The provider is **not** called on regular requests. Only Artisan uses it: `inertia-static:warm` and
-`inertia-static:routes`.
+The provider is **not** called on regular requests. Only `inertia-static:warm` uses it.
 
 ## A provider in 3 steps
 
@@ -60,7 +59,7 @@ $ php artisan inertia-static:routes
 +--------------+------------+--------+------------+-------+------+---------------------------+
 | URI          | Name       | Mode   | Revalidate | SWR   | Tags | Paths                     |
 +--------------+------------+--------+------------+-------+------+---------------------------+
-| /blog/{post} | blog.show  | isr    | 3600       | 86400 |      | App\StaticPaths\PostPaths |
+| /blog/{post} | blog.show  | isr    | 3600       | -     |      | App\StaticPaths\PostPaths |
 +--------------+------------+--------+------------+-------+------+---------------------------+
 
 $ php artisan inertia-static:warm --only=blog.show --limit=2 --dry-run
@@ -119,8 +118,7 @@ public function paths(): iterable
 
 ### Paginated listings (by path)
 
-The query string is not part of a static file name, so for pages meant to be **exported**, paginate with a path
-parameter:
+A `static` route must list every page, so paginate it with a path parameter:
 
 ```php
 // Route::get('/blog/page/{page}', ...)->static(paths: BlogPages::class);
@@ -161,7 +159,6 @@ class ProductPaths implements StaticPathsProvider
   `--limit=N` caps the pages per route.
 - **Values are URL-encoded** for you (`'a b'` becomes `a%20b`). A missing required parameter throws
   `InvalidStaticRoute`.
-- **`static` routes with parameters and no provider** are rejected when the route is registered: their pages
-  could not be listed.
+- **`static` routes with parameters and no provider** throw `InvalidStaticRoute` when the route is registered.
 - **New content** does not need the provider: the first visit renders and caches it, and
   [`HasStaticTags`](./revalidation.md#automatic-purges-from-models) purges it when it changes.

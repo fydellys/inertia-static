@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Queue\Middleware\RateLimited;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schema;
 
@@ -77,6 +78,14 @@ it('runs the purge command synchronously', function () {
     $this->artisan('inertia-static:purge', ['--tags' => ['posts,post:1'], '--url' => ['/blog']])->assertSuccessful();
 
     Event::assertDispatched(StaticCachePurged::class, 2);
+});
+
+it('warms every static page after purge --all --warm', function () {
+    Http::fake();
+
+    $this->artisan('inertia-static:purge', ['--all' => true, '--warm' => true])->assertSuccessful();
+
+    Http::assertSent(fn ($request) => $request->url() === 'https://example.com/');
 });
 
 it('requires a purge target', function () {

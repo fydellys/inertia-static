@@ -9,10 +9,11 @@ Two complementary mechanisms: **time-based** (the CDN expires and refreshes page
 background (`stale-while-revalidate`). Visitors never wait for the origin.
 
 ```
-t=0     MISS   rendered at the origin, stored          (renderedAt 10:00:00)
-t=5     HIT    from the edge                           (renderedAt 10:00:00)
-t=11    STALE  served instantly, refresh in background (renderedAt 10:00:00)
-t=12    HIT    refreshed version                       (renderedAt 10:00:11)
+revalidate: 10
+t=0     MISS   rendered at the origin, stored
+t=5     HIT    from the edge
+t=11    STALE  served instantly, refreshed in the background
+t=12    HIT    the refreshed version
 ```
 
 ### `revalidate` and `expire`
@@ -28,12 +29,13 @@ Two numbers control the lifetime:
 
 ```php
 Route::get('/pricing', PricingController::class)->isr(revalidate: 300, expire: 3600);
-// CDN-Cache-Control: public, max-age=300, stale-while-revalidate=3300
+// CDN-Cache-Control: public, max-age=300, stale-while-revalidate=3300, stale-if-error=604800
 ```
 
-An explicit `staleWhileRevalidate:` (route, response or `defaults.stale_while_revalidate`) wins over `expire`. The exact header that
-carries the TTL depends on the driver (`Cloudflare-CDN-Cache-Control`, `Surrogate-Control`, `s-maxage`,
-`X-Accel-Expires`); see [Headers](../reference/headers.md).
+Set them per route (`->isr(...)`), per response (`->revalidate()`, `->expire()`) or globally
+(`defaults.revalidate`, `defaults.expire`). An explicit `staleWhileRevalidate` (route, response or
+`defaults.stale_while_revalidate`) wins over `expire`. The header that carries the TTL depends on the CDN driver;
+see [Headers](../reference/headers.md).
 
 ## On demand
 
@@ -46,13 +48,14 @@ StaticCache::purgePrefix('/blog');
 StaticCache::purgeAll();
 ```
 
-Each page is always purged on **both** of its URLs: the HTML and `/__inertia/{version}/{path}.json`.
+Purges are queued (see [The purge queue](#the-purge-queue)). Each page is always purged on **both** of its URLs:
+the HTML and its page JSON.
 
 ### Soft or hard purge
 
 | Mode | Effect |
 |---|---|
-| `PurgeMode::Soft` (default, `purge.mode`) | content is marked **stale**: the CDN serves it once more while it refetches |
+| `PurgeMode::Soft` (default, `purge.mode` / `INERTIA_STATIC_PURGE_MODE`) | content is marked **stale**: the CDN serves it once more while it refetches |
 | `PurgeMode::Hard` | content is removed: the next request waits for the origin |
 
 ```php
@@ -66,19 +69,17 @@ StaticCache::purgeTags("post:{$post->id}", PurgeMode::Hard);  // read-your-own-w
 php artisan inertia-static:purge --tags=posts --hard
 ```
 
-Soft purges are native on Fastly (`Fastly-Soft-Purge`) and Varnish (`xkey.softpurge`). Cloudflare, Bunny and nginx
-always purge hard.
+Soft purges work on Fastly and Varnish. Every other CDN always purges hard.
 
 ### Implicit path tags
 
-Every cached page also carries one tag per path prefix:
+Every cached page also carries one tag per path prefix (`implicit_tags`, on by default):
 
 ```
 /blog/hello  →  Cache-Tag: posts, post:1, _IST_/, _IST_/blog/, _IST_/blog/hello/
 ```
 
-On CDNs without prefix purges (Fastly), `purgePrefix('/blog')` becomes a purge of the tag `_IST_/blog/`. Turn it
-off with `implicit_tags => false`.
+On CDNs without prefix purges (Fastly), `purgePrefix('/blog')` becomes a purge of the tag `_IST_/blog/`.
 
 ### Automatic purges from models
 
@@ -96,23 +97,30 @@ class Post extends Model
 }
 ```
 
-`saved`, `deleted` and `restored` queue a purge of `staticTags()`. The purge is dispatched **after the database
-transaction commits**.
+`saved`, `deleted` and `restored` queue a purge of `staticTags()`, dispatched **after the database transaction
+commits**. Without `staticTags()`, the tags are the table name and `{singular}:{id}` (e.g. `posts`, `post:1`).
 
 ### The purge queue
 
-Purges run on your queue. Options in `config/inertia-static.php`:
+Purges run on your queue, so a queue worker must be running. Options in `config/inertia-static.php`:
 
 | Option | Default | |
 |---|---|---|
-| `purge.debounce` | `5` | seconds to wait, so ten saves of the same post produce one purge |
-| `purge.rate_limit_per_minute` | `60` | purge requests per minute allowed by your CDN plan (Cloudflare Free: `5`) |
+| `purge.mode` | `'soft'` | `'soft'` or `'hard'` (`INERTIA_STATIC_PURGE_MODE`) |
+| `purge.debounce` | `5` | seconds to wait, so ten saves of the same post produce one purge (`INERTIA_STATIC_PURGE_DEBOUNCE`) |
+| `purge.rate_limit_per_minute` | `60` | purge jobs per minute allowed by your CDN plan (Cloudflare Free: `5`; `INERTIA_STATIC_PURGE_RATE_LIMIT`) |
 | `purge.tries` / `purge.backoff` | `5` / `[5, 30, 120]` | retries of a failed purge |
 | `purge.warm_after_purge` | `false` | request the purged pages again, so the next visitor gets a `HIT` |
-| `purge.queue` / `purge.connection` | default | where the jobs go |
+| `purge.queue` / `purge.connection` | default | where the jobs go (`INERTIA_STATIC_PURGE_QUEUE` / `_CONNECTION`) |
 
-Purge synchronously (deploy scripts, tests) with `StaticCache::purgeNow(PurgeOperation::Tags, ['posts'])` or the
-[`inertia-static:purge`](./commands.md) command.
+Purge synchronously (deploy scripts, tests) with the [`inertia-static:purge`](./commands.md#inertia-static-purge)
+command or `purgeNow()`:
+
+```php
+use Fydellys\InertiaStatic\Enums\PurgeOperation;
+
+StaticCache::purgeNow(PurgeOperation::Tags, ['posts']);   // returns the purged URLs
+```
 
 ::: tip Headers-only mode
 Without CDN credentials nothing is queued: pages expire by TTL only. See [Headers-only mode](./headers-only.md).
@@ -120,17 +128,23 @@ Without CDN credentials nothing is queued: pages expire by TTL only. See [Header
 
 ## Tag registry
 
-Some CDNs cannot purge by tag (nginx, Bunny in safe mode, CloudFront before 2026), and some cannot purge by
-prefix. The **tag registry** remembers which pages were cached with which tags (recorded when the origin renders
-them) and converts:
+Some CDNs cannot purge by tag (nginx, CloudFront, Bunny unless `native_tags` is on), and some cannot purge by
+prefix. The **tag registry** remembers which pages were rendered with which tags and converts:
 
 - tag purges into URL purges (HTML + JSON of every page with the tag);
 - prefix purges into URL purges of the known pages under the prefix.
 
 ```ini
-INERTIA_STATIC_REGISTRY=database   # table inertia_static_tags (publish the migration)
+INERTIA_STATIC_REGISTRY=database   # table inertia_static_tags
 INERTIA_STATIC_REGISTRY=cache      # any cache store, e.g. Redis (registry.store)
 ```
 
+For `database`, publish and run the migration:
+
+```bash
+php artisan vendor:publish --tag=inertia-static-migrations
+php artisan migrate
+```
+
 When a prefix cannot be resolved at all (no prefix purge, nothing in the registry), the purge **escalates to a
-full purge**: stale content is worse than a cold cache.
+full purge**.

@@ -12,33 +12,27 @@ class Post extends Model
 ```
 
 ```php
-$post->update(['title' => 'New title']);   // → StaticCache::purgeTags(['posts', 'post:1'])
+$post->update(['title' => 'New title']);   // purges the tags 'posts' and 'post:1'
 ```
 
 ## Reference
 
 ```php
-public function staticTags(): array   // default: [$this->getTable(), Str::singular($this->getTable()).':'.$this->getKey()]
+// Override to choose the tags. Default: [table, singular table:key]
+public function staticTags(): array
 ```
 
-## Examples
-
-### Custom tags
+Custom tags:
 
 ```php
 public function staticTags(): array
 {
-    return ['posts', "post:{$this->id}", "author:{$this->author_id}", "category:{$this->category_id}"];
+    return ['posts', "post:{$this->id}", "author:{$this->author_id}"];
 }
-```
-
-Tag the pages the same way:
-
-```php
-return Inertia::render('Post/Show', [...])->tags(["post:{$post->id}", "author:{$post->author_id}"]);
 ```
 
 ## Good to know
 
-- Ten saves of the same model inside the debounce window produce **one** purge.
-- The purge is queued after the transaction commits: a rolled back change purges nothing.
+- Tag the pages with the same names, with [`->tags()`](./response-tags) or the route's `tags:` option.
+- It calls [`StaticCache::purgeTags()`](./purge-tags): the purge waits for the database transaction to commit, so a
+  rolled back change purges nothing, and repeated saves within `purge.debounce` seconds produce one purge.

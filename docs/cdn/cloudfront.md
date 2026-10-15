@@ -7,6 +7,7 @@ INERTIA_STATIC_CDN=cloudfront
 CLOUDFRONT_DISTRIBUTION_ID=E123ABC456
 AWS_ACCESS_KEY_ID=...                # optional (see Headers-only mode)
 AWS_SECRET_ACCESS_KEY=...
+AWS_SESSION_TOKEN=...                # only with temporary credentials
 INERTIA_STATIC_REGISTRY=database     # tag purges become path invalidations
 ```
 
@@ -48,7 +49,7 @@ The policy keeps browsers from applying the stale time to their own cache.
 | Method | Purges |
 |---|---|
 | `purgeUrls()` | the given pages (HTML and page JSON) |
-| `purgeTags()` | the pages recorded for the tags in the registry |
+| `purgeTags()` | every page with one of the tags (through the tag registry) |
 | `purgePrefix()` | every page under the path |
 | `purgeAll()` | the whole distribution |
 

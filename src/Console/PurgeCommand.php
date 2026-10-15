@@ -19,7 +19,7 @@ class PurgeCommand extends Command
         {--all : Purge everything}
         {--driver= : CDN driver (default: config)}
         {--queue : Dispatch to the queue instead of purging now}
-        {--warm : Warm the purged URLs afterwards}
+        {--warm : Warm the purged URLs afterwards (with --all: every static page)}
         {--hard : Remove the content now instead of marking it stale (soft purge)}';
 
     protected $description = 'Purge the CDN cache of static pages';
@@ -73,6 +73,11 @@ class PurgeCommand extends Command
 
                 if ($this->option('warm') && $urls !== []) {
                     WarmStaticCache::dispatchSync($urls);
+                }
+
+                // "All" has no URL list: warm every static page, like inertia-static:warm.
+                if ($this->option('warm') && $operation === PurgeOperation::All) {
+                    $this->callSilently('inertia-static:warm');
                 }
             });
         }

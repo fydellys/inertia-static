@@ -14,17 +14,18 @@ something that is not an Inertia response. Usually it is the **cached HTML**, be
 
 With the client plugin, visits to static pages never use the HTML URL: they go to the cacheable JSON URL or to the
 never-cached live endpoint, and `x-inertia` is injected. If you still see it, check that `createInertiaApp` uses
-`http: inertiaStatic({ manifest })` and that the manifest is up to date (it is written on every Vite build).
+`http: inertiaStatic({ manifest })` (Inertia 2: that `installInertiaStatic(axios, { manifest })` runs before it),
+and that the manifest is up to date (it is written on every Vite build).
+
+Extra protection for clients without the plugin (or with a stale manifest): a Cloudflare **Cache Rule** that bypasses
+the cache when the request has the header, `any(http.request.headers["x-inertia"][*] eq "true")` → *Bypass cache*.
+On dynamic routes, make sure your proxies forward `X-Inertia` and honour `Vary: X-Inertia`.
 
 ## I never see a `304` in DevTools
 
 The browser hides 304s from the code that made the request: the XHR sees a `200` built from its local cache. In
 Chrome DevTools, uncheck **Disable cache** to see `304 Not Modified`. On Cloudflare, turn **Respect strong ETags** on
 (see [Rule 1](./cdn/cloudflare.md#rule-1-cache-rule)).
-
-Extra protection for clients without the plugin (or with a stale manifest): a Cloudflare **Cache Rule** that bypasses
-the cache when the request has the header, `any(http.request.headers["x-inertia"][*] eq "true")` → *Bypass cache*.
-On dynamic routes, make sure your proxies forward `X-Inertia` and honour `Vary: X-Inertia`.
 
 ## Pressing back shows raw JSON
 
@@ -33,13 +34,14 @@ own URL.
 
 ## Do I need a CSRF token for forms on static pages?
 
-Not on Laravel 13 (same-origin requests are accepted through `Sec-Fetch-Site`). On Laravel 12, call
-`ensureCsrfCookie()` before submitting.
+Not on Laravel 13 (same-origin requests are accepted through `Sec-Fetch-Site`). On Laravel 12 the client plugin
+fetches the CSRF cookie from `/__inertia/csrf` before the first Inertia form submission. For requests you send
+yourself (`fetch`, axios), call `ensureCsrfCookie('/__inertia/csrf')` first.
 
 ## `/api/me` is called on every navigation
 
 Your layout is rendered inside each page, so it is mounted again on every visit. Make it a persistent layout
-(`defineOptions({ layout: Layout })`), and the island loads once.
+(Vue: `defineOptions({ layout: Layout })`; React: `Page.layout = ...`), and the island loads once.
 
 ## The user menu disappears on static pages
 
@@ -48,13 +50,18 @@ By design: `auth` is not a public shared prop, so it is dropped on static pages.
 
 ## The island still shows the user after signing out
 
-Fixed: islands reload after every non-GET Inertia visit. If you fetch user data yourself, reload it on the
-`inertia:finish` event of non-GET visits.
+Islands reload after every non-GET Inertia visit (`refreshAfterMutations`, on by default). If you fetch user data
+yourself, reload it on the `inertia:finish` event of non-GET visits.
 
 ## `StaticRenderViolation` in local
 
 Your static page (or a shared prop, a view composer, a component) reads private data. The message names the exact
 accessor (for example `auth()->check()`). Move it to an island, or make the route dynamic.
+
+## A route shows `dynamic (downgraded: …)`
+
+In production the [leak detector](./concepts/security.md#leak-detector) turned it dynamic. Fix the page, deploy, and
+run `php artisan inertia-static:routes --reset-downgrades`.
 
 ## My purge does nothing
 
@@ -65,10 +72,11 @@ accessor (for example `auth()->check()`). Move it to an island, or make the rout
 
 ## Pages are never cached and `X-Inertia-Static-Reason: ssr-unavailable`
 
-SSR is enabled in `config/inertia.php`, but the SSR server is not responding (`php artisan inertia:check-ssr`).
-Start it, or disable SSR if the app does not use it.
+SSR is enabled in `config/inertia.php`, but the SSR server is down (`php artisan inertia:check-ssr`), so pages are
+sent without their server-rendered content and not cached. Start the SSR server, or disable SSR if the app does not
+use it.
 
 ## Old visitors after a deploy
 
-They keep the old assets until the next navigation to an uncached page, which returns `409` and triggers one full
-reload. Keep the previous build's assets for a few hours.
+They keep the old build until they visit a page whose JSON for the old version is not in the CDN cache: it
+returns `409` and triggers one full page load. Keep the previous build's assets for a few hours.

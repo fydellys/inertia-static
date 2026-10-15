@@ -33,44 +33,36 @@ Route::get('/blog/{post:slug}', [PostController::class, 'show'])
 | `tags` | `string[]` | `[]` | Cache tags of every response of the route, purgeable with [`purgeTags()`](./purge-tags). |
 | `query` | `string[]` | `[]` | Query parameters that are part of the cache key. Others are removed with a `301`. |
 | `staleWhileRevalidate` | `int` seconds | `expire - revalidate` | Explicit stale window; overrides `expire`. |
-| `staleIfError` | `int` seconds | `604800` | How long a stale page may be served while the origin errors. |
-| `expire` | `int` seconds | `31536000` | After it, a stale page is no longer served. `stale-while-revalidate = expire - revalidate`. |
+| `staleIfError` | `int` seconds | `604800` (`defaults.stale_if_error`) | How long a stale page may be served while the origin errors. |
+| `expire` | `int` seconds | `31536000` (`defaults.expire`) | After it, a stale page is no longer served. |
 
 ### Modes
 
-| Macro | Rendered | Cached by the CDN | Paths provider |
+| Macro | Rendered | Cached by the CDN | `paths` |
 |---|---|---|---|
-| `->dynamic()` (default) | every request | never | no |
+| `->dynamic()` (default) | every request | never | — |
 | `->isr()` | on a cache miss | yes, revalidated by time and on demand | optional |
-| `->static()` | on a cache miss | yes, revalidated by time and on demand | required when parameterized |
+| `->static()` | on a cache miss | yes, revalidated by time and on demand | required when the route has parameters |
 
 ## Examples
 
-### Time-based revalidation
-
 ```php
-Route::get('/', HomeController::class)->static(revalidate: 600); // at most once every 10 minutes per edge
-```
-
-### Paginated listing
-
-```php
+// Paginated listing: one cache entry per page
 Route::get('/blog', [PostController::class, 'index'])
     ->isr(revalidate: 60, query: ['page'], tags: ['posts']);
-// /blog?page=2&utm_source=x  →  301  /blog?page=2   (one cache entry per page)
-```
+// /blog?page=2&utm_source=x  →  301  /blog?page=2
 
-### Only on-demand revalidation
-
-```php
+// Only on-demand revalidation: cached for a year, purged with StaticCache::purgeTags('legal')
 Route::get('/legal/terms', TermsController::class)
-    ->static(revalidate: 31536000, tags: ['legal']);   // one year; purge with StaticCache::purgeTags('legal')
+    ->static(revalidate: 31536000, tags: ['legal']);
 ```
 
 ## Good to know
 
-- The session pipeline is removed from these routes (cookies, `StartSession`, CSRF). `$request->user()` returns
-  `null`, and reading private data throws in local (see [Security](../concepts/security.md)).
-- Only `GET` routes can be static. HEAD is handled like GET.
-- Options live in the route action, so `php artisan route:cache` keeps them.
-- Run `php artisan inertia-static:routes` to see the effective configuration.
+- Static routes have no session, cookies or CSRF: `$request->user()` is `null`. Reading private data throws in
+  `local` and `testing` (see [Security](../concepts/security.md)).
+- Only `GET` routes can be `isr` or `static`; a route that also accepts other verbs throws an exception.
+- A negative `revalidate`, a missing `paths` class or a parameterized `static` route without `paths` also throw.
+- `->dynamic()` keeps a route dynamic even when its controller has a [`#[StaticPage]`](./static-page-attribute).
+- `php artisan route:cache` keeps the options. Run `php artisan inertia-static:routes` to see the effective
+  configuration.

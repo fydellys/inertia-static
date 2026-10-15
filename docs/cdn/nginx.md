@@ -4,14 +4,14 @@
 
 ```ini
 INERTIA_STATIC_CDN=nginx
-NGINX_CACHE_HOSTS=http://cache-1,http://cache-2   # optional (see Headers-only mode)
+NGINX_CACHE_HOSTS=http://cache-1,http://cache-2   # default http://127.0.0.1; empty = headers-only
 INERTIA_STATIC_REGISTRY=database                  # tag purges become URL purges
 ```
 
 ## Server setup
 
-Purging needs [ngx_cache_purge](https://github.com/nginx-modules/ngx_cache_purge) on open-source nginx (Alpine:
-`apk add nginx-mod-http-cache-purge`). NGINX Plus has it built in.
+Purging needs the [ngx_cache_purge](https://github.com/nginx-modules/ngx_cache_purge) module (Alpine:
+`apk add nginx-mod-http-cache-purge`).
 
 <<< @/nginx.conf{nginx}
 
@@ -22,6 +22,6 @@ The `map` + `proxy_no_cache` pair stores only responses marked `cacheable` by th
 | Method | Purges |
 |---|---|
 | `purgeUrls()` | the given pages (HTML and page JSON) |
-| `purgeTags()` | the pages recorded for the tags in the registry |
+| `purgeTags()` | every page with one of the tags (through the tag registry) |
 | `purgePrefix()` | every page under the path |
-| `purgeAll()` | every page |
+| `purgeAll()` | every page of this app's hostname |

@@ -1,6 +1,6 @@
 # `StaticCache::canPurge()`
 
-`false` when the CDN driver has no credentials ([headers-only mode](../guide/headers-only.md)).
+Whether the CDN driver can purge. `false` when it has no credentials ([headers-only mode](../guide/headers-only.md)).
 
 ```php
 if (! StaticCache::canPurge()) {
@@ -13,3 +13,7 @@ if (! StaticCache::canPurge()) {
 ```php
 StaticCache::canPurge(): bool
 ```
+
+## Good to know
+
+- In headers-only mode, `purgeTags()`, `purgeUrls()`, `purgePrefix()` and `purgeAll()` do nothing and log a notice.

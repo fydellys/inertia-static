@@ -1,6 +1,6 @@
 # `StaticCache::purgeNow()`
 
-Synchronous purge, returning the purged absolute URLs. Used by commands, deploy scripts and tests.
+Purge synchronously, for deploy scripts and tests. Returns the purged absolute URLs.
 
 ```php
 use Fydellys\InertiaStatic\Enums\PurgeOperation;
@@ -12,20 +12,18 @@ StaticCache::purgeNow(PurgeOperation::All, driver: 'varnish');
 ## Reference
 
 ```php
-StaticCache::purgeNow(PurgeOperation $operation, array $items = [], ?string $driver = null, ?PurgeMode $mode = null): array
+StaticCache::purgeNow(
+    PurgeOperation $operation,   // Urls | Tags | Prefixes | All
+    array $items = [],           // page paths or URLs, tags or prefixes; empty for All
+    ?string $driver = null,      // a driver from the config, default: the configured one
+    ?PurgeMode $mode = null,     // as in purgeTags()
+): array
 ```
 
-| `PurgeOperation` | Items |
-|---|---|
-| `Urls` | page paths or absolute URLs |
-| `Tags` | tags |
-| `Prefixes` | path prefixes |
-| `All` | — |
-
-**Returns** the absolute URLs that were purged, when the package can know them (URL purges, tags through the
-registry). Pass them to `WarmStaticCache` to refill the CDN.
+**Returns** the absolute URLs that were purged when they are known (URL purges, and tag or prefix purges through
+the [tag registry](../guide/revalidation.md#tag-registry)). `All` returns `[]`.
 
 ## Good to know
 
-- No queue, no debounce, no rate limit: errors are thrown (`RequestException`, `MissingCredentials`).
-- Dispatches `StaticCachePurged` afterwards.
+- Not queued, debounced or rate limited: errors are thrown to the caller.
+- It purges even when `inertia-static.enabled` is `false`.

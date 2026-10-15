@@ -36,9 +36,9 @@ public function show(Post $post)
 | SPA visits | cached page JSON | never-cached live endpoint |
 | `StaticCache::isPreview()` | `false` | `true` |
 
-The cookie is signed with your `APP_KEY` (HMAC) and expires on its own. A forged or expired cookie is ignored. It
-is readable by JavaScript, because the client plugin needs to see it to skip the cache. It only grants "skip the
-cache", never any access.
+`enablePreview()` lasts `preview.minutes` (default `60`) when called without `minutes`. The cookie is signed with
+your `APP_KEY` and expires on its own; a forged or expired cookie is ignored. It is not `HttpOnly` (the client
+reads it), and it only grants "skip the cache", never any access.
 
 ## Configure the CDN
 

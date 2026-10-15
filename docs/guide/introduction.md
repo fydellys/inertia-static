@@ -21,13 +21,12 @@ not involved.
   post is saved. The next visit renders a fresh page.
 - **Pages that do not exist yet** are rendered on their first visit and cached from then on.
 
-```
-visit 1 ──► CDN: MISS ──► Laravel renders /blog/hello ──► cached
-visit 2 ──► CDN: HIT  (no Laravel)
-… revalidate seconds later …
-visit 3 ──► CDN: STALE, served at once ──► background render ──► cached again
-post saved ──► purge tag "post:1" ──► next visit renders it again
-```
+| Request | CDN | What happens |
+|---|---|---|
+| 1st visit to `/blog/hello` | `MISS` | Laravel renders the page and the CDN caches it |
+| Next visits | `HIT` | Served from the CDN, Laravel is not called |
+| After `revalidate` seconds | `STALE` | The cached page is served at once and rendered again in the background |
+| Post saved | | Tag `post:1` is purged; the next visit renders the page again |
 
 Here the cache is your CDN (Cloudflare, Fastly, CloudFront, Varnish, nginx…), and Laravel stays in charge of
 everything dynamic: forms, sign in, and user data loaded in [islands](./islands.md).
@@ -60,8 +59,8 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
    `/__inertia/{assetVersion}/{path}.json` ([How it works](../concepts/how-it-works.md)).
 3. **Degraded HTML.** When SSR is down, Inertia falls back to a client-side shell. Caching it hurts SEO for hours,
    so it is never cached.
-4. **Purging is provider-specific and rate limited.** Drivers, a queue with debounce and batching, and a
-   tag → URL registry for CDNs without tag purges.
+4. **Purging is provider-specific.** One API for every CDN driver, purges sent from a queue, and a tag registry
+   for CDNs without tag purges ([Revalidation](./revalidation.md)).
 
 ## Requirements
 
@@ -71,5 +70,5 @@ Because caching Inertia pages at the edge has sharp edges, and the package handl
 | Laravel | 12.x, 13.x |
 | inertiajs/inertia-laravel | ^2.0.16 or ^3.0 |
 | @inertiajs/vue3 or @inertiajs/react | ^2.3 or ^3.0 (Vue 3.5+, React 18+) |
-| Inertia SSR | optional, supported |
+| Inertia SSR | optional (compatible, not required) |
 

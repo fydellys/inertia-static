@@ -20,7 +20,8 @@ INERTIA_STATIC_CDN=cloudflare   # cloudflare | fastly | bunny | cloudfront | var
 Credentials are only needed to purge. Without them, pages are cached and expire by time:
 [headers-only mode](../guide/headers-only.md).
 
-Drivers marked "through the tag registry" need one, so tag purges can be turned into URL purges:
+Drivers marked "through the tag registry" need a [tag registry](../guide/revalidation.md#tag-registry) to purge
+by tag:
 
 ```ini
 INERTIA_STATIC_REGISTRY=database
@@ -37,7 +38,8 @@ Several caches at once, e.g. Varnish in front of the app and Cloudflare at the e
 ],
 ```
 
-Every purge goes to every cache.
+Every purge goes to every cache. If one of them has no tag purge, enable the
+[tag registry](../guide/revalidation.md#tag-registry).
 
 ## Custom drivers
 
@@ -57,6 +59,5 @@ StaticCache::extend('my-cdn', fn ($app, array $config) => new MyCdnDriver(
 ],
 ```
 
-Extend `Fydellys\InertiaStatic\Cdn\Driver`: declare `$capabilities` and `$credentials`, implement
-`cacheHeaders()`, `tagHeaders()` and the purge methods you support, and call `$this->ensureCredentials()` at the
-start of each purge method.
+`MyCdnDriver` extends `Fydellys\InertiaStatic\Cdn\Driver` and implements the cache headers and the purge methods
+your CDN supports.
