@@ -53,5 +53,13 @@ Route::middleware('web')->group(function () {
     Route::get('/absolute', fn () => Inertia::render('Home', ['asset' => url('/build/app.js')]))->isr();
     Route::get('/missing', fn () => abort(404))->isr();
     Route::get('/moved', fn () => redirect('/'))->isr();
+    // A handled failure reported with rescue(): the exception handler reads Auth::id() for its context.
+    Route::get('/rescued', fn () => Inertia::render('Home', ['value' => rescue(fn () => throw new RuntimeException('handled'), 'fallback')]))->isr();
+    Route::get('/client-ip', fn (Request $request) => Inertia::render('Home', ['ip' => $request->ip()]))
+        ->middleware('throttle:2,1')->isr();
+    Route::get('/inertia-headers', fn (Request $request) => Inertia::render('Home', [
+        'once' => $request->header('X-Inertia-Except-Once-Props'),
+        'scheme' => $request->getScheme(),
+    ]))->isr();
     Route::get('/deferred', fn () => Inertia::render('Deferred', ['slow' => Inertia::defer(fn () => 'x')]))->isr();
 });

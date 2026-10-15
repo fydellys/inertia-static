@@ -121,8 +121,11 @@ class PolicyResolver
             // reflect (a partial page, or JSON / a rewritten redirect on the HTML URL).
             $this->isPartialReload($request) => 'partial-reload',
             $this->isInertiaVisitOnHtmlUrl($request) => 'inertia-json-on-html-url',
-            $status === 404 => null,
-            $response->isRedirection() && $status !== 304 => $this->config->get('inertia-static.defaults.cache_redirects') ? null : 'redirect',
+            // A 404 negotiated as JSON (Accept) must not replace the HTML 404 page in the cache.
+            $status === 404 => ! $this->context->jsonEndpoint && $request->expectsJson() ? 'status:404-json' : null,
+            // On the JSON URL the Location of an app redirect depends on Inertia request headers
+            // (rewritten to the live URL with the client's version): never shared.
+            $response->isRedirection() && $status !== 304 => $this->context->jsonEndpoint || ! $this->config->get('inertia-static.defaults.cache_redirects') ? 'redirect' : null,
             $status !== 200 => "status:{$status}",
             $this->isDegradedHtml($request, $response) => 'ssr-unavailable',
             default => null,

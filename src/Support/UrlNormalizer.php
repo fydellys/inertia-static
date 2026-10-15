@@ -34,12 +34,7 @@ class UrlNormalizer
 
     public function canonicalPath(string $path): string
     {
-        // One spelling per page (RFC 3986): decode unreserved escapes, uppercase the others.
-        $path = (string) preg_replace_callback('/%[0-9A-Fa-f]{2}/', function (array $match) {
-            $char = rawurldecode($match[0]);
-
-            return preg_match('/^[A-Za-z0-9._~-]$/', $char) === 1 ? $char : strtoupper($match[0]);
-        }, $path);
+        $path = self::encodePath($path);
 
         if ($path === '/' || $path === '') {
             return '/';
@@ -50,6 +45,30 @@ class UrlNormalizer
             'never' => rtrim($path, '/'),
             default => $path,
         };
+    }
+
+    /**
+     * One spelling per page, the one the router sees: decode once (as the router does,
+     * so "%2F" becomes a "/"), then percent-encode each segment (RFC 3986).
+     * Raw and encoded spellings ("x!y", "x%21y", "x%2fy") all give the same path.
+     */
+    public static function encodePath(string $path): string
+    {
+        return self::encodeSegments(rawurldecode($path));
+    }
+
+    /**
+     * Characters a path segment keeps plain (RFC 3986 sub-delims, ":" and "@"), as browsers and
+     * route() send them. "*" stays encoded: CloudFront reads it as a wildcard in invalidations.
+     */
+    protected const PLAIN = ['%21' => '!', '%24' => '$', '%26' => '&', '%27' => "'", '%28' => '(', '%29' => ')', '%2B' => '+', '%2C' => ',', '%3B' => ';', '%3D' => '=', '%3A' => ':', '%40' => '@'];
+
+    /**
+     * Percent-encodes each segment of an already decoded path ("/blog/a b" => "/blog/a%20b").
+     */
+    public static function encodeSegments(string $decodedPath): string
+    {
+        return implode('/', array_map(fn (string $segment) => strtr(rawurlencode($segment), self::PLAIN), explode('/', $decodedPath)));
     }
 
     /**

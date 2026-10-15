@@ -20,6 +20,7 @@ use Illuminate\Routing\Route;
 use Illuminate\Routing\Router;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Throwable;
 
 /**
  * Global middleware (outermost layer of static routes).
@@ -30,6 +31,17 @@ use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
  */
 class ApplyStaticCache
 {
+    /** Request headers of the Inertia protocol (string literals: not every Inertia 2 release defines them all). */
+    public const INERTIA_PROTOCOL_HEADERS = [
+        'X-Inertia-Partial-Component',
+        'X-Inertia-Partial-Data',
+        'X-Inertia-Partial-Except',
+        'X-Inertia-Reset',
+        'X-Inertia-Except-Once-Props',
+        'X-Inertia-Infinite-Scroll-Merge-Intent',
+        'X-Inertia-Error-Bag',
+    ];
+
     public function __construct(
         protected Repository $config,
         protected Router $router,
@@ -93,6 +105,20 @@ class ApplyStaticCache
             $request->headers->remove($header);
         }
 
+        // Same for the scheme: pinned to the site's own (base_url), so a client's
+        // X-Forwarded-Proto cannot turn the page's URLs into http:// for everyone.
+        if ($scheme = parse_url((string) $this->config->get('inertia-static.base_url'), PHP_URL_SCHEME)) {
+            $request->headers->set('X-Forwarded-Proto', $scheme);
+        }
+
+        // Inertia protocol headers change the rendered page (once props, merge intent, partial
+        // props) but are not part of the cache key: a page load (no X-Inertia) never needs them.
+        if ($route?->getName() !== 'inertia-static.live' && ! $request->headers->has('X-Inertia')) {
+            foreach (self::INERTIA_PROTOCOL_HEADERS as $header) {
+                $request->headers->remove($header);
+            }
+        }
+
         if ($options !== null && ! $this->context->bypass && $target = $this->normalizer->redirectTarget($request, $options)) {
             return $this->finalizer->finalize(
                 $request,
@@ -111,7 +137,12 @@ class ApplyStaticCache
         $response = $this->finalizer->finalize($request, $response, $policy, $this->cdn->driver(), $this->context->jsonEndpoint);
 
         if ($policy->cacheable && $policy->tags !== [] && $response->getStatusCode() === 200) {
-            $this->registry->record(array_values(array_filter($policy->tags, fn (string $tag) => ! ImplicitTags::isImplicit($tag))), [$this->context->pagePath ?? $this->urls->relative($request->getRequestUri())]);
+            try {
+                $this->registry->record(array_values(array_filter($policy->tags, fn (string $tag) => ! ImplicitTags::isImplicit($tag))), [$this->context->pagePath ?? $this->urls->relative($request->getRequestUri())]);
+            } catch (Throwable $e) {
+                // The page is fine: a registry failure (lock timeout, database) must not turn it into an error.
+                report($e);
+            }
         }
 
         return $response;

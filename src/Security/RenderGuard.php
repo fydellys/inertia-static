@@ -7,6 +7,7 @@ use Fydellys\InertiaStatic\Events\StaticRenderViolated;
 use Fydellys\InertiaStatic\Exceptions\StaticRenderViolation;
 use Fydellys\InertiaStatic\Support\StaticRequestContext;
 use Illuminate\Contracts\Config\Repository;
+use Illuminate\Contracts\Debug\ExceptionHandler;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
@@ -131,6 +132,12 @@ class RenderGuard
      */
     public function violation(string $type, string $detail): mixed
     {
+        // Laravel's exception reporting (a handled exception reported with rescue() or report())
+        // reads Auth::id() for the log context: it reaches the log, never the page.
+        if ($this->isExceptionReporting()) {
+            return null;
+        }
+
         $violation = new StaticRenderViolation($type, $detail, $this->request?->getRequestUri());
 
         $this->context->recordViolation($violation);
@@ -157,6 +164,21 @@ class RenderGuard
             ->warning($violation->getMessage(), $violation->context());
 
         return null;
+    }
+
+    /**
+     * Whether the access comes from Laravel's exception handler building its report context.
+     */
+    protected function isExceptionReporting(): bool
+    {
+        foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 40) as $frame) {
+            if (isset($frame['class']) && is_a($frame['class'], ExceptionHandler::class, true)
+                && in_array($frame['function'], ['report', 'reportThrowable', 'context', 'exceptionContext', 'buildExceptionContext'], true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected function isPartialReload(): bool

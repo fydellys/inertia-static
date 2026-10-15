@@ -15,13 +15,26 @@ class CacheTagRegistry implements TagRegistry
 {
     protected const INDEX = 'inertia-static:registry:index';
 
-    public function __construct(protected Repository $cache) {}
+    public function __construct(
+        protected Repository $cache,
+        protected ?int $maxUrlsPerTag = null,
+    ) {}
 
     public function record(array $tags, array $urls): void
     {
         $write = function () use ($tags, $urls) {
             foreach (array_unique($tags) as $tag) {
-                $this->cache->forever($this->key($tag), array_values(array_unique([...$this->get($tag), ...$urls])));
+                $known = $this->get($tag);
+                $new = array_diff(array_unique($urls), $known);
+
+                // Bounded: past the limit, one overflow marker stands for every further URL.
+                if ($this->maxUrlsPerTag !== null && count($known) + count($new) > $this->maxUrlsPerTag) {
+                    $new = [...array_slice($new, 0, max(0, $this->maxUrlsPerTag - count($known))), self::OVERFLOW];
+                }
+
+                if ($new !== []) {
+                    $this->cache->forever($this->key($tag), array_values(array_unique([...$known, ...$new])));
+                }
             }
 
             $this->cache->forever(self::INDEX, array_values(array_unique([...$this->index(), ...$tags])));

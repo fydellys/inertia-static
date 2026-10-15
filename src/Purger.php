@@ -15,6 +15,7 @@ use Fydellys\InertiaStatic\Support\StaticUrls;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Support\Facades\Log;
+use Throwable;
 
 /**
  * Executes purges against the CDN driver: batching by the provider limit,
@@ -72,20 +73,42 @@ class Purger
     protected function purgeTags(CdnDriver $cdn, array $tags): array
     {
         $pages = $this->registry->urlsFor($tags);
+        $overflow = in_array(TagRegistry::OVERFLOW, $pages, true);
+        $pages = array_values(array_diff($pages, [TagRegistry::OVERFLOW]));
 
-        if ($cdn->supports(Capability::PurgeTags)) {
-            $this->inBatches($cdn, Capability::PurgeTags, $tags, fn (array $batch) => $cdn->purgeTags($batch));
-            $purged = $this->urls->variants($pages);
-        } elseif ($pages !== []) {
-            $purged = $this->purgeUrls($cdn, $pages);
-        } else {
-            Log::warning('[inertia-static] Tag purge skipped: the CDN driver has no tag purge and the tag registry knows no URL for the tags.', ['tags' => $tags]);
-            $purged = [];
-        }
-
+        // Forget first: a page rendered again while the purge runs records itself
+        // again afterwards, so the next purge of these tags still finds it.
         $this->registry->forget($tags);
 
-        return $purged;
+        try {
+            if ($cdn->supports(Capability::PurgeTags)) {
+                $this->inBatches($cdn, Capability::PurgeTags, $tags, fn (array $batch) => $cdn->purgeTags($batch));
+
+                return $this->urls->variants($pages);
+            }
+
+            if ($overflow && ($cdn->supports(Capability::PurgeAll) || $cdn->supports(Capability::PurgePrefix))) {
+                // The registry stopped recording URLs for these tags: purge everything rather than leave stale pages.
+                Log::warning('[inertia-static] Tag purge escalated to purge all: the tag registry reached max_urls_per_tag for the tags.', ['tags' => $tags]);
+
+                $this->purgeAll($cdn);
+
+                return $this->urls->variants($pages);
+            }
+
+            if ($pages !== []) {
+                return $this->purgeUrls($cdn, $pages);
+            }
+
+            Log::warning('[inertia-static] Tag purge skipped: the CDN driver has no tag purge and the tag registry knows no URL for the tags.', ['tags' => $tags]);
+
+            return [];
+        } catch (Throwable $e) {
+            // Keep the pages known for the retry.
+            $this->registry->record($tags, $overflow ? [...$pages, TagRegistry::OVERFLOW] : $pages);
+
+            throw $e;
+        }
     }
 
     /**
