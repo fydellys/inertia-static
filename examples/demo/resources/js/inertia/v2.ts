@@ -6,6 +6,9 @@ import { recordResponse } from '../devtools/recorder'
 
 export { ssrRender, useStaticIsland } from '@fydellys/inertia-static/inertia2'
 
+/** Instant visits and optimistic updates are Inertia 3 only. */
+export const V3Features = null
+
 export function staticAppOptions(manifest: NonNullable<InertiaStaticOptions['manifest']>) {
   // The recorder goes first, so it sits below the static adapter and sees the CDN's response.
   const network = axios.getAdapter(axios.defaults.adapter)

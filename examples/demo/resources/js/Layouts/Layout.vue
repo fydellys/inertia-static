@@ -26,6 +26,7 @@ function logout() {
         <Link href="/" data-testid="nav-home">Home (static)</Link>
         <Link href="/about" data-testid="nav-about">About (static)</Link>
         <Link href="/blog" data-testid="nav-blog">Blog (isr)</Link>
+        <Link href="/features" data-testid="nav-features">Features (isr)</Link>
         <Link href="/dashboard" data-testid="nav-dashboard">Dashboard (dynamic)</Link>
         <Link href="/login" data-testid="nav-login">Login</Link>
       </nav>

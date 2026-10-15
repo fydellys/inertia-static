@@ -153,7 +153,7 @@ return [
     |
     */
 
-    'deferred_props' => env('INERTIA_STATIC_DEFERRED_PROPS', 'throw'),
+    'deferred_props' => env('INERTIA_STATIC_DEFERRED_PROPS', 'allow'), // demo: /features uses <Deferred>
 
     /*
     |--------------------------------------------------------------------------

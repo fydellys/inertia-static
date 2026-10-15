@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FeaturesController;
 use App\Http\Controllers\PageController;
 use App\StaticPaths\PostPaths;
 use Illuminate\Http\Request;
@@ -12,6 +13,11 @@ Route::get('/', [PageController::class, 'home'])->name('home')->static(revalidat
 Route::get('/about', [PageController::class, 'about'])->name('about')->static(revalidate: 10);
 Route::get('/blog', [PageController::class, 'blog'])->name('blog.index')->isr(revalidate: 60, query: ['page']);
 Route::get('/blog/{post:slug}', [PageController::class, 'post'])->name('blog.show')->isr(paths: PostPaths::class);
+
+// Inertia features on static pages (Pages/Features).
+Route::get('/features', [FeaturesController::class, 'show'])->name('features')->isr(revalidate: 60, query: ['page']);
+Route::get('/features/two', [FeaturesController::class, 'two'])->name('features.two')->isr(revalidate: 60);
+Route::post('/features/like', [FeaturesController::class, 'like'])->name('features.like');
 
 // Dynamic pages (session, auth, flash).
 Route::get('/login', [PageController::class, 'login'])->name('login');

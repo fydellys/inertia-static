@@ -206,6 +206,84 @@ submit forms b nope keep
 check "dynamic page, useHttp, invalid: 422 error shown" "$(result -s=forms eval "$FSTATE")" "'valid email' in d['bError']"
 pw -s=forms close >/dev/null
 
+# ---------------------------------------------------------------- inertia features
+section "FEATURES. Inertia features on a static (ISR) page: /features"
+MAJOR=$(docker compose exec -T app php -r 'echo explode(".", json_decode(file_get_contents("node_modules/@inertiajs/core/package.json"))->version)[0];')
+reset_origin
+get /features; get /features
+eq "HTML of /features cached by the CDN" "$(hdr X-Cache-Status)" "HIT"
+eq "  no deferred value in the cached HTML (loaded later, from the live URL)" "$(echo "$B" | grep -c 'deferred at')" "0"
+eq "  no WhenVisible value in the cached HTML" "$(echo "$B" | grep -c 'visible at')" "0"
+has "  the once prop is in the cached HTML" "$B" "plans at"
+
+FT() { result "$1" eval "() => Object.fromEntries(['features-title','deferred','plans','log-count','posts-count','visible','form-error','form-ok','likes'].map(id => [id, document.querySelector('[data-testid='+id+']')?.textContent?.trim() ?? null]).concat([['url', location.pathname + location.search], ['note', document.querySelector('[data-testid=remember-input]')?.value ?? null], ['errors', document.querySelector('[data-testid=inertia-errors]')?.textContent], ['modal', document.querySelectorAll('dialog, iframe').length]]))"; }
+live_req() { # session, path fragment: the last request to it went to the live URL, uncached
+  check "$3" "$(requests "$1")" "any(r[2].startswith('/__inertia/live/') and '$2' in r[2] and r[3] == '200' and 'BYPASS' in r[5] and r[4] not in ('HIT','STALE') for r in d)"
+}
+
+pw -s=feat open "$BASE/features" $HEADED --browser=chromium >/dev/null; ready -s=feat; sleep 1.5
+F=$(FT -s=feat)
+check "Deferred: value loaded after the page" "$F" "(d['deferred'] or '').startswith('deferred at')"
+live_req -s=feat features.json "  through the live URL, never cached"
+check "WhenVisible: not loaded before it is visible" "$F" "d['visible'] == 'waiting…'"
+pw -s=feat eval "() => window.scrollTo(0, document.body.scrollHeight)" >/dev/null; sleep 1.5
+check "WhenVisible: loaded when scrolled into view" "$(FT -s=feat)" "(d['visible'] or '').startswith('visible at')"
+live_req -s=feat features.json "  through the live URL, never cached"
+pw -s=feat eval "() => window.scrollTo(0, 0)" >/dev/null
+
+click -s=feat log-add; click -s=feat log-add; sleep 0.5
+check "merge props: entries appended by partial reloads" "$(FT -s=feat)" "d['log-count'] == '3'"
+click -s=feat log-reset; sleep 0.5
+check "  reset: replaced instead of merged" "$(FT -s=feat)" "d['log-count'] == '1'"
+live_req -s=feat features.json "  partial reloads through the live URL"
+
+click -s=feat scroll-more; sleep 1
+F=$(FT -s=feat)
+check "InfiniteScroll: next page appended" "$F" "d['posts-count'] == '8'"
+check "  the URL follows the page (?page=2)" "$F" "d['url'] == '/features?page=2'"
+check "  loaded through the live URL with ?page=2" "$(requests -s=feat)" "any(r[2].startswith('/__inertia/live/') and 'features.json?page=2' in r[2] and 'BYPASS' in r[5] for r in d)"
+click -s=feat scroll-more; sleep 1
+check "  third page appended" "$(FT -s=feat)" "d['posts-count'] == '12'"
+get /features?page=2; get /features?page=2
+eq "  /features?page=2 opened directly is its own cached page (query whitelist)" "$(hdr X-Cache-Status)" "HIT"
+
+P1=$(text -s=feat plans)
+click -s=feat features-two; sleep 1
+F=$(FT -s=feat)
+check "once prop: present after visiting another page that has it" "$F" "d['features-title'] == 'Features two' and (d['plans'] or '').startswith('plans at')"
+check "  the visit used the cacheable JSON URL" "$(requests -s=feat)" "d[0][2].startswith('/__inertia/') and not d[0][2].startswith('/__inertia/live/') and d[0][2].endswith('/features/two.json')"
+artisan inertia-static:purge --url=/features/two --hard
+J=$(json_url /features/two)
+get "$J" -H "X-Inertia: true" -H "X-Inertia-Except-Once-Props: plans"
+get "$J"
+has "  a visit sending X-Inertia-Except-Once-Props never caches a page without the once prop" "$B" "plans at"
+
+pw -s=feat fill "getByTestId('remember-input')" "remember me" >/dev/null
+click -s=feat nav-about
+pw -s=feat go-back >/dev/null; sleep 1.5
+F=$(FT -s=feat)
+check "useRemember: value restored on back (encrypted history)" "$F" "d['note'] == 'remember me' and d['features-title'] == 'Features two'"
+check "  history entry is encrypted (no props in clear text)" "$(result -s=feat eval "() => JSON.stringify(history.state ?? {}).includes('remember me') || JSON.stringify(history.state ?? {}).includes('plans at')")" "d == False"
+
+pw -s=feat cookie-clear >/dev/null 2>&1
+pw -s=feat fill "getByTestId('form-email')" "nope" >/dev/null; click -s=feat form-submit; sleep 1.5
+check "<Form>: validation error on a static page" "$(FT -s=feat)" "'valid email' in (d['form-error'] or '') and d['modal'] == 0"
+pw -s=feat fill "getByTestId('form-email')" "ana@example.com" >/dev/null; click -s=feat form-submit; sleep 1.5
+check "<Form>: valid submit, back on the static page" "$(FT -s=feat)" "d['form-ok'] == 'subscribed' and d['url'] == '/features/two' and d['errors'] == 'Inertia errors: none' and d['modal'] == 0"
+
+if [ "$MAJOR" -ge 3 ]; then
+  L0=$(text -s=feat likes)
+  click -s=feat like; sleep 1.5
+  check "Inertia 3 optimistic update: like counted, page still static" "$(FT -s=feat)" "int(d['likes']) == $L0 + 1 and d['errors'] == 'Inertia errors: none'"
+  click -s=feat instant-about; sleep 1
+  check "Inertia 3 instant visit: About shown" "$(state -s=feat)" "d['url'] == '/about' and d['component'] == 'About' and d['errors'] == 'Inertia errors: none'"
+  check "  then fetched from the cacheable JSON URL" "$(requests -s=feat)" "d[0][2].startswith('/__inertia/') and not d[0][2].startswith('/__inertia/live/') and d[0][2].endswith('/about.json')"
+fi
+eq "no console errors on the features page" "$(pw -s=feat console error 2>&1 | grep -o 'Errors: [0-9]*' | grep -o '[0-9]*')" "0"
+pw -s=feat close >/dev/null 2>&1
+get /features
+eq "the cached /features HTML has nobody's data" "$(echo "$B" | grep -cE 'remember me|ana@example|Subscribed')" "0"
+
 # ---------------------------------------------------------------- ssr / seo
 section "SSR & SEO. server-rendered HTML from the CDN, JavaScript disabled, hydration"
 for u in / /about /blog /blog/post-1; do get "$u"; get "$u"

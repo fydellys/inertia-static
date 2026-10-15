@@ -6,6 +6,9 @@ import { recordResponse } from '../devtools/recorder'
 
 export { useStaticIsland } from '@fydellys/inertia-static/vue'
 
+/** Inertia 3 only features (Pages/Features.vue). */
+export { default as V3Features } from '../Components/V3Features.vue'
+
 /** Inertia 3 awaits its SSR render: nothing to adapt. */
 export const ssrRender = <T>(renderToString: T): T => renderToString
 

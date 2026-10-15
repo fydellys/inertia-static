@@ -6,6 +6,9 @@ import { recordResponse } from '../devtools/recorder'
 
 export { useStaticIsland } from '@fydellys/inertia-static/react'
 
+/** Inertia 3 only features (Pages/Features.tsx). */
+export { default as V3Features } from '../Components/V3Features'
+
 export function staticAppOptions(manifest: StaticManifest) {
   return { http: inertiaStatic({ manifest, client: recordingClient() }) }
 }
