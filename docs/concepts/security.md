@@ -54,7 +54,9 @@ The mode is set by `leak_detector.mode` (`INERTIA_STATIC_LEAK_DETECTOR`):
 
 - `throw` (default in `local` and `testing`): throws `StaticRenderViolation`, naming the accessor;
 - `auto` (default elsewhere): the response is sent with `no-store`, the violation is logged and, if the page
-  rendered successfully, the route **becomes dynamic** from the next request on (session restored);
+  rendered successfully, the route **becomes dynamic** from the next request on (session restored). A leak in a
+  partial reload only (a `<WhenVisible>`, deferred or scroll prop reading the user) is logged and served with
+  `no-store`, but the page stays static: the cached render never runs that code;
 - `log`: logs and sends `no-store`, but the route stays static.
 
 ### When a route was turned dynamic

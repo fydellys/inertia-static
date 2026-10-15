@@ -120,6 +120,37 @@ it('turns a leaking route dynamic in "auto" mode', function () {
     expect($downgrades->all())->toBe([]);
 });
 
+it('does not turn a route dynamic for a leak only a partial reload sees (<WhenVisible>, deferred props)', function () {
+    config(['inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+    $route = $this->router()->getRoutes()->match(Request::create('/leak/optional'));
+    $partial = ['X-Inertia' => 'true', 'X-Inertia-Version' => 'v1', 'X-Inertia-Partial-Component' => 'Leak', 'X-Inertia-Partial-Data' => 'me'];
+
+    // The full render never resolves the optional prop: cacheable, no violation.
+    $this->get('/leak/optional')->assertOk()->assertHeader('X-Inertia-Static', 'MISS');
+
+    // The partial reload reads the user: hidden, never cached, logged, but the page stays static.
+    $this->actingAs((new User)->forceFill(['id' => 1, 'name' => 'Alice']))
+        ->get('/__inertia/live/v1/leak/optional.json', $partial)
+        ->assertOk()->assertJsonPath('props.me', 'guest')
+        ->assertHeader('Cache-Control', 'no-store, private');
+    $this->get('/leak/optional', $partial)->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+
+    expect(app(Downgrades::class)->has($route))->toBeFalse();
+    Log::shouldHaveReceived('warning')->withArgs(fn (string $message) => str_contains($message, 'auth'))->atLeast()->once();
+
+    $this->get('/leak/optional')->assertOk()->assertHeader('X-Inertia-Static', 'MISS');
+});
+
+it('still turns a route dynamic when its full render leaks, also through the live URL', function () {
+    config(['inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+
+    $this->get('/__inertia/live/v1/leak/auth.json', ['X-Inertia' => 'true'])->assertOk()->assertHeader('Cache-Control', 'no-store, private');
+
+    expect(app(Downgrades::class)->has($this->router()->getRoutes()->match(Request::create('/leak/auth'))))->toBeTrue();
+});
+
 it('defaults to "auto" outside local / testing', function () {
     $this->app['env'] = 'production';
 

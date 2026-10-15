@@ -5,6 +5,14 @@ minor versions may contain breaking changes.
 
 ## [Unreleased]
 
+### Fixed
+- Leak detector, `auto` mode: a leak that only happens in a partial reload (a `<WhenVisible>`, deferred or scroll
+  prop reading the user) no longer turns the whole route dynamic. It is still logged and served with `no-store`;
+  the cached page never runs that code.
+
+### Changed
+- GitHub Actions pinned by commit SHA, kept up to date by Dependabot.
+
 ## [0.2.0] - 2026-10-15
 
 ### Client

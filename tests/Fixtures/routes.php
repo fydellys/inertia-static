@@ -33,6 +33,8 @@ Route::middleware('web')->group(function () {
     // Pages misbehaving on purpose (leak detector).
     Route::get('/leak/session', fn () => Inertia::render('Leak', ['value' => session('key')]))->isr();
     Route::get('/leak/auth', fn () => Inertia::render('Leak', ['value' => auth()->check()]))->isr();
+    // The user read only by a prop a partial reload asks for (<WhenVisible>), never by the cached render.
+    Route::get('/leak/optional', fn () => Inertia::render('Leak', ['value' => 'public', 'me' => Inertia::optional(fn () => auth()->user()?->name ?? 'guest')]))->isr();
     Route::get('/leak/auth-facade', fn () => Inertia::render('Leak', ['value' => Auth::id()]))->isr();
     Route::get('/leak/request-user', fn (Request $request) => Inertia::render('Leak', ['value' => $request->user()]))->isr();
     Route::get('/leak/cookie', function () {
