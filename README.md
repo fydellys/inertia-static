@@ -54,11 +54,17 @@ Route::get('/blog/{post:slug}', [PostController::class, 'show'])
     ->isr(revalidate: 3600, tags: ['posts'], paths: PostPaths::class);
 ```
 
-Tag responses, and purge them when the data changes:
+Fine-tune the cache of each response, right in the controller:
 
 ```php
-return Inertia::render('Post/Show', ['post' => $post])->tags(["post:{$post->id}"]);
+return Inertia::render('Post/Show', ['post' => $post])
+    ->revalidate(3600)            // edge TTL for this response
+    ->staleWhileRevalidate(86400) // serve the old page while it is rendered again
+    ->staleIfError(604800)        // keep serving it if the origin fails
+    ->tags(['posts', "post:{$post->id}"]);
 ```
+
+Purge by tag when the data changes:
 
 ```php
 class Post extends Model
