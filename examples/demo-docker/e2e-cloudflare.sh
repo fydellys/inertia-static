@@ -38,7 +38,18 @@ walk() { for target in nav-about nav-blog next post-post-6 back nav-home nav-blo
 version() { curl -s "$BASE/__inertia/manifest.json" >/dev/null; $DC exec -T origin php -r 'echo hash_file("xxh128", "public/build/manifest.json");'; }
 json_url() { local p="${1#/}"; echo "/__inertia/$VERSION/${p:-index}.json"; }
 
-get() { rm -f "$TMP/body"; H=$(curl -s -D - -o "$TMP/body" "${@:2}" "$BASE$1" | tr -d '\r'); B=$(cat "$TMP/body" 2>/dev/null); }
+# Each Cloudflare data center has its own cache, and a network can reach several of them (new
+# connection, new data center). get() retries until it lands on the data center pinned in setup ($COLO).
+COLO=""
+colo() { echo "$H" | grep -i '^cf-ray:' | head -1 | sed 's/.*-//'; }
+get() {
+  for _ in $(seq 1 20); do
+    rm -f "$TMP/body"; H=$(curl -s -D - -o "$TMP/body" "${@:2}" "$BASE$1" | tr -d '\r')
+    { [ -z "$COLO" ] || [ "$(colo)" = "$COLO" ]; } && break
+  done
+  B=$(cat "$TMP/body" 2>/dev/null)
+}
+warm_all() { for _ in $(seq 1 12); do curl -s -o /dev/null "${@:2}" "$BASE$1"; done; } # every data center we reach
 hdr() { echo "$H" | grep -i "^$1:" | head -1 | cut -d' ' -f2-; }
 cf() { get "$@"; hdr cf-cache-status; }
 rendered() { get "$@"; AT=$(echo "$B" | sed 's/&quot;/"/g' | grep -o '"renderedAt":"[^"]*"' | head -1 | cut -d'"' -f4); }
@@ -73,6 +84,7 @@ queue_idle
 artisan inertia-static:purge --all   # hosts purge: only $CF_HOST
 VERSION=$(version)
 sleep 2
+get /; COLO=$(colo); echo "  (data center pinned for curl checks: $COLO)"
 reset_origin
 pw close-all >/dev/null 2>&1
 eq "origin answers through the tunnel" "$(curl -s -o /dev/null -w '%{http_code}' "$BASE/")" "200"
@@ -103,6 +115,7 @@ section "2. warm Cloudflare, then a new browser: no page reaches the origin"
 pw -s=warm open "$BASE/" $HEADED --browser=chromium >/dev/null; ready -s=warm
 walk -s=warm; walk -s=warm
 pw -s=warm close >/dev/null
+for u in / /about /blog "/blog?page=2" /blog/post-1 /blog/post-6; do warm_all "$u"; warm_all "$(json_url "${u%%\?*}")${u#"${u%%\?*}"}"; done
 reset_origin
 pw -s=visitor open "$BASE/" $HEADED --browser=chromium >/dev/null; ready -s=visitor
 walk -s=visitor; sleep 1
@@ -254,6 +267,7 @@ check "Firefox: back from another site shows HTML" "$(result -s=firefox eval "()
 
 # ---------------------------------------------------------------- 7b
 section "7b. same-page clicks, reloads and polling through Cloudflare (inertia#1923)"
+warm_all "$(json_url /about)"
 pw -s=visitor goto "$BASE/about" >/dev/null; ready -s=visitor
 for i in 1 2 3; do click -s=visitor nav-about; done
 R=$(requests -s=visitor)
