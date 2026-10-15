@@ -1,10 +1,22 @@
 # Inertia Static
 
+[![Tests](https://github.com/fydellys/inertia-static/actions/workflows/tests.yml/badge.svg)](https://github.com/fydellys/inertia-static/actions/workflows/tests.yml)
+[![Latest version](https://img.shields.io/packagist/v/fydellys/inertia-static)](https://packagist.org/packages/fydellys/inertia-static)
+[![Downloads](https://img.shields.io/packagist/dt/fydellys/inertia-static)](https://packagist.org/packages/fydellys/inertia-static)
+[![PHP](https://img.shields.io/packagist/dependency-v/fydellys/inertia-static/php)](https://packagist.org/packages/fydellys/inertia-static)
+![Laravel 12 | 13](https://img.shields.io/badge/Laravel-12%20%7C%2013-FF2D20?logo=laravel&logoColor=white)
+![Inertia 2 | 3](https://img.shields.io/badge/Inertia-2%20%7C%203-9553E9)
+![Vue | React](https://img.shields.io/badge/client-Vue%20%7C%20React-42b883)
+[![License](https://img.shields.io/packagist/l/fydellys/inertia-static)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-fydellys.github.io-blue)](https://fydellys.github.io/inertia-static/)
+
 Inertia Static brings SSG/ISR to **Laravel + Inertia.js** without depending on a specific provider. Your pages are rendered at the origin, cached at the edge of any CDN, revalidated by time or on demand, and navigated as a normal Inertia SPA. No session ever reaches the cache.
 
 It is based on the rendering model of [Next.js](https://nextjs.org/docs/app/guides/incremental-static-regeneration): the same SSG and ISR ideas, with the same names (`revalidate`, tags, on-demand revalidation, preview mode), applied to Laravel routes and served by your CDN. See [Compared to Next.js](https://fydellys.github.io/inertia-static/concepts/nextjs) for the mapping.
 
 Works with Cloudflare, Fastly, Bunny, CloudFront, Varnish, nginx or any HTTP cache.
+
+![An ISR page: MISS on the first visit, then HIT from the CDN; a tag purge and it is rendered again](.github/art/demo.gif)
 
 **Documentation:** https://fydellys.github.io/inertia-static/
 
@@ -130,6 +142,7 @@ The CDN also needs its own configuration. On Cloudflare, HTML is not cached unti
 
 - **No session on static routes.** Cookies, the session, CSRF and private shared props are removed. A leak detector throws when code reads the user or the session during a static render.
 - **Page JSON on its own URL** (`/__inertia/{version}/{path}.json`). CDNs that ignore `Vary: X-Inertia` never mix HTML and JSON.
+- **Inertia features keep working**: deferred props, `<WhenVisible>`, infinite scroll, polling, once props, prefetch, history encryption, `<Form>`. Anything that loads data after the page goes to the origin, never to the cache. See [Inertia features](https://fydellys.github.io/inertia-static/guide/inertia-features).
 - **Fail-safe headers.** Strong ETags and 304s. When in doubt the response is `no-store`, for example when the SSR server is down, on 5xx, or with `Authorization`.
 - **Purges are queued** with debounce, batching and rate limiting. CDNs without tag purges go through a tag → URL registry.
 
