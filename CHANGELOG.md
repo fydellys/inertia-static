@@ -3,7 +3,7 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
-## [Unreleased]
+## [0.3.2] - 2026-10-16
 
 ### Added
 - Load test with k6 (`examples/demo-docker/load.sh`): through the CDN, straight to the origin, and signed-in +
