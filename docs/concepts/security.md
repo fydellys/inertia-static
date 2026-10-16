@@ -21,8 +21,8 @@ On `isr` and `static` routes:
 - **GET only.** A static route must be a `GET` route (`Route::get`): declaring `isr` / `static` on a route that
   accepts other methods throws, because that route has no CSRF protection.
 - **Never cached:** requests with an `Authorization` header, server errors, partial reloads, and Inertia DevTools
-  ids (DevTools is off on static routes). If your app uses SSR and the SSR server is down, the page without its
-  server-rendered content is not cached either, so the CDN keeps the last good copy.
+  ids (DevTools is off on static routes). With `ssr.required` on, a page rendered while the SSR server is down is
+  not cached either.
 - **Page JSON only for static routes.** `/__inertia/...` answers only for `isr` / `static` routes (`404` otherwise),
   and returns what the public HTML page already shows.
 
@@ -33,7 +33,8 @@ On `isr` and `static` routes:
 'public_shared_props' => ['appName', 'locale'],
 ```
 
-1. List the shared props that are the same for every visitor in `public_shared_props`.
+1. List the shared props that are the same for every visitor in `public_shared_props`
+   ([shared props and the signed-in user](../guide/islands.md#shared-props-and-the-signed-in-user)).
 2. Load user data in the browser from dynamic endpoints: [islands](../guide/islands.md).
 3. Fix every leak the detector reports (below), or make that route dynamic.
 

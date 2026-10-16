@@ -82,6 +82,10 @@ OCTANE=1 ../variant.sh octane                  # also with INERTIA=2
 DEMO=.demo-octane docker compose -f compose.yml -f compose.octane.yml up -d --force-recreate app
 ./e2e.sh
 
+# load test (k6): CDN, origin, and signed-in + anonymous visitors at once (no user data on static pages)
+DEMO=.demo-octane OCTANE_WORKERS=4 SESSION_DRIVER=file docker compose -f compose.yml -f compose.octane.yml up -d --force-recreate app
+VUS=50 DURATION=30s ./load.sh
+
 # the same suite through Varnish (docs/varnish.vcl, http://localhost:8089)
 docker compose -f compose.yml -f compose.varnish.yml up -d
 CDN=varnish ./e2e.sh

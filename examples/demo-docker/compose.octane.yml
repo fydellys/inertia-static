@@ -5,7 +5,8 @@
 #   DEMO=.demo-octane docker compose -f compose.yml -f compose.octane.yml up -d --force-recreate app
 #   ./e2e.sh
 #
-# One worker, so every request runs in the same PHP process: state left by a request reaches the next one.
+# One worker by default (OCTANE_WORKERS), so every request runs in the same PHP process: state left by a request
+# reaches the next one.
 services:
   app:
     image: inertia-static-octane
@@ -13,4 +14,5 @@ services:
     environment:
       XDG_CONFIG_HOME: /tmp/caddy-config
       XDG_DATA_HOME: /tmp/caddy-data
-    command: sh -c "php artisan config:clear >/dev/null && (php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1 &) && (php artisan queue:work --sleep=1 > storage/logs/queue.log 2>&1 &) && php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --workers=1 --max-requests=10000 --log-level=warn"
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+    command: sh -c "php artisan config:clear >/dev/null && (php artisan inertia:start-ssr > storage/logs/ssr.log 2>&1 &) && (php artisan queue:work --sleep=1 > storage/logs/queue.log 2>&1 &) && php artisan octane:frankenphp --host=0.0.0.0 --port=8000 --workers=${OCTANE_WORKERS:-1} --max-requests=10000 --log-level=warn"

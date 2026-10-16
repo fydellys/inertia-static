@@ -225,6 +225,12 @@ Shared props: only keys in `public_shared_props` are sent.
 
 Flash data shared through `HandleInertiaRequests::share()` does not reach static pages; use `Inertia::flash()`.
 
+`HandleInertiaRequests::share()` needs no change, including the starter-kit style `'auth' => ['user' =>
+$request->user()]`: on static routes `$request->user()` is `null` (no session) and `auth` is dropped because it is not
+in `public_shared_props`. Never add `auth`, `flash` or per-user props to `public_shared_props`. Props read from cookies
+(`sidebarOpen` in the starter kits) get their default on static pages. Show the user in a layout shared by static and
+dynamic pages with an island on `/api/me`, not with `$page.props.auth`.
+
 ### Leak detector
 
 `leak_detector.mode` / `INERTIA_STATIC_LEAK_DETECTOR`:
