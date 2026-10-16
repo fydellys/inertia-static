@@ -16,7 +16,8 @@ class HandleInertiaRequests extends Middleware
             // Public: survives on static pages (inertia-static.public_shared_props).
             'appName' => config('app.name'),
             // Private: dropped on static pages.
-            'auth' => fn () => ['user' => $request->user()?->only('id', 'name', 'email')],
+            // As in the Laravel starter kits (read eagerly): on static routes it is null, then dropped.
+            'auth' => ['user' => $request->user()?->only('id', 'name', 'email')],
             'flash' => fn () => $request->hasSession() ? $request->session()->get('status') : null,
             'csrf' => fn () => $request->hasSession() ? $request->session()->token() : null,
         ];
