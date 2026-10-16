@@ -40,7 +40,7 @@ Non-cacheable responses of static routes get `Cache-Control: no-store, private` 
 | Symptom | Cause | Fix |
 |---|---|---|
 | `StaticRenderViolation` in local/tests | the static render (controller, shared prop, view composer, component, root view) reads user/session/cookie/auth header; message names the accessor | load that data with `useStaticIsland` / `<StaticIsland>` from a dynamic route, or `->dynamic()` |
-| Route shows `dynamic (downgraded: …)` | `auto` leak detector turned it dynamic in production | fix the leak, deploy, `php artisan inertia-static:routes --reset-downgrades`, restart Octane / queue workers |
+| Route shows `dynamic (downgraded: …)` | `auto` leak detector turned it dynamic in production | fix the leak, deploy, `php artisan inertia-static:routes --reset-downgrades`, `php artisan octane:reload` (Octane), restart queue workers |
 | `InvalidStaticRoute` at boot | route not GET-only, negative `revalidate`, missing `paths` class, or parameterized `static` route without `paths` | use `Route::get`, fix the option, add a `StaticPathsProvider` or use `isr` |
 | `InvalidStaticRoute` about deferred props | static page uses `Inertia::defer()` with `deferred_props = throw` | `INERTIA_STATIC_DEFERRED_PROPS=allow`, or resolve the prop eagerly |
 | User menu / `auth` missing on static pages | `auth` is not a public shared prop | island calling e.g. `/api/me` |

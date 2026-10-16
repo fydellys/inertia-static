@@ -151,6 +151,23 @@ it('still turns a route dynamic when its full render leaks, also through the liv
     expect(app(Downgrades::class)->has($this->router()->getRoutes()->match(Request::create('/leak/auth'))))->toBeTrue();
 });
 
+it('turns a leaking route dynamic right away in a long-running worker (Octane), without a new boot', function () {
+    config(['inertia-static.leak_detector.mode' => 'auto']);
+    Log::spy();
+    $alice = (new User)->forceFill(['id' => 1, 'name' => 'Alice']);
+
+    $this->actingAs($alice)->get('/leak/auth')->assertOk()->assertHeader('X-Inertia-Static-Reason', 'leak:auth');
+
+    // Same application, routes not resolved again: the next request is already dynamic and sees the user.
+    $route = $this->router()->getRoutes()->match(Request::create('/leak/auth'));
+    expect(RouteOptions::fromRoute($route)->mode)->toBe(RenderMode::Dynamic)
+        ->and($this->router()->gatherRouteMiddleware($route))->toContain(StartSession::class);
+
+    $response = $this->actingAs($alice)->get('/leak/auth')->assertOk();
+    expect($response->headers->has('X-Inertia-Static'))->toBeFalse();
+    $response->assertViewHas('page', fn (array $page) => $page['props']['value'] === true);
+});
+
 it('defaults to "auto" outside local / testing', function () {
     $this->app['env'] = 'production';
 

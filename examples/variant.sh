@@ -6,6 +6,7 @@
 #   LARAVEL=^12.0 ./variant.sh laravel12        # Laravel 12, Inertia 3
 #   FRONTEND=react ./variant.sh react         # React instead of Vue (also with INERTIA=2)
 #   INERTIA=2 INERTIA_LARAVEL=2.0.22 INERTIA_VUE=2.3.11 VUE=3.5.26 AXIOS=1.13.2 ./variant.sh app   # exact versions
+#   OCTANE=1 ./variant.sh octane                # + Laravel Octane, run with demo-docker/compose.octane.yml (FrankenPHP)
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -28,6 +29,10 @@ tar -C demo --exclude=./vendor --exclude=./node_modules --exclude=./public/build
     --exclude=./bootstrap/ssr --exclude='./storage/logs/*' -cf - . | tar -C "$DEMO" -xf -
 
 ./run composer require ${LARAVEL:+"laravel/framework:$LARAVEL"} "inertiajs/inertia-laravel:$INERTIA_LARAVEL" -W --no-interaction --no-progress
+if [ -n "${OCTANE:-}" ]; then
+  ./run composer require laravel/octane -W --no-interaction --no-progress
+  ./run php artisan vendor:publish --tag=octane-config --no-interaction
+fi
 ./run npm install --no-audit --no-fund
 if [ "$FRONTEND" = react ]; then
   ./run npm install --no-audit --no-fund "@inertiajs/react@$INERTIA_VUE" "@inertiajs/core@$INERTIA_VUE" "react@$REACT" "react-dom@$REACT" \

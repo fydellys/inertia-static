@@ -59,6 +59,9 @@ eq() { [ "$2" = "$3" ] && ok "$1" || ko "$1" "expected [$3], got [$2]"; }
 ne() { [ "$2" != "$3" ] && [ -n "$2" ] && ok "$1" || ko "$1" "equal/empty values: [$2] [$3]"; }
 has() { [[ "$2" == *"$3"* ]] && ok "$1" || ko "$1" "[$2] does not contain [$3]"; }
 
+wait_since() { # waits until $2 seconds of wall clock have passed since $1 (epoch): a WSL clock adjustment can cut a plain sleep short
+  while [ $(( $(date +%s) - $1 )) -lt "$2" ]; do sleep 1; done
+}
 queue_idle() { # waits until the purge queue is empty (debounced jobs included)
   for _ in $(seq 1 30); do
     [ "$(docker compose exec -T app php artisan tinker --execute='echo DB::table("jobs")->count();' 2>/dev/null | tr -dc 0-9)" = "0" ] && return 0
@@ -323,12 +326,12 @@ pw -s=hydra close >/dev/null 2>&1
 section "6. time-based revalidation (/about: revalidate 10s, stale-while-revalidate)"
 queue_idle # a queued purge from an earlier section must not run during the wait
 artisan inertia-static:purge --url=/about
-rendered /about; A=$AT
+rendered /about; A=$AT; T0=$(date +%s)
 eq "1st visit: MISS (rendered at the origin)" "$(hdr X-Cache-Status)" "MISS"
 eq "  origin marked it cacheable (X-Inertia-Static: MISS)" "$(hdr X-Inertia-Static)" "MISS"
 rendered /about
 eq "2nd visit before expiry: HIT, same content" "$AT|$(hdr X-Cache-Status)" "$A|HIT"
-echo "    … waiting 13s for the TTL (10s) to expire"; sleep 13
+echo "    … waiting 13s for the TTL (10s) to expire"; wait_since "$T0" 13
 rendered /about
 [ "$(hdr X-Cache-Status)" = "STALE" ] || echo "    debug: $(echo "$H" | grep -iE '^(date|age|x-cache-status|x-inertia-static|x-accel)' | tr '\n' ' ')"
 eq "after expiry: STALE served instantly (old content)" "$AT|$(hdr X-Cache-Status)" "$A|STALE"
@@ -337,8 +340,8 @@ eq "  then: HIT with the version revalidated in the background" "$(hdr X-Cache-S
 ne "  content was regenerated (renderedAt changed)" "$AT" "$A"
 # same flow for the page JSON, visible in the browser panel
 pw -s=anon goto "$BASE/" >/dev/null; ready -s=anon
-click -s=anon nav-about; JA=$(text -s=anon rendered-at)
-echo "    … waiting 13s (JSON in the browser)"; sleep 13
+click -s=anon nav-about; JA=$(text -s=anon rendered-at); T0=$(date +%s)
+echo "    … waiting 13s (JSON in the browser)"; wait_since "$T0" 13
 click -s=anon nav-home; click -s=anon nav-about
 R=$(requests -s=anon)
 check "browser: expired JSON came STALE from the CDN" "$R" "d[0][4] == 'STALE'"

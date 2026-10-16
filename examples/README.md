@@ -76,6 +76,12 @@ LARAVEL=^12.0 ../variant.sh laravel12
 DEMO=.demo-react docker compose -f compose.yml -f compose.variant.yml up -d --force-recreate app
 ./e2e.sh
 
+# the same suite under Laravel Octane (FrankenPHP worker mode, one worker: every request in the same process)
+docker build -t inertia-static-octane -f ../../docker/octane.Dockerfile ../../docker
+OCTANE=1 ../variant.sh octane                  # also with INERTIA=2
+DEMO=.demo-octane docker compose -f compose.yml -f compose.octane.yml up -d --force-recreate app
+./e2e.sh
+
 # the same suite through Varnish (docs/varnish.vcl, http://localhost:8089)
 docker compose -f compose.yml -f compose.varnish.yml up -d
 CDN=varnish ./e2e.sh
