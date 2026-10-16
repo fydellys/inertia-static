@@ -3,6 +3,56 @@
 Static pages are shared by every visitor. Anything user-specific is loaded **in the browser** from a dynamic
 endpoint: an *island*.
 
+## Shared props and the signed-in user
+
+Keep `HandleInertiaRequests` as it is, including the user shared the way the Laravel starter kits do:
+
+```php
+public function share(Request $request): array
+{
+    return [
+        ...parent::share($request),
+        'name' => config('app.name'),
+        'auth' => [
+            'user' => $request->user(),
+        ],
+        'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+    ];
+}
+```
+
+```php
+// config/inertia-static.php
+'public_shared_props' => ['name', 'sidebarOpen'],
+```
+
+- **Dynamic routes** get every prop, `auth.user` included, as usual.
+- **Static routes** run without session and cookies, so `$request->user()` is `null` there, and only the props in
+  `public_shared_props` are sent: `auth` never reaches a cached page. Never list `auth`, `flash` or anything
+  per-user in `public_shared_props`.
+- **Props read from cookies** (`sidebarOpen` above) get their default value on static pages, since there are no
+  cookies. Read the cookie in the browser when the value matters on those pages.
+- **The user in a layout shared by static and dynamic pages** (a header with the name, a sign-out button) comes from
+  an island, so it is right on both:
+
+```vue
+<script setup lang="ts">
+import { useStaticIsland } from '@fydellys/inertia-static/vue'
+
+const { data } = useStaticIsland<{ user: { name: string } | null }>('/api/me')
+</script>
+
+<template>
+  <span v-if="data?.user">{{ data.user.name }}</span>
+  <a v-else href="/login">Sign in</a>
+</template>
+```
+
+```php
+// routes/web.php: a regular dynamic route
+Route::get('/api/me', fn (Request $request) => ['user' => $request->user()?->only('id', 'name')]);
+```
+
 ## `useStaticIsland()`
 
 ::: code-group

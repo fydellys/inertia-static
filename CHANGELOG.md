@@ -3,6 +3,13 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [Unreleased]
+
+### Added
+- Load test with k6 (`examples/demo-docker/load.sh`): through the CDN, straight to the origin, and signed-in +
+  anonymous visitors at the same time.
+- Docs: shared props and the signed-in user (starter-kit `HandleInertiaRequests`), in Islands, forms & CSRF.
+
 ## [0.3.1] - 2026-10-16
 
 ### Fixed
