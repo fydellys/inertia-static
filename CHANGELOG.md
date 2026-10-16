@@ -3,7 +3,7 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
-## [Unreleased]
+## [0.3.1] - 2026-10-16
 
 ### Fixed
 - Laravel Octane: a route the leak detector turns dynamic (`auto` mode) is dynamic from the next request in the same
