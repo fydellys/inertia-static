@@ -4,6 +4,7 @@ namespace Fydellys\InertiaStatic\Http\Middleware;
 
 use Closure;
 use Fydellys\InertiaStatic\Exceptions\InvalidStaticRoute;
+use Fydellys\InertiaStatic\Routing\StaticRouteConfigurator;
 use Fydellys\InertiaStatic\Security\RenderGuard;
 use Fydellys\InertiaStatic\Ssr\SsrRecorder;
 use Fydellys\InertiaStatic\Support\Downgrades;
@@ -49,6 +50,8 @@ class RenderStatically
 
         if (($pending = $this->context->pendingDowngrade) !== null && $response->getStatusCode() < 500 && ($response->exception ?? null) === null) {
             $this->container->make(Downgrades::class)->add($pending['route'], $pending['reason']);
+            // Also on the route in memory: a long-running worker (Octane) only reads the store when it boots.
+            $this->container->make(StaticRouteConfigurator::class)->downgrade($pending['route'], $pending['reason']);
         }
 
         $this->guardDeferredProps($response);
