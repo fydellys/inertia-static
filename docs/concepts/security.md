@@ -69,4 +69,5 @@ it. Fix the page (move the private data to an island), deploy, then make it stat
 php artisan inertia-static:routes --reset-downgrades
 ```
 
-Restart Octane and queue workers afterwards.
+Then run `php artisan octane:reload` if you use [Octane](../guide/deploy.md#laravel-octane), and restart the queue
+workers.

@@ -3,6 +3,15 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [Unreleased]
+
+### Fixed
+- Laravel Octane: a route the leak detector turns dynamic (`auto` mode) is dynamic from the next request in the same
+  worker, instead of after the next worker boot.
+
+### Added
+- Octane (FrankenPHP worker mode) in the demo and its E2E checks; deploy guide section for Octane.
+
 ## [0.3.0] - 2026-10-15
 
 ### Changed

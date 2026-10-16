@@ -243,7 +243,7 @@ A route turned dynamic by `auto` shows `dynamic (downgraded: …)` in `inertia-s
 After fixing and deploying:
 
 ```bash
-php artisan inertia-static:routes --reset-downgrades   # then restart Octane and queue workers
+php artisan inertia-static:routes --reset-downgrades   # then php artisan octane:reload (Octane) and restart queue workers
 ```
 
 ## Islands (user-specific data)
@@ -444,6 +444,7 @@ its cache when that cookie is present (rules in [references/cdn-setup.md](refere
    asset version changes, so page JSON URLs change automatically.
 2. `php artisan inertia-static:purge --all --warm` (HTML embeds asset URLs). Skip in headers-only mode.
 3. Keep the previous build's assets for a few hours.
+4. With Octane (FrankenPHP, Swoole, RoadRunner): `php artisan octane:reload`. No other Octane setup is needed.
 
 Checklist: `INERTIA_STATIC_BASE_URL` is public; `INERTIA_STATIC_CDN` + credentials set; SSR server supervised if
 SSR is used (`php artisan inertia:start-ssr`); a queue worker runs; CDN caches HTML and JSON; `public_shared_props`
