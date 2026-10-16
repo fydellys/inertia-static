@@ -196,11 +196,11 @@ pw -s=hydra close >/dev/null 2>&1
 # ---------------------------------------------------------------- 4
 section "4. time-based revalidation on Cloudflare (/about: revalidate 10s)"
 artisan inertia-static:purge --url=/about
-until_cf /about "MISS|EXPIRED"; A=$AT
+until_cf /about "MISS|EXPIRED"; A=$AT; T0=$(date +%s)
 match "1st visit: MISS" "$(hdr cf-cache-status)" "^(MISS|EXPIRED)$"
 rendered /about
 eq "2nd visit: HIT, same content" "$AT|$(hdr cf-cache-status)" "$A|HIT"
-echo "    … waiting 15s for the TTL (10s) to expire"; sleep 15
+echo "    … waiting 15s for the TTL (10s) to expire"; while [ $(( $(date +%s) - T0 )) -lt 15 ]; do sleep 1; done
 rendered /about; S1=$(hdr cf-cache-status); A1=$AT
 echo "    Cloudflare answered [$S1] right after expiry"
 if [[ "$S1" =~ ^(STALE|UPDATING)$ ]]; then
