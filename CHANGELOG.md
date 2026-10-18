@@ -3,7 +3,7 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
-## [Unreleased]
+## [0.3.3] - 2026-10-18
 
 ### Fixed
 - Types: `withInertiaStatic({ manifest })` with the manifest imported from `inertia-static.json` type-checks
