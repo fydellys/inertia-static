@@ -1,5 +1,5 @@
 import { InertiaStaticOptions, StaticHttpClient } from './index.js';
-export { a as StaticManifest, e as ensureCsrfCookie } from './csrf-BrRGbcsv.js';
+export { a as StaticManifest, e as ensureCsrfCookie } from './csrf-ClD4GH0G.js';
 export { S as StaticIsland, a as StaticIslandProps, u as useStaticIsland } from './StaticIsland-DNU_7NXW.js';
 export { S as StaticIslandOptions } from './island-Cx4_sdB7.js';
 import '@inertiajs/core';

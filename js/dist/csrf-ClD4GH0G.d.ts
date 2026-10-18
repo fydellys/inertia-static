@@ -16,7 +16,8 @@ interface StaticManifest {
 interface StaticManifestRoute {
     name?: string;
     pattern: string;
-    mode: 'isr' | 'static';
+    /** "isr" or "static"; a plain string so a manifest imported from JSON type-checks. */
+    mode: string;
     query?: string[];
     domain?: string;
 }

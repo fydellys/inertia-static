@@ -10,8 +10,8 @@ import { withInertiaStatic as inertia2Vue } from '../src/inertia2'
 import { withInertiaStatic as inertia2React } from '../src/inertia2/react'
 import { withInertiaStatic as vue, ssrRender } from '../src/vue'
 import { withInertiaStatic as react } from '../src/react'
-// @ts-expect-error plain JS module shipped with the package
-import { aliases, installedInertia } from '../vite.js'
+import { aliases, dedupe, installedInertia } from '../vite.js'
+import imported from './fixtures/manifest.json'
 import { manifest } from './helpers'
 
 function project(version?: string): string {
@@ -29,6 +29,10 @@ describe('withInertiaStatic()', () => {
   it('Inertia 3 (Vue and React): returns the http option', () => {
     expect(vue({ manifest }).http).toBeInstanceOf(StaticHttpClient)
     expect(react({ manifest }).http).toBeInstanceOf(StaticHttpClient)
+  })
+
+  it('takes the manifest imported from the JSON file the Vite plugin writes', () => {
+    expect(vue({ manifest: imported }).http).toBeInstanceOf(StaticHttpClient)
   })
 
   it('Inertia 2 (Vue and React): installs the adapter on the app axios, once, and adds no option', () => {
@@ -73,5 +77,12 @@ describe('Vite plugin', () => {
     expect(resolve(3, '@fydellys/inertia-static/vue')).toMatch(/dist[\\/]vue$/)
     expect(resolve(null, '@fydellys/inertia-static/react')).toMatch(/dist[\\/]react$/)
     expect(resolve(2, '@fydellys/inertia-static/inertia2/react')).toMatch(/dist[\\/]inertia2[\\/]react$/)
+  })
+
+  it('dedupes axios only on Inertia 2, where the app may not even have it installed otherwise', () => {
+    expect(dedupe(2)).toContain('axios')
+    expect(dedupe(3)).not.toContain('axios')
+    expect(dedupe(null)).not.toContain('axios')
+    expect(dedupe(3)).toEqual(expect.arrayContaining(['@inertiajs/core', 'vue']))
   })
 })

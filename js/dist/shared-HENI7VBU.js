@@ -1,7 +1,7 @@
 import {
   MISSING_STATUSES,
   StaticRouting
-} from "./shared-JKP2DSHM.js";
+} from "./shared-U2YX7IMO.js";
 
 // js/src/client.ts
 import {
@@ -55,4 +55,4 @@ export {
   StaticHttpClient,
   createStaticHttpClient
 };
-//# sourceMappingURL=shared-4JYTRPWR.js.map
+//# sourceMappingURL=shared-HENI7VBU.js.map

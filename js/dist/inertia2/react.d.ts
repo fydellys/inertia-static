@@ -1,6 +1,6 @@
-export { A as AxiosLike, i as installInertiaStatic } from '../adapter-BB0clyZ7.js';
-import { S as StaticRoutingOptions } from '../csrf-BrRGbcsv.js';
-export { e as ensureCsrfCookie } from '../csrf-BrRGbcsv.js';
+export { A as AxiosLike, i as installInertiaStatic } from '../adapter-CmGTDh41.js';
+import { S as StaticRoutingOptions } from '../csrf-ClD4GH0G.js';
+export { e as ensureCsrfCookie } from '../csrf-ClD4GH0G.js';
 export { S as StaticIsland, a as StaticIslandProps, u as useStaticIsland } from '../StaticIsland-DNU_7NXW.js';
 export { S as StaticIslandOptions } from '../island-Cx4_sdB7.js';
 import 'react';

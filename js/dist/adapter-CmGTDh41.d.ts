@@ -1,4 +1,4 @@
-import { H as HeaderBag, S as StaticRoutingOptions } from './csrf-BrRGbcsv.js';
+import { H as HeaderBag, S as StaticRoutingOptions } from './csrf-ClD4GH0G.js';
 
 interface AxiosConfigLike {
     method?: string;

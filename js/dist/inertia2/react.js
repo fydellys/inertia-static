@@ -4,11 +4,11 @@ import {
 } from "../shared-FLAYOD6R.js";
 import {
   installInertiaStatic
-} from "../shared-PEXP5CXU.js";
+} from "../shared-2Z2XTITC.js";
 import "../shared-6NJEPP6G.js";
 import {
   ensureCsrfCookie
-} from "../shared-JKP2DSHM.js";
+} from "../shared-U2YX7IMO.js";
 
 // js/src/inertia2/react.ts
 import axios from "axios";
