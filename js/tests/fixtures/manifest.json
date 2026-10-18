@@ -1,0 +1,12 @@
+{
+    "prefix": "/__inertia",
+    "previewCookie": "inertia_static_preview",
+    "routes": [
+        {
+            "name": "home",
+            "pattern": "^/$",
+            "mode": "static",
+            "query": []
+        }
+    ]
+}

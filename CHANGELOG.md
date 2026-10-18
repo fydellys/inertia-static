@@ -3,6 +3,18 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [0.3.3] - 2026-10-18
+
+### Fixed
+- Types: `withInertiaStatic({ manifest })` with the manifest imported from `inertia-static.json` type-checks
+  (`vue-tsc` failed with `TS2322 ... not assignable to type 'StaticManifest'`): `StaticManifestRoute.mode` is a
+  `string`.
+- Vite plugin: `axios` is deduped on Inertia 2 only. The client does not use it on Inertia 3, and deduping it in a
+  project without axios could break the optional `import("axios")` inside `@inertiajs/core`.
+
+### Added
+- `vite.d.ts` declares `installedInertia()`, `aliases()`, `dedupe()` and the `inertia` option.
+
 ## [0.3.2] - 2026-10-16
 
 ### Added

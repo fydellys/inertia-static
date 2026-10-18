@@ -1,6 +1,6 @@
 import {
   createStaticHttpClient
-} from "./shared-4JYTRPWR.js";
+} from "./shared-HENI7VBU.js";
 import {
   StaticIsland,
   useStaticIsland
@@ -8,7 +8,7 @@ import {
 import "./shared-6NJEPP6G.js";
 import {
   ensureCsrfCookie
-} from "./shared-JKP2DSHM.js";
+} from "./shared-U2YX7IMO.js";
 
 // js/src/vue/index.ts
 function inertiaStatic(options = {}) {
