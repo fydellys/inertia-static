@@ -55,6 +55,9 @@ export default defineConfig({
 })
 ```
 
+The manifest is generated: keep `/resources/js/inertia-static.json` in `.gitignore` and run
+`php artisan inertia-static:manifest` in CI before `vue-tsc`/`tsc`. A production build fails if it cannot be written.
+
 Vite plugin options: `manifest` (default `true`, writes `resources/js/inertia-static.json` via
 `php artisan inertia-static:manifest` when Vite starts or builds), `php` (`'php'`), `artisan` (`'artisan'`),
 `inertia` (`2` or `3`, detected from `node_modules`).

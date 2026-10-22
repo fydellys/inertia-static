@@ -42,7 +42,20 @@ The plugin:
 - makes `@fydellys/inertia-static/vue` and `/react` importable, pointing to the client of the Inertia version you
   have installed (2 or 3);
 - dedupes `@inertiajs/core`, `vue`, `react`, `react-dom` and `axios`, so the client and your app share one copy;
-- writes `resources/js/inertia-static.json` (`php artisan inertia-static:manifest`) when the build starts.
+- writes `resources/js/inertia-static.json` (`php artisan inertia-static:manifest`) when the build starts. A
+  production build fails if it cannot.
+
+The manifest is generated, like Wayfinder's files: keep it out of git (Prettier, oxfmt and ESLint skip ignored files
+too), and in CI generate it before anything that reads it without Vite, such as `vue-tsc` or `tsc`:
+
+```gitignore
+/resources/js/inertia-static.json
+```
+
+```yaml
+- run: php artisan inertia-static:manifest
+- run: npx vue-tsc --noEmit
+```
 
 | Option | Default | |
 |---|---|---|

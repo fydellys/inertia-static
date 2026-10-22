@@ -7,7 +7,8 @@
 //   on Inertia 2, "/vue" and "/react" resolve to the Inertia 2 adapters, so one import works on both;
 // - dedupes @inertiajs/core and vue, so the client and the app share ONE copy
 //   (the client relies on Inertia's own classes, e.g. HttpResponseError), and axios on Inertia 2 only;
-// - writes the static route manifest (php artisan inertia-static:manifest) when the build starts.
+// - writes the static route manifest (php artisan inertia-static:manifest) when the build starts; a production build
+//   fails when it cannot, instead of shipping a client without static routing.
 import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -74,6 +75,8 @@ export function dedupe(inertia) {
 export default function inertiaStatic(options = {}) {
   const { manifest = true, php = 'php', artisan = 'artisan' } = options
 
+  let building = false
+
   return {
     name: 'fydellys:inertia-static',
     enforce: 'pre',
@@ -87,6 +90,9 @@ export default function inertiaStatic(options = {}) {
         },
       }
     },
+    configResolved(config) {
+      building = config.command === 'build'
+    },
     buildStart() {
       if (!manifest) {
         return
@@ -95,7 +101,13 @@ export default function inertiaStatic(options = {}) {
       try {
         execFileSync(php, [artisan, 'inertia-static:manifest'], { stdio: 'pipe' })
       } catch (error) {
-        this.warn(`[inertia-static] could not run "php artisan inertia-static:manifest": ${error.message}`)
+        const message = `[inertia-static] could not run "php artisan inertia-static:manifest": ${error.message}`
+
+        if (building) {
+          this.error(message)
+        }
+
+        this.warn(message)
       }
     },
   }

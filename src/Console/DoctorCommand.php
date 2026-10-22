@@ -35,6 +35,7 @@ class DoctorCommand extends Command
         $this->check('Base URL is absolute', (bool) filter_var(config('inertia-static.base_url'), FILTER_VALIDATE_URL), 'Set INERTIA_STATIC_BASE_URL / APP_URL.');
         $this->components->twoColumnDetail('Inertia SSR', config('inertia.ssr.enabled', false) ? 'enabled' : 'disabled');
         $this->checkSsrHealth();
+        $this->checkManifestIgnored();
 
         try {
             $driver = $cdn->driver();
@@ -108,5 +109,21 @@ class DoctorCommand extends Command
         if (! $warn) {
             $this->errors++;
         }
+    }
+
+    protected function checkManifestIgnored(): void
+    {
+        $gitignore = base_path('.gitignore');
+
+        if (! is_file($gitignore)) {
+            return;
+        }
+
+        $this->check(
+            'Manifest ignored by git',
+            str_contains((string) file_get_contents($gitignore), 'inertia-static.json'),
+            'Add /resources/js/inertia-static.json to .gitignore: the Vite plugin rewrites it on every build.',
+            warn: true,
+        );
     }
 }

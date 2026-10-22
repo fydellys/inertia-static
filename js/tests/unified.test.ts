@@ -10,7 +10,7 @@ import { withInertiaStatic as inertia2Vue } from '../src/inertia2'
 import { withInertiaStatic as inertia2React } from '../src/inertia2/react'
 import { withInertiaStatic as vue, ssrRender } from '../src/vue'
 import { withInertiaStatic as react } from '../src/react'
-import { aliases, dedupe, installedInertia } from '../vite.js'
+import inertiaStatic, { aliases, dedupe, installedInertia } from '../vite.js'
 import imported from './fixtures/manifest.json'
 import { manifest } from './helpers'
 
@@ -84,5 +84,34 @@ describe('Vite plugin', () => {
     expect(dedupe(3)).not.toContain('axios')
     expect(dedupe(null)).not.toContain('axios')
     expect(dedupe(3)).toEqual(expect.arrayContaining(['@inertiajs/core', 'vue']))
+  })
+})
+
+describe('Vite plugin manifest step', () => {
+  type Hooks = {
+    configResolved: (config: { command: string }) => void
+    buildStart: (this: { warn: (m: string) => void; error: (m: string) => never }) => void
+  }
+
+  function run(command: string) {
+    const plugin = inertiaStatic({ php: 'false' }) as unknown as Hooks
+    const warnings: string[] = []
+    plugin.configResolved({ command })
+    plugin.buildStart.call({
+      warn: (message) => warnings.push(message),
+      error: (message): never => {
+        throw new Error(message)
+      },
+    })
+
+    return warnings
+  }
+
+  it('fails the production build when the manifest cannot be written', () => {
+    expect(() => run('build')).toThrow(/inertia-static:manifest/)
+  })
+
+  it('only warns in dev', () => {
+    expect(run('serve')).toHaveLength(1)
   })
 })

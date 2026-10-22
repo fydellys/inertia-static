@@ -3,6 +3,17 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [0.4.0] - 2026-10-22
+
+### Changed
+- Vite plugin: a production build (`vite build`) fails when `php artisan inertia-static:manifest` cannot run, instead
+  of shipping a client without static routing. `vite dev` and tests still only warn.
+- `resources/js/inertia-static.json` is a generated file: keep it in `.gitignore` and generate it in CI before
+  `vue-tsc`/`tsc` (see Installation). Committed, it is rewritten on every build and fights the formatter.
+
+### Added
+- `inertia-static:doctor` warns when `.gitignore` does not list the manifest.
+
 ## [0.3.3] - 2026-10-18
 
 ### Fixed

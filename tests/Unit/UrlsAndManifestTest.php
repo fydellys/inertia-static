@@ -68,3 +68,16 @@ it('warms through an internal CDN address keeping the public host', function () 
 
     Http::assertSent(fn ($r) => $r->url() === 'http://cdn:8088/blog?page=2' && $r->hasHeader('Host', 'example.com'));
 });
+
+it('warns in the doctor when the manifest is not ignored by git', function () {
+    $gitignore = base_path('.gitignore');
+    $previous = is_file($gitignore) ? file_get_contents($gitignore) : null;
+
+    file_put_contents($gitignore, "/vendor\n");
+    $this->artisan('inertia-static:doctor')->expectsOutputToContain('Manifest ignored by git');
+
+    file_put_contents($gitignore, "/vendor\n/resources/js/inertia-static.json\n");
+    $this->artisan('inertia-static:doctor')->doesntExpectOutputToContain('Add /resources/js/inertia-static.json');
+
+    $previous === null ? unlink($gitignore) : file_put_contents($gitignore, $previous);
+});
