@@ -3,6 +3,12 @@
 All notable changes to this project follow [Semantic Versioning](https://semver.org). While the version is `0.x`,
 minor versions may contain breaking changes.
 
+## [0.4.1] - 2026-10-26
+
+### Fixed
+- Agent skill: the Varnish VCL ships inside the skill (`references/varnish.vcl`) instead of a GitHub URL to fetch, so
+  the skill needs no external file at runtime (Snyk W012 on skills.sh).
+
 ## [0.4.0] - 2026-10-22
 
 ### Changed

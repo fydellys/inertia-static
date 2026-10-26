@@ -110,9 +110,9 @@ INERTIA_STATIC_CDN=varnish
 VARNISH_HOSTS=http://varnish-1:6081,http://varnish-2:6081   # default http://127.0.0.1:6081; empty = headers-only
 ```
 
-Requires varnish-modules (`xkey`, included in the official `varnish` Docker image). Use the VCL from
-https://github.com/fydellys/inertia-static/blob/main/docs/varnish.vcl, change the `backend` to the app and restrict
-`acl purge` to the app servers. It stores only `cacheable` responses and reads TTL/stale time from
+Requires varnish-modules (`xkey`, included in the official `varnish` Docker image). Use
+[varnish.vcl](varnish.vcl) (in this skill), change the `backend` to the app and restrict `acl purge` to the app
+servers. It stores only `cacheable` responses and reads TTL/stale time from
 `Surrogate-Control`; `X-Cache` shows `HIT`, `STALE`, `MISS` or `BYPASS`. Tag header: `drivers.varnish.tag_header` (`xkey`). Soft tag purges by
 default. Preview bypass in `vcl_recv`: `if (req.http.Cookie ~ "inertia_static_preview=") { return (pass); }`.
 
